@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -8,7 +8,7 @@ import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { labelClass, ratePct } from "@/Components/InnoCBS/Deposits/depositShared";
 import { Field } from "@/Components/InnoCBS/Loans/loanShared";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { partyBlockApi } from "@/Services/Merchant/ops.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -59,9 +59,37 @@ export const splitParty = (v) => {
   return entity_type && id ? { entity_type, entity_id: Number(id) } : {};
 };
 
+// An account, from /config/account/pick: by number or owner name, or the
+// accounts of one owner ({ owner_type, owner_id }). The value is the acct_id.
+export function AcctPick({ value, onChange, owner, currency, label }) {
+  const L = useL();
+  const [found, setFound] = useState(label && value ? [{ value: String(value), label }] : []);
+  const latest = useRef(0);
+  const ownerKey = owner?.owner_id ? `${owner.owner_type}:${owner.owner_id}` : "";
+  const search = (text = "") => {
+    const ticket = ++latest.current;
+    request("/config/account/pick", { search: text, page: 1, limit: 25, ...(owner?.owner_id ? owner : {}), ...(currency ? { currency } : {}) })
+      .then((r) => {
+        if (ticket === latest.current) setFound(rowsOf(r).map((a) => ({ value: String(a.acct_id), label: [a.acct_num, a.owner_name, a.product_name, a.currency, a.avail_bal].filter(Boolean).join(" · ") })));
+      })
+      .catch((e) => notifications.error(e.message));
+  };
+  useEffect(() => {
+    if (ownerKey) search("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerKey]);
+  return <FilterSelect className="mt-1" value={value ? String(value) : ""} onChange={(v) => onChange(String(v ?? ""))} onSearch={(t) => t && search(t)} options={[{ value: "", label: ownerKey ? L("Pick an account") : L("Type an account number or owner") }, ...found]} />;
+}
+// The owner of a picked party ("CUST_INDV:12") for AcctPick.
+export const ownerOf = (party) => {
+  const p = splitParty(party);
+  return p.entity_id ? { owner_type: p.entity_type, owner_id: p.entity_id } : null;
+};
+
 // One input of an OpDialog / form row. Types: those of Field, plus party and textarea.
 export function OpInput({ f, value, onChange, choices, form }) {
   if (f.type === "party") return <PartyPick value={value} onChange={onChange} />;
+  if (f.type === "acct") return <AcctPick value={value} onChange={onChange} owner={f.owner?.(form)} currency={f.currency?.(form)} />;
   if (f.type === "textarea") return <textarea className="mt-1 min-h-16 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />;
   const options = typeof f.options === "function" ? f.options(choices ?? {}, form) : (f.options ?? []);
   return <Field field={{ ...f, options }} value={value} onChange={onChange} />;
@@ -119,7 +147,7 @@ export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLa
               <Field field={{ type: "bool", label: f.label }} value={form[f.key]} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
             </div>
           ) : (
-            <div key={f.key} className={cn(labelClass, (f.wide || f.type === "textarea" || f.type === "party" || f.type === "multi") && "sm:col-span-2")}>
+            <div key={f.key} className={cn(labelClass, (f.wide || f.type === "textarea" || f.type === "party" || f.type === "acct" || f.type === "multi") && "sm:col-span-2")}>
               {f.label}
               {f.required && <RequiredMark />}
               <OpInput f={f} value={form[f.key]} choices={choices} form={form} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />

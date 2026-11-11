@@ -12,7 +12,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ActionButtons, Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { Field } from "@/Components/InnoCBS/Loans/loanShared";
-import { EventsTable, OpDialog, PartyPick, RowsTable, cell, coded, dateCell, first, pct, splitParty, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { AcctPick, EventsTable, OpDialog, ownerOf, PartyPick, RowsTable, cell, coded, dateCell, first, pct, splitParty, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -85,7 +85,7 @@ function RdOpen({ onClose, onDone }) {
         { key: "product_code", label: L("product"), type: "select", required: true, options: (c) => (c.products ?? []).map((p) => ({ value: p.code, label: `${p.code} · ${p.name}` })) },
         { key: "instalment_amount", label: L("instalment_amount"), type: "amount", required: true },
         { key: "tenure_months", label: L("tenure_months"), type: "int", required: true },
-        { key: "funding_acct_id", label: L("Funding account ID"), type: "int", required: true },
+        { key: "funding_acct_id", label: L("Funding account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
         { key: "narration", label: L("narration"), wide: true },
       ]}
       confirmLabel={L("Submit for approval")}
@@ -390,7 +390,7 @@ export function NoticeDeposits() {
           title={L("Give notice")}
           hint={L("Under the notice deposit terms of the account's product.")}
           fields={[
-            { key: "acct_id", label: L("Account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Account"), type: "acct", required: true },
             { key: "amount", label: L("amount"), type: "amount", required: true },
           ]}
           run={(x) => noticeApi.add({ acct_id: Number(x.acct_id), amount: x.amount })}
@@ -399,7 +399,7 @@ export function NoticeDeposits() {
         />
       )}
       {dialog?.kind === "withdraw" && (
-        <OpDialog title={L("Withdraw")} hint={L("Before the notice period ends, the early withdrawal charge applies.")} fields={[{ key: "to_acct_id", label: L("To account ID"), type: "int", required: true }]} run={(x) => noticeApi.withdraw({ id: dialog.id, to_acct_id: Number(x.to_acct_id) })} onClose={() => setDialog(null)} onDone={done} />
+        <OpDialog title={L("Withdraw")} hint={L("Before the notice period ends, the early withdrawal charge applies.")} fields={[{ key: "to_acct_id", label: L("To account"), type: "acct", required: true }]} run={(x) => noticeApi.withdraw({ id: dialog.id, to_acct_id: Number(x.to_acct_id) })} onClose={() => setDialog(null)} onDone={done} />
       )}
     </div>
   );
@@ -418,7 +418,7 @@ function Members({ value, onChange, roles }) {
           <div className="sm:col-span-2">
             <PartyPick value={m.party} onChange={(v) => set(i, { party: v })} />
           </div>
-          <Field field={{ type: "int", placeholder: L("Wallet account ID") }} value={m.wallet_acct_id} onChange={(v) => set(i, { wallet_acct_id: v })} />
+          <AcctPick value={m.wallet_acct_id} owner={ownerOf(m.party)} onChange={(v) => set(i, { wallet_acct_id: v })} />
           <div className="flex gap-1">
             <Field field={{ type: "select", options: roles }} value={m.role} onChange={(v) => set(i, { role: v })} />
             <Button size="sm" variant="ghost" onClick={() => onChange(rows.filter((_, j) => j !== i))}>
@@ -564,7 +564,7 @@ function GroupView({ id, onBack }) {
           title={L("Add member")}
           fields={[
             { key: "party", label: L("Customer"), type: "party", required: true },
-            { key: "wallet_acct_id", label: L("Wallet account ID"), type: "int", required: true },
+            { key: "wallet_acct_id", label: L("Wallet account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
             { key: "role", label: L("role"), type: "select", required: true, options: roles },
           ]}
           initial={{ role: "MEMBER" }}
@@ -581,7 +581,7 @@ function GroupView({ id, onBack }) {
           hint={L("Needs the approvals of the scheme's withdrawal rule, then a checker pays it.")}
           fields={[
             { key: "amount", label: L("amount"), type: "amount", required: true },
-            { key: "to_acct_id", label: L("To account ID"), type: "int", required: true },
+            { key: "to_acct_id", label: L("To account"), type: "acct", required: true },
             { key: "purpose", label: L("purpose"), required: true, wide: true },
           ]}
           run={(x) => groupApi.withdraw({ id, amount: x.amount, to_acct_id: Number(x.to_acct_id), purpose: x.purpose })}
@@ -646,7 +646,7 @@ export function SavingsGroups() {
             { key: "group_code", label: L("group_code"), type: "code", required: true },
             { key: "group_name", label: L("group_name"), required: true },
             { key: "scheme_code", label: L("scheme"), type: "select", required: true, options: coded("schemes") },
-            { key: "group_acct_id", label: L("Group account ID"), type: "int", required: true },
+            { key: "group_acct_id", label: L("Group account"), type: "acct", required: true },
             { key: "start_date", label: L("start_date"), type: "date", required: true },
           ]}
           initial={{ members: [] }}

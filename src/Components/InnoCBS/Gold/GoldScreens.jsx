@@ -473,7 +473,7 @@ function ValuationView({ id, onBack }) {
           fields={[
             { key: "amount", label: L("amount"), type: "amount", required: true, hint: `${L("maximum_eligible_loan")}: ${v.maximum_eligible_loan}` },
             { key: "term_id", label: L("Term ID"), type: "int", required: true },
-            { key: "disbursement_acct_id", label: L("Disbursement account ID"), type: "int", required: true },
+            { key: "disbursement_acct_id", label: L("Disbursement account"), type: "acct", required: true, owner: () => (v.booking ? { owner_type: v.booking.owner_type, owner_id: v.booking.owner_id } : null) },
             { key: "purpose_code", label: L("purpose_code"), required: true, placeholder: "WORKING_CAPITAL" },
             { key: "monthly_income", label: L("monthly_income"), type: "amount" },
           ]}

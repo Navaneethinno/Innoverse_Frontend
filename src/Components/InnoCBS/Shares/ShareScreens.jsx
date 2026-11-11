@@ -14,7 +14,7 @@ import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { CatalogueReports } from "@/Components/InnoCBS/Deposits/DepositOps";
-import { OpDialog, RowsTable, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { OpDialog, ownerOf, RowsTable, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
@@ -327,7 +327,7 @@ export function Members() {
           fields={[
             { key: "party", label: L("Customer"), type: "party", required: true },
             { key: "member_category", label: L("member_category"), required: true, placeholder: "CUSTOMER" },
-            { key: "acct_id", label: L("Payout account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Payout account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
             { key: "nominee", label: L("nominee") },
           ]}
           initial={{ member_category: "CUSTOMER" }}

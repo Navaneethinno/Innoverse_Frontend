@@ -7,7 +7,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { Field } from "@/Components/InnoCBS/Loans/loanShared";
-import { OpDialog, PartyPick, RowsTable, byId, cell, codes, coded, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { AcctPick, OpDialog, PartyPick, RowsTable, byId, cell, codes, coded, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
@@ -276,7 +276,7 @@ function ChargeRequests() {
           title={L("Request a charge")}
           hint={L("An on-request charge; a checker posts it.")}
           fields={[
-            { key: "acct_id", label: L("Account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Account"), type: "acct", required: true },
             { key: "charge_code", label: L("charge_code"), type: "code", required: true, placeholder: "AP_CERT" },
             { key: "reason", label: L("reason"), type: "textarea", required: true },
           ]}
@@ -293,7 +293,7 @@ function ChargeRequests() {
           title={L("Run periodic charges")}
           hint={L("Applies the periodic charges due on an account: maintenance, minimum balance, excess withdrawals.")}
           fields={[
-            { key: "acct_id", label: L("Account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Account"), type: "acct", required: true },
             { key: "as_of", label: L("as_of"), type: "date", required: true },
           ]}
           initial={{ as_of: new Date().toISOString().slice(0, 10) }}
@@ -608,7 +608,7 @@ export function SweepFlexiDeposits() {
         { key: "sweep_threshold", label: L("sweep_threshold"), render: (r) => cell(sv(r, "sweep_threshold")) },
       ]}
       fields={[
-        f("acct_id", "int", { required: true, fixedOnEdit: true, label: L("Account ID") }),
+        { key: "acct_id", label: L("account"), type: "custom", required: true, render: (v, set, form) => <AcctPick value={v} label={form.acct_num} onChange={set} /> },
         f("mode", "select", { required: true, options: codes("modes") }),
         f("tenor_id", "select", { required: true, options: (c) => (c.deposit_tenors ?? []).map((x) => ({ value: String(x.tenor_id), label: `${x.product_name} · ${x.label}` })) }),
         f("sweep_threshold", "amount", { required: true }),
@@ -693,7 +693,7 @@ function MandateActions() {
           hint={L("Would these signatories satisfy the account's mandate for this amount?")}
           confirmLabel={L("Check")}
           fields={[
-            { key: "acct_id", label: L("Account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Account"), type: "acct", required: true },
             { key: "amount", label: L("amount"), type: "amount", required: true },
             { key: "approvers", label: L("Signatory ids (comma separated)"), required: true, wide: true, placeholder: "345, 343" },
           ]}
@@ -721,8 +721,8 @@ function MandateActions() {
           title={L("New instruction")}
           hint={L("A payment to be signed under the account's mandate.")}
           fields={[
-            { key: "acct_id", label: L("Account ID"), type: "int", required: true },
-            { key: "to_acct_id", label: L("To account ID"), type: "int", required: true },
+            { key: "acct_id", label: L("Account"), type: "acct", required: true },
+            { key: "to_acct_id", label: L("To account"), type: "acct", required: true },
             { key: "amount", label: L("amount"), type: "amount", required: true },
             { key: "purpose", label: L("purpose"), required: true },
           ]}
@@ -767,7 +767,7 @@ export function AccountMandates() {
         { key: "signatories", label: L("signatories"), sortable: false, render: (r) => cell((sv(r, "signatories") ?? []).length) },
       ]}
       fields={[
-        f("acct_id", "int", { required: true, fixedOnEdit: true, label: L("Account ID") }),
+        { key: "acct_id", label: L("account"), type: "custom", required: true, render: (v, set, form) => <AcctPick value={v} label={form.acct_num} onChange={set} /> },
         f("ownership_type", "select", { required: true, options: codes("ownership_types") }),
         f("operating_instruction", "select", { required: true, options: codes("operating_instructions") }),
         f("minimum_approvals", "int"),

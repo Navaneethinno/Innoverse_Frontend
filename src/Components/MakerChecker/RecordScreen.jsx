@@ -37,6 +37,8 @@ import { cn } from "@/Utils/Lib/utils";
 // nameOf(record): the record's title.  bodyOf(form): the save body (default:
 //   the fields as typed).  factsOf(setup, choices): the record's facts
 //   (default: the fields).  effectiveDated: show the versions tab.
+// A user given as a name or { id, name }.
+const nameOfUser = (u) => (u && typeof u === "object" ? (u.name ?? "") : (u ?? ""));
 const optionsOf = (field, choices) => (typeof field.options === "function" ? field.options(choices ?? {}) : (field.options ?? []));
 
 const blankOf = (field) => (field.type === "multi" ? [] : field.type === "bool" ? false : "");
@@ -119,7 +121,7 @@ export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (
   const listColumns = [...base, { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpenId(r.id)} /> }];
   const pendingColumns = [
     ...base,
-    { key: "proposed_by", label: t("proposedBy"), render: (r) => <span className="text-xs">{r.pending?.proposed_by ?? r.proposed_by ?? "—"}</span> },
+    { key: "proposed_by", label: t("proposedBy"), render: (r) => <span className="text-xs">{nameOfUser(r.pending?.proposed_by ?? r.proposed_by) || "—"}</span> },
     {
       key: "actions",
       label: t("common:actions"),
@@ -197,7 +199,7 @@ function Versions({ rows }) {
               <td className="px-3 py-1.5 whitespace-nowrap">{v.effective_from ? accountDate(v.effective_from) : "—"}</td>
               <td className="px-3 py-1.5 whitespace-nowrap">{v.effective_to ? accountDate(v.effective_to) : t("open")}</td>
               <td className="px-3 py-1.5">{v.approved_by ?? v.authorized_by ?? "—"}</td>
-              <td className="px-3 py-1.5 whitespace-nowrap">{v.approved_time ?? v.authorized_time ? accountDate(v.approved_time ?? v.authorized_time) : "—"}</td>
+              <td className="px-3 py-1.5 whitespace-nowrap">{v.approved_at ?? v.approved_time ? accountDate(v.approved_at ?? v.approved_time) : "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -230,11 +232,18 @@ function RecordView({ api, id, onBack, fields, nameOf, bodyOf, factsOf, effectiv
   }, [api, id, effectiveDated]);
   useEffect(() => {
     void reload();
+  }, [reload]);
+  // The form's choices of the record's own institution (a super admin's own
+  // would be the wrong one).
+  const inst = r?.inst_profile_id;
+  useEffect(() => {
+    if (r === null) return;
     api
-      .options({})
+      .options(inst ? { inst_profile_id: inst } : {})
       .then((x) => setChoices(rowsOf(x)[0] ?? x?.data ?? {}))
       .catch(() => setChoices({}));
-  }, [reload, api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, inst, r === null]);
 
   const act = async (verb, narration) => {
     setBusy(true);
@@ -280,7 +289,7 @@ function RecordView({ api, id, onBack, fields, nameOf, bodyOf, factsOf, effectiv
               <ProductStatus product={r} />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {[r.code ?? r.setup?.code, r.pending?.proposed_by && t("proposedByX", { name: r.pending.proposed_by }), r.inst_profile_name].filter(Boolean).join(" · ")}
+              {[r.code ?? r.setup?.code, r.pending?.proposed_by && t("proposedByX", { name: nameOfUser(r.pending.proposed_by) }), r.inst_profile_name].filter(Boolean).join(" · ")}
             </p>
           </div>
           <ActionButtons buttons={buttons} busy={busy} />

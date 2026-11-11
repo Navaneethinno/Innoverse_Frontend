@@ -25,7 +25,8 @@ export const runCall = (call, body, after) =>
 // An operation screen from a spec: the list, toolbar buttons and per-row
 // buttons. A button either calls at once (`call`, `body`) or opens an
 // OpDialog (`dialog`: its props, `run(form)` gets the row as 2nd argument).
-// `right` is the menu right the button needs; `show(row)` hides it.
+// `right` is the menu right the button needs. When the row carries `actions`,
+// the flag named `flag` (default: the key) decides; otherwise `show(row)`.
 //   toolbar: [{ key, label, icon, right, variant, call, body, dialog }]
 //   rowActions: (row) => [same, plus show]
 export function OpsList({ api, call, title, sub, columns, toolbar = [], rowActions, rowKey = (r) => r.id, above, prefix = "", emptyTitle, enabled = true, select = null, extra = null }) {
@@ -53,7 +54,7 @@ export function OpsList({ api, call, title, sub, columns, toolbar = [], rowActio
             render: (r) => (
               <span className="flex flex-wrap gap-1">
                 {rowActions(r)
-                  .filter((b) => allowed(b) && (!b.show || b.show(r)))
+                  .filter((b) => allowed(b) && (r.actions && typeof r.actions === "object" && (b.flag ?? b.key) in r.actions ? r.actions[b.flag ?? b.key] === true : !b.show || b.show(r)))
                   .map((b) => (
                     <Button key={b.key} size="sm" variant={b.variant ?? "ghost"} icon={b.icon} onClick={() => press(b, r)}>
                       {b.label}

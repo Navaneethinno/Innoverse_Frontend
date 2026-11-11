@@ -15,7 +15,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ActionButtons, Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { CatalogueReports } from "@/Components/InnoCBS/Deposits/DepositOps";
 import { Field } from "@/Components/InnoCBS/Loans/loanShared";
-import { OpDialog, RowsInput, RowsTable, byId, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { OpDialog, ownerOf, RowsInput, RowsTable, byId, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
@@ -728,7 +728,7 @@ function ContractOpen({ onClose, onDone }) {
       hint={L("A checker approves the contract.")}
       fields={[
         { key: "party", label: L("Customer"), type: "party", required: true },
-        { key: "acct_id", label: L("Repayment account ID"), type: "int", required: true },
+        { key: "acct_id", label: L("Repayment account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
         { key: "product_code", label: L("product"), type: "select", required: true, options: products.map((p) => ({ value: p.code ?? p.setup?.code, label: `${p.code ?? p.setup?.code} · ${p.name ?? p.setup?.name}` })) },
         { key: "start_date", label: L("start_date"), type: "date", required: true },
         { key: "instalments", label: L("instalments"), type: "int", required: true },
