@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Calculator, CheckCircle2, Lock, Plus, ShieldCheck, Unlock, XCircle } from "lucide-react";
+import { ArrowLeft, Calculator, CheckCircle2, Lock, Plus, Printer, RefreshCcw, ShieldCheck, Unlock, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -20,17 +20,18 @@ import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { OpsList } from "@/Components/InnoCBS/OpsList";
 
 // InnoCBS > Share Capital (Admin 22).
 const SH = "/config/share";
 const categoryApi = recordApi(`${SH}/category`);
 const requirementRuleApi = recordApi(`${SH}/requirement_rule`);
 const requirementApi = calls(`${SH}/requirement`, ["calculate"]);
-const memberApi = calls(`${SH}/member`, ["list", "get", "add"]);
+const memberApi = calls(`${SH}/member`, ["list", "get", "add", "options"]);
 const purchaseApi = calls(`${SH}/purchase`, ["list", "add", "auth", "deauth"]);
 const holdingApi = calls(`${SH}/holding`, ["list"]);
 const lienApi = calls(`${SH}/lien`, ["list", "add", "release"]);
-const certificateApi = calls(`${SH}/certificate`, ["list"]);
+const certificateApi = calls(`${SH}/certificate`, ["list", "get", "reissue"]);
 const transferApi = calls(`${SH}/transfer`, ["list", "add", "auth", "deauth"]);
 const redemptionApi = calls(`${SH}/redemption`, ["list", "add", "auth", "deauth", "check"]);
 const distributionApi = calls(`${SH}/distribution`, ["list", "get", "add", "auth", "deauth", "preview"]);
@@ -55,7 +56,6 @@ const act = (call, body, after) =>
       after?.(x);
     })
     .catch((e) => notifications.error(e.message));
-const isPending = (r) => ["PENDING", "PENDING_APPROVAL"].includes(r.status);
 const memberCell = (r) => (
   <span className="text-xs">
     <b>{r.name || r.member_number}</b>
@@ -64,15 +64,20 @@ const memberCell = (r) => (
 );
 
 // Share categories for a select (active records).
-function useCategories() {
-  const [rows, setRows] = useState([]);
+const shareOptionsApi = calls(SH, ["options"]);
+function useShareOptions(memberId) {
+  const [o, setO] = useState({});
   useEffect(() => {
-    categoryApi
-      .active({})
-      .then((r) => setRows(rowsOf(r).map((c) => ({ value: c.code ?? c.setup?.code, label: `${c.code ?? c.setup?.code} · ${c.name ?? c.setup?.name}` }))))
+    shareOptionsApi
+      .options(memberId ? { member_id: Number(memberId) } : {})
+      .then((r) => setO(first(r) ?? {}))
       .catch(() => {});
-  }, []);
-  return rows;
+  }, [memberId]);
+  return o;
+}
+function useCategories() {
+  const o = useShareOptions();
+  return (o.share_categories ?? []).map((c) => ({ value: c.code, label: `${c.code} · ${c.name}`, row: c }));
 }
 
 // A member, searched by number or name.
@@ -227,7 +232,7 @@ export function ShareRequirementRules() {
       fields={[
         f("module", "select", { required: true, options: codes("modules") }),
         f("product_id", "select", { required: true, optionsFor: (c, x) => (c.products?.[x.module] ?? []).map((p) => ({ value: String(p.id), label: p.name })) }),
-        f("share_category_code", "text", { required: true, placeholder: "C" }),
+        f("share_category_code", "select", { required: true, options: (c) => (c.share_categories ?? []).map((x) => ({ value: x.code, label: `${x.code} · ${x.name}` })) }),
         f("requirement_type", "select", { required: true, options: codes("requirement_types") }),
         f("calculation_method", "select", { required: true, options: codes("calculation_methods") }),
         f("value", "amount", { required: true, hint: L("A percentage, an amount or a number of shares, by the method.") }),
@@ -274,7 +279,7 @@ function MemberView({ id, onBack }) {
           <Status code={m.status} />
         </div>
         <p className="mt-1 text-xs text-muted-foreground">{[m.member_number, words(m.member_category), m.currency_name, m.inst_profile_name].filter(Boolean).join(" · ")}</p>
-        <Facts className="mt-3" rows={[[L("joined_on"), dateCell(m.joined_on)], [L("nominee"), m.nominee], [L("Payout account"), m.acct_id], [L("created_by"), m.created_by]]} />
+        <Facts className="mt-3" rows={[[L("joined_on"), dateCell(m.joined_on)], [L("nominee"), m.nominee], [L("Payout account"), d.acct_num ?? m.acct_id], [L("created_by"), m.created_by]]} />
       </div>
       <SegmentedSwitch className="mb-3" value={tab} onChange={setTab} options={["holdings", "certificates", "statement"].map((v) => ({ value: v, label: L(v) }))} />
       <Section title={L(tab)}>
@@ -292,7 +297,14 @@ export function Members() {
   const can = usePagePermission();
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
-  const list = useServerList({ api: memberApi.listPath, call: memberApi.list, describe: false, enabled: !openId });
+  const [memberOpts, setMemberOpts] = useState({});
+  useEffect(() => {
+    memberApi
+      .options({})
+      .then((r) => setMemberOpts(first(r) ?? {}))
+      .catch(() => {});
+  }, []);
+  const list = useServerList({ api: memberApi.listPath, call: memberApi.list, enabled: !openId });
   if (!can("View")) return <NoAccess />;
   if (openId) return <MemberView id={openId} onBack={() => (setOpenId(null), list.reload())} />;
   return (
@@ -326,7 +338,7 @@ export function Members() {
           hint={L("The member becomes active with their first approved purchase.")}
           fields={[
             { key: "party", label: L("Customer"), type: "party", required: true },
-            { key: "member_category", label: L("member_category"), required: true, placeholder: "CUSTOMER" },
+            { key: "member_category", label: L("member_category"), type: "select", required: true, options: (memberOpts.member_categories ?? ["CUSTOMER"]).map((v) => ({ value: v, label: words(v) })) },
             { key: "acct_id", label: L("Payout account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
             { key: "nominee", label: L("nominee") },
           ]}
@@ -348,7 +360,7 @@ function ShareOpScreen({ api, title, sub, addLabel, columns, renderForm, toBody,
   const { t } = useTranslation("common");
   const can = usePagePermission();
   const [adding, setAdding] = useState(false);
-  const list = useServerList({ api: api.listPath, call: api.list, describe: false });
+  const list = useServerList({ api: api.listPath, call: api.list });
   if (!can("View")) return <NoAccess />;
   return (
     <div className="pt-1 pb-6">
@@ -378,8 +390,7 @@ function ShareOpScreen({ api, title, sub, addLabel, columns, renderForm, toBody,
             label: t("actions"),
             sortable: false,
             render: (r) => {
-              const p = isPending(r) && can("Authorize");
-              return <RowActions buttons={{ authorize: p, deauthorize: p }} onAuthorize={() => act(api.auth, { id: Number(r.id) }, list.reload)} onDeauthorize={() => act(api.deauth, { id: Number(r.id) }, list.reload)} />;
+              return <RowActions buttons={{ authorize: Boolean(r.actions?.auth), deauthorize: Boolean(r.actions?.deauth) }} onAuthorize={() => act(api.auth, { id: r.id }, list.reload)} onDeauthorize={() => act(api.deauth, { id: r.id }, list.reload)} />;
             },
           },
         ]}
@@ -483,6 +494,19 @@ export function ShareRedemptions() {
         <>
           <MemberField L={L} form={form} setForm={setForm} />
           <CategoryShares L={L} form={form} setForm={setForm} categories={categories} amount={false} />
+          <label className={`${labelClass} mt-3 block`}>
+            {L("trigger")}
+            <FilterSelect
+              className="mt-1"
+              value={form.trigger ?? "MANUAL"}
+              onChange={(v) => setForm((x) => ({ ...x, trigger: v }))}
+              options={(() => {
+                const cat = categories.find((c) => c.value === form.share_category_code)?.row;
+                const list = cat?.redemption_triggers?.length ? cat.redemption_triggers : ["MANUAL", "MEMBER_EXIT", "LOAN_CLOSURE", "ACCOUNT_CLOSURE"];
+                return list.map((v) => ({ value: v, label: words(v) }));
+              })()}
+            />
+          </label>
           <div className="mt-3">
             <Button
               size="sm"
@@ -526,8 +550,8 @@ export function Shareholdings() {
   const categories = useCategories();
   const [tab, setTab] = useState("holdings");
   const [adding, setAdding] = useState(false);
-  const holdings = useServerList({ api: holdingApi.listPath, call: holdingApi.list, describe: false, enabled: tab === "holdings" });
-  const liens = useServerList({ api: lienApi.listPath, call: lienApi.list, prefix: "l_", describe: false, enabled: tab === "liens" });
+  const holdings = useServerList({ api: holdingApi.listPath, call: holdingApi.list, enabled: tab === "holdings" });
+  const liens = useServerList({ api: lienApi.listPath, call: lienApi.list, prefix: "l_", enabled: tab === "liens" });
   if (!can("View")) return <NoAccess />;
   return (
     <div className="pt-1 pb-6">
@@ -568,7 +592,7 @@ export function Shareholdings() {
             { key: "share_category_code", label: L("category"), render: (r) => cell(r.share_category_code) },
             { key: "shares", label: L("shares"), render: (r) => cell(r.shares) },
             { key: "reason", label: L("reason"), render: (r) => cell(r.reason) },
-            { key: "source", label: L("source"), sortable: false, render: (r) => cell(r.source_module ? `${words(r.source_module)} #${r.source_id}` : "—") },
+            { key: "source", label: L("source"), sortable: false, render: (r) => cell(r.source_label ? `${words(r.source_module)} · ${r.source_label}` : words(r.source_module)) },
             { key: "created_time", label: L("when"), render: (r) => dateCell(r.created_time) },
             { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
             {
@@ -576,8 +600,7 @@ export function Shareholdings() {
               label: t("actions"),
               sortable: false,
               render: (r) =>
-                r.status === "ACTIVE" &&
-                can("Edit") && (
+                r.actions?.release && (
                   <Button size="sm" variant="ghost" icon={Unlock} onClick={() => act(lienApi.release, { lien_id: Number(r.id) }, liens.reload)}>
                     {L("Release")}
                   </Button>
@@ -591,11 +614,11 @@ export function Shareholdings() {
           title={L("Mark a lien")}
           fields={[
             { key: "reason", label: L("reason"), required: true, wide: true },
-            { key: "source_module", label: L("source_module"), placeholder: "LOAN" },
-            { key: "source_id", label: L("source_id"), type: "int" },
+            { key: "source_module", label: L("Linked to"), type: "select", required: true, options: [{ value: "LOAN", label: L("A loan of the member") }, { value: "OTHER", label: L("Other (say why above)") }] },
           ]}
+          initial={{ source_module: "OTHER" }}
           needs={(x) => x.member_id && x.share_category_code && x.shares}
-          run={(x) => lienApi.add({ member_id: Number(x.member_id), share_category_code: x.share_category_code, shares: Number(x.shares), reason: x.reason, source_module: x.source_module, source_id: x.source_id ? Number(x.source_id) : 0 })}
+          run={(x) => lienApi.add({ member_id: Number(x.member_id), share_category_code: x.share_category_code, shares: Number(x.shares), reason: x.reason, source_module: x.source_module, ...(x.source_module === "LOAN" ? { source_id: Number(x.source_id) } : {}) })}
           onClose={() => setAdding(false)}
           onDone={() => (setAdding(false), liens.reload())}
         >
@@ -605,6 +628,7 @@ export function Shareholdings() {
               <div className="mb-3">
                 <CategoryShares L={L} form={form} setForm={setForm} categories={categories} amount={false} />
               </div>
+              {form.source_module === "LOAN" && <LienFacility memberId={form.member_id} value={form.source_id} onChange={(v) => setForm((x) => ({ ...x, source_id: v }))} />}
             </>
           )}
         </OpDialog>
@@ -613,32 +637,63 @@ export function Shareholdings() {
   );
 }
 
+// The member's open loans, for a lien linked to a loan.
+function LienFacility({ memberId, value, onChange }) {
+  const L = useL();
+  const o = useShareOptions(memberId);
+  if (!memberId) return null;
+  return (
+    <label className={`${labelClass} mb-3 block`}>
+      {L("Loan facility")}
+      <FilterSelect className="mt-1" value={value ?? ""} onChange={onChange} options={[{ value: "", label: (o.loan_facilities ?? []).length ? L("choose") : L("The member has no open loans") }, ...(o.loan_facilities ?? []).map((f) => ({ value: String(f.id), label: `${f.facility_number} · ${words(f.status)}` }))]} />
+    </label>
+  );
+}
+
+// A certificate as a printable page (the browser's print gives the PDF).
+function printCertificate(c) {
+  const w = window.open("", "_blank", "width=820,height=640");
+  if (!w) return;
+  const esc = (v) => String(v ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(c.certificate_number)}</title>
+<style>body{font-family:Georgia,serif;margin:40px;color:#111}.box{border:6px double #555;padding:36px;text-align:center}h1{margin:0 0 6px;letter-spacing:2px}h2{margin:4px 0 24px;font-weight:normal}table{margin:24px auto;border-collapse:collapse;text-align:left}td{padding:6px 14px;border-bottom:1px solid #ddd}.foot{margin-top:28px;font-size:12px;color:#555}</style></head><body>
+<div class="box"><h1>${esc(c.inst_profile_name)}</h1><h2>Share Certificate No. ${esc(c.certificate_number)}</h2>
+<p>This is to certify that <b>${esc(c.name)}</b> (member ${esc(c.member_number)}) is the registered holder of</p>
+<p style="font-size:22px"><b>${esc(c.shares)}</b> ${esc(c.share_category_name)} (${esc(c.instrument_type)})</p>
+<table><tr><td>Distinctive numbers</td><td>${esc(c.from_number)} to ${esc(c.to_number)}</td></tr><tr><td>Face value</td><td>${esc(c.face_value)} ${esc(c.currency)} each</td></tr><tr><td>Issued on</td><td>${esc(c.issued_on)}</td></tr><tr><td>Issued by</td><td>${esc(c.issued_by)}</td></tr>${c.reissued_from ? `<tr><td>Reissued from</td><td>${esc(c.reissued_from)}</td></tr>` : ""}<tr><td>Status</td><td>${esc(c.status)}</td></tr></table>
+<p class="foot">Authorised signatory ______________________</p></div><script>window.onload=function(){window.print()}</script></body></html>`);
+  w.document.close();
+}
+
 export function ShareCertificates() {
   const L = useL();
-  const can = usePagePermission();
-  const list = useServerList({ api: certificateApi.listPath, call: certificateApi.list, describe: false });
-  if (!can("View")) return <NoAccess />;
+  const view = (r) =>
+    certificateApi
+      .get({ id: r.id })
+      .then((x) => printCertificate(first(x)))
+      .catch((e) => notifications.error(e.message));
   return (
-    <div className="pt-1 pb-6">
-      {header(L, "shareCertificates", "Share certificates issued, cancelled and reissued.")}
-      <ListTable
-        list={list}
-        rowKey={(r) => r.certificate_number}
-        title={L("shareCertificates")}
-        emptyTitle={L("No certificates yet")}
-        columns={[
-          { key: "certificate_number", label: L("certificate"), render: (r) => <span className="font-mono text-xs font-bold">{r.certificate_number}</span> },
-          { key: "member_number", label: L("member"), align: "left", render: memberCell },
-          { key: "share_category_code", label: L("category"), render: (r) => cell(r.share_category_code) },
-          { key: "shares", label: L("shares"), render: (r) => cell(r.shares) },
-          { key: "range", label: L("Numbers"), sortable: false, render: (r) => cell(`${r.from_number}–${r.to_number}`) },
-          { key: "issued_on", label: L("issued_on"), render: (r) => dateCell(r.issued_on) },
-          { key: "issued_by", label: L("issued_by"), render: (r) => cell(r.issued_by) },
-          { key: "cancelled_on", label: L("cancelled_on"), render: (r) => dateCell(r.cancelled_on) },
-          { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
-        ]}
-      />
-    </div>
+    <OpsList
+      api={certificateApi}
+      title="shareCertificates"
+      sub="Share certificates issued, cancelled and reissued. Print one, or reissue a lost or damaged one."
+      rowKey={(r) => r.id ?? r.certificate_number}
+      columns={[
+        { key: "certificate_number", label: L("certificate"), render: (r) => <span className="font-mono text-xs font-bold">{r.certificate_number}</span> },
+        { key: "member_number", label: L("member"), align: "left", render: memberCell },
+        { key: "share_category_code", label: L("category"), render: (r) => cell(r.share_category_code) },
+        { key: "shares", label: L("shares"), render: (r) => cell(r.shares) },
+        { key: "range", label: L("Numbers"), sortable: false, render: (r) => cell(`${r.from_number}–${r.to_number}`) },
+        { key: "issued_on", label: L("issued_on"), render: (r) => dateCell(r.issued_on) },
+        { key: "issued_by", label: L("issued_by"), render: (r) => cell(r.issued_by) },
+        { key: "cancelled_on", label: L("cancelled_on"), render: (r) => dateCell(r.cancelled_on) },
+        { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
+      ]}
+      rowActions={(r) => [
+        { key: "print", flag: "_print", label: L("Print"), icon: Printer, onPress: () => view(r) },
+        { key: "reissue", label: L("Reissue"), icon: RefreshCcw, dialog: { title: `${L("Reissue")} · ${r.certificate_number}`, hint: L("The old certificate is cancelled and a new number carries the same shares. It takes effect at once."), fields: [{ key: "reason", label: L("reason"), type: "textarea", required: true }], run: (x) => certificateApi.reissue({ id: r.id, reason: x.reason }), after: (reply) => first(reply) && printCertificate(first(reply)) } },
+      ]}
+    />
   );
 }
 
@@ -646,14 +701,13 @@ export function ShareCertificates() {
 
 function DistributionView({ d, onClose, onDecided }) {
   const L = useL();
-  const can = usePagePermission();
   return (
     <OpDialog size="lg" title={`${words(d.kind)} · ${d.share_category_code}`} fields={[]} confirmLabel={L("Close")} run={async () => null} onClose={onClose} onDone={onClose}>
       {() => (
         <>
           <Facts className="mb-3" rows={[[L("period"), `${d.period_from} → ${d.period_to}`], [L("record_date"), d.record_date], [L("rate"), pct(d.rate)], d.amount_per_share && [L("amount_per_share"), d.amount_per_share], d.profit_pool && [L("profit_pool"), d.profit_pool], [L("total_gross"), d.total_gross], [L("total_tax"), d.total_tax], [L("total_net"), d.total_net], d.status && [L("status"), words(d.status)]]} />
           <RowsTable rows={d.lines} empty={L("No members qualify.")} columns={[{ key: "member_number", label: L("member"), render: (x) => `${x.member_number} · ${x.name}` }, { key: "shares", label: L("shares"), numeric: true }, { key: "gross", label: L("gross"), numeric: true }, { key: "tax", label: L("tax"), numeric: true }, { key: "net", label: L("net"), numeric: true }, { key: "acct_id", label: L("Payout account") }]} />
-          {d.id > 0 && (isPending(d) || ["CALCULATED", "DECLARED"].includes(d.status)) && can("Authorize") && (
+          {(d.actions?.auth || d.actions?.deauth) && (
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="danger" icon={XCircle} onClick={() => act(distributionApi.deauth, { id: d.id }, onDecided)}>
                 {L("reject")}
@@ -671,13 +725,14 @@ function DistributionView({ d, onClose, onDecided }) {
 
 export function ReturnsDividends() {
   const L = useL();
+  const shareOpts = useShareOptions();
   const { t } = useTranslation("common");
   const can = usePagePermission();
   const categories = useCategories();
   const [open, setOpen] = useState(null);
   const [declaring, setDeclaring] = useState(false);
   const [preview, setPreview] = useState(null);
-  const list = useServerList({ api: distributionApi.listPath, call: distributionApi.list, describe: false });
+  const list = useServerList({ api: distributionApi.listPath, call: distributionApi.list });
   if (!can("View")) return <NoAccess />;
   const view = (id) =>
     distributionApi
@@ -685,7 +740,7 @@ export function ReturnsDividends() {
       .then((r) => setOpen(first(r)))
       .catch((e) => notifications.error(e.message));
   const fields = [
-    { key: "kind", label: L("kind"), type: "select", required: true, options: [{ value: "DIVIDEND", label: L("Dividend") }, { value: "INTEREST", label: L("Interest") }] },
+    { key: "kind", label: L("kind"), type: "select", required: true, options: (shareOpts.distribution_kinds ?? ["DIVIDEND", "INTEREST"]).map((v) => ({ value: v, label: words(v) })) },
     { key: "share_category_code", label: L("category"), type: "select", required: true, options: categories },
     { key: "period_from", label: L("period_from"), type: "date", required: true },
     { key: "period_to", label: L("period_to"), type: "date", required: true },
