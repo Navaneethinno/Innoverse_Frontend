@@ -36,7 +36,7 @@ const prepayApi = calls(`${LN}/prepayment`, ["list", "quote", "add", "auth", "de
 const moratoriumApi = calls(`${LN}/moratorium`, ["list", "quote", "add", "auth", "deauth"]);
 const penaltyApi = calls(`${LN}/penalty`, ["dpd", "list", "quote", "run"]);
 const waiverApi = calls(`${LN}/penalty_waiver`, ["list", "add", "auth", "deauth"]);
-const contractApi = { ...calls(`${IF}/contract`, ["list", "get", "add", "auth", "deauth", "late_charges", "late_charges_run", "mudaraba_settle", "pay", "pay_charges", "rental_revision", "settle", "settlement_quote"]), ...calls(IF, ["calculate"]) };
+const contractApi = { ...calls(`${IF}/contract`, ["list", "get", "options", "add", "auth", "deauth", "late_charges", "late_charges_run", "mudaraba_settle", "pay", "pay_charges", "rental_revision", "settle", "settlement_quote"]), ...calls(IF, ["calculate"]) };
 const charityApi = calls(`${IF}/charity`, ["fund", "list", "remit"]);
 const loanReportApi = calls(`${LN}/report`, ["catalogue", "run"]);
 
@@ -147,11 +147,11 @@ export function RepaymentStructures() {
           label: L("principal_plan"),
           type: "custom",
           showIf: (x) => x.repayment_structure === "CUSTOM_PRINCIPAL",
-          render: (v, set) => <RowsInput value={v} onChange={set} blank={() => ({ instalment_number: "", percent: "" })} columns={[{ key: "instalment_number", label: L("instalment_number"), type: "int" }, { key: "percent", label: L("percent"), type: "percent" }]} />,
+          render: (v, set) => <RowsInput value={v} onChange={set} blank={() => ({ instalment: "", percent: "" })} columns={[{ key: "instalment", label: L("instalment"), type: "int" }, { key: "percent", label: L("percent"), type: "percent" }]} />,
         },
         f("effective_from", "date", { required: true }),
       ]}
-      bodyOf={(x) => ({ ...toNum(["loan_product_id", "due_day", "first_after_days", "interest_only_periods", "step_every"])(x), principal_plan: (x.principal_plan ?? []).map((p) => ({ ...p, instalment_number: Number(p.instalment_number) })) })}
+      bodyOf={(x) => ({ ...toNum(["loan_product_id", "due_day", "first_after_days", "interest_only_periods", "step_every"])(x), principal_plan: (x.principal_plan ?? []).map((p) => ({ instalment: Number(p.instalment), percent: String(p.percent) })) })}
     />
   );
 }
@@ -195,6 +195,13 @@ export function LoanServicingRules() {
         f("multiple_prepayments_per_day", "bool", { showIf: (x) => x.prepayment_allowed }),
         f("prepayment_fee_type", "select", { options: codes("prepayment_fee_types"), showIf: (x) => x.prepayment_allowed }),
         f("prepayment_fee_value", "amount", { showIf: (x) => x.prepayment_allowed && x.prepayment_fee_type && x.prepayment_fee_type !== "NONE" }),
+        {
+          key: "prepayment_fee_tiers",
+          label: L("prepayment_fee_tiers"),
+          type: "custom",
+          showIf: (x) => x.prepayment_allowed && x.prepayment_fee_type === "TIERED",
+          render: (v, set) => <RowsInput value={v} onChange={set} blank={() => ({ from_month: "", percent: "" })} addLabel={L("Add a tier")} columns={[{ key: "from_month", label: L("From loan age (months)"), type: "int" }, { key: "percent", label: L("percent"), type: "percent" }]} />,
+        },
         f("prepayment_fee_base", "select", { options: codes("prepayment_fee_bases"), showIf: (x) => x.prepayment_allowed && x.prepayment_fee_type && x.prepayment_fee_type !== "NONE" }),
         // Settlement
         f("settlement_fee_type", "select", { options: codes("settlement_fee_types") }),
@@ -254,11 +261,11 @@ export function LoanServicingRules() {
         },
         f("effective_from", "date", { required: true }),
       ]}
-      bodyOf={(x, rec) => ({
+      bodyOf={(x) => ({
         ...toNum(["loan_product_id", "lock_in_months", "maximum_prepayments", "financial_year_start_month", "minimum_interval_days", "minimum_remaining_instalments", "notice_days", "settlement_notice_days", "minimum_loan_age_months_for_settlement", "maximum_moratorium_months", "maximum_moratorium_extensions", "grace_period_days"])(x),
         penalties: (x.penalties ?? []).map((p) => ({ ...p, default_after_dpd: Number(p.default_after_dpd || 0) })),
         dpd_buckets: (x.dpd_buckets ?? []).map((b) => ({ ...b, from_dpd: Number(b.from_dpd || 0), to_dpd: Number(b.to_dpd || 0) })),
-        prepayment_fee_tiers: (rec?.setup ?? {}).prepayment_fee_tiers ?? [],
+        prepayment_fee_tiers: (x.prepayment_fee_tiers ?? []).map((t) => ({ from_month: Number(t.from_month || 0), percent: String(t.percent) })),
       })}
     />
   );
@@ -290,7 +297,7 @@ export function LoanSchemes() {
         f("minimum_amount", "amount"),
         f("maximum_amount", "amount"),
         f("maximum_tenure_months", "int"),
-        f("fees_waived", "multi", { options: (c) => (c.product_fees ?? []).map((x) => (typeof x === "object" ? { value: x.code, label: x.name ?? x.code } : { value: x, label: words(x) })) }),
+        f("fees_waived", "multi", { options: () => [], optionsFor: (c, x) => (c.product_fees ?? []).filter((p) => String(p.loan_product_id) === String(x.loan_product_id)).map((p) => ({ value: p.fee_code, label: p.fee_name })), hint: L("The fees of the chosen loan product.") }),
         f("fee_discount_percent", "percent"),
         f("override_approval_required", "bool"),
         f("effective_from", "date", { required: true }),
@@ -438,9 +445,8 @@ function FacilityChangeScreen({ api, title, sub, amountField, columns, addLabel 
   const can = usePagePermission();
   const [adding, setAdding] = useState(false);
   const [quote, setQuote] = useState(null);
-  const list = useServerList({ api: api.listPath, call: api.list, describe: false });
+  const list = useServerList({ api: api.listPath, call: api.list });
   if (!can("View")) return <NoAccess />;
-  const pending = (r) => ["PENDING", "PENDING_APPROVAL"].includes(r.status);
   const body = (x) => ({ facility_id: Number(x.facility_id), [amountField.key]: amountField.type === "int" ? Number(x[amountField.key]) : x[amountField.key] });
   return (
     <div className="pt-1 pb-6">
@@ -468,9 +474,9 @@ function FacilityChangeScreen({ api, title, sub, amountField, columns, addLabel 
             sortable: false,
             render: (r) => (
               <RowActions
-                buttons={{ authorize: can("Authorize") && pending(r), deauthorize: can("Authorize") && pending(r) }}
-                onAuthorize={() => act(api.auth, { id: Number(r.id) }, list.reload)}
-                onDeauthorize={() => act(api.deauth, { id: Number(r.id) }, list.reload)}
+                buttons={{ authorize: Boolean(r.actions?.approve), deauthorize: Boolean(r.actions?.reject) }}
+                onAuthorize={() => act(api.auth, { id: r.id }, list.reload)}
+                onDeauthorize={() => act(api.deauth, { id: r.id }, list.reload)}
               />
             ),
           },
@@ -574,8 +580,8 @@ export function PenaltiesWaivers() {
   const [facility, setFacility] = useState("");
   const [quote, setQuote] = useState(null);
   const [adding, setAdding] = useState(false);
-  const penalties = useServerList({ api: penaltyApi.listPath, call: penaltyApi.list, describe: false, enabled: tab === "penalties" });
-  const waivers = useServerList({ api: waiverApi.listPath, call: waiverApi.list, prefix: "w_", describe: false, enabled: tab === "waivers" });
+  const penalties = useServerList({ api: penaltyApi.listPath, call: penaltyApi.list, enabled: tab === "penalties" });
+  const waivers = useServerList({ api: waiverApi.listPath, call: waiverApi.list, prefix: "w_", enabled: tab === "waivers" });
   useEffect(() => {
     penaltyApi
       .dpd({})
@@ -630,9 +636,14 @@ export function PenaltiesWaivers() {
           columns={[
             { key: "facility_number", label: L("Facility"), render: (r) => cell(r.facility_number ?? r.facility_id) },
             { key: "borrower", label: L("borrower"), render: (r) => cell(r.borrower) },
+            { key: "installment_number", label: "#", render: (r) => cell(r.installment_number) },
+            { key: "method", label: L("method"), render: (r) => cell(`${words(r.method)} · ${words(r.base)}`) },
+            { key: "period", label: L("period"), sortable: false, render: (r) => cell(`${r.period_from} → ${r.period_to} (${r.days})`) },
             { key: "amount", label: L("amount"), render: (r) => cell(r.amount) },
-            { key: "method", label: L("method"), render: (r) => cell(words(r.method ?? r.kind)) },
-            { key: "charged_at", label: L("when"), render: (r) => dateCell(r.charged_at ?? r.created_time) },
+            { key: "outstanding", label: L("outstanding"), render: (r) => cell(r.outstanding) },
+            { key: "created_time", label: L("when"), render: (r) => dateCell(r.created_time) },
+            { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
+            { key: "_a", label: "", sortable: false, render: (r) => r.actions?.waive && <Button size="sm" variant="ghost" icon={HandCoins} onClick={() => setAdding({ facility_id: String(r.facility_id), schedule_id: r.schedule_id, amount: r.outstanding })}>{L("Waive")}</Button> },
           ]}
         />
       )}
@@ -652,17 +663,20 @@ export function PenaltiesWaivers() {
           columns={[
             { key: "facility_number", label: L("Facility"), render: (r) => cell(r.facility_number ?? r.facility_id) },
             { key: "borrower", label: L("borrower"), render: (r) => cell(r.borrower) },
-            { key: "amount", label: L("amount"), render: (r) => cell(r.amount) },
+            { key: "installment_number", label: "#", render: (r) => cell(r.installment_number) },
+            { key: "original_amount", label: L("original_amount"), render: (r) => cell(r.original_amount) },
+            { key: "waived_amount", label: L("waived_amount"), render: (r) => cell(r.waived_amount) },
             { key: "reason", label: L("reason"), render: (r) => cell(r.reason) },
-            { key: "requested_by", label: L("requested_by"), render: (r) => cell(r.requested_by) },
+            { key: "maker", label: L("maker"), render: (r) => cell(r.maker) },
+            { key: "checker", label: L("checker"), render: (r) => cell(r.checker) },
+            { key: "audit_reference", label: L("reference"), render: (r) => cell(r.audit_reference) },
             { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
             {
               key: "actions",
               label: t("actions"),
               sortable: false,
               render: (r) => {
-                const p = ["PENDING", "PENDING_APPROVAL"].includes(r.status) && can("Authorize");
-                return <RowActions buttons={{ authorize: p, deauthorize: p }} onAuthorize={() => act(waiverApi.auth, { id: Number(r.id) }, waivers.reload)} onDeauthorize={() => act(waiverApi.deauth, { id: Number(r.id) }, waivers.reload)} />;
+                return <RowActions buttons={{ authorize: Boolean(r.actions?.approve), deauthorize: Boolean(r.actions?.reject) }} onAuthorize={() => act(waiverApi.auth, { id: r.id }, waivers.reload)} onDeauthorize={() => act(waiverApi.deauth, { id: r.id }, waivers.reload)} />;
               },
             },
           ]}
@@ -677,7 +691,8 @@ export function PenaltiesWaivers() {
             { key: "reason", label: L("reason"), type: "textarea", required: true },
           ]}
           needs={(x) => Boolean(x.facility_id)}
-          run={(x) => waiverApi.add({ facility_id: Number(x.facility_id), amount: x.amount, reason: x.reason })}
+          initial={typeof adding === "object" ? adding : {}}
+          run={(x) => waiverApi.add({ facility_id: Number(x.facility_id), amount: x.amount, reason: x.reason, ...(x.schedule_id ? { schedule_id: x.schedule_id } : {}) })}
           onClose={() => setAdding(false)}
           onDone={() => (setAdding(false), waivers.reload())}
         >
@@ -695,51 +710,51 @@ export function PenaltiesWaivers() {
 
 // ---------- Islamic financing ----------
 
-const TERMS_BY_TYPE = {
-  MURABAHA: ["asset_cost", "agreed_profit"],
-  IJARA: ["asset_cost", "rental_amount", "residual_value"],
-  DIMINISHING_MUSHARAKA: ["asset_value", "customer_contribution", "rental_rate"],
-  QARD_HASAN: ["principal"],
-  MUDARABA: ["principal", "customer_profit_share"],
-};
+const TERM_KEYS = ["asset_cost", "agreed_profit", "profit_rate", "asset_value", "rental_amount", "residual_value", "rental_revision_months", "rental_revision_percent", "customer_contribution", "rental_rate", "principal", "customer_profit_share", "instalments", "frequency"];
+const termType = (k) => (k === "instalments" || k === "rental_revision_months" ? "int" : k === "frequency" ? "select" : /rate|percent|share/.test(k) ? "rate" : "amount");
 
 function ContractOpen({ onClose, onDone }) {
   const L = useL();
-  const [products, setProducts] = useState([]);
+  const [c, setC] = useState(null);
   const [calc, setCalc] = useState(null);
   useEffect(() => {
-    ifProductApi
-      .active({})
-      .then((r) => setProducts(rowsOf(r)))
-      .catch(() => {});
+    contractApi
+      .options({})
+      .then((r) => setC(first(r) ?? {}))
+      .catch(() => setC({}));
   }, []);
-  const typeOf = (code) => {
-    const p = products.find((x) => (x.code ?? x.setup?.code) === code);
-    return p?.contract_type ?? p?.setup?.contract_type ?? "";
-  };
+  const product = (code) => (c?.products ?? []).find((p) => p.code === code);
+  const spec = (code) => (c?.contract_types ?? []).find((t) => t.contract_type === product(code)?.contract_type) ?? { required: [], optional: [] };
   const terms = (x) => {
-    const type = typeOf(x.product_code);
-    return Object.fromEntries([["start_date", x.start_date], ["instalments", Number(x.instalments)], ...(TERMS_BY_TYPE[type] ?? []).map((k) => [k, x[k]])].filter(([, v]) => v !== "" && v != null));
+    const sp = spec(x.product_code);
+    return Object.fromEntries(["start_date", ...sp.required, ...sp.optional].map((k) => [k, k === "instalments" || k === "rental_revision_months" ? (x[k] === "" ? "" : Number(x[k])) : x[k]]).filter(([, v]) => v !== "" && v != null));
   };
   return (
     <OpDialog
       size="lg"
       title={L("Open a contract")}
       hint={L("A checker approves the contract.")}
+      choices={c}
       fields={[
         { key: "party", label: L("Customer"), type: "party", required: true },
         { key: "acct_id", label: L("Repayment account"), type: "acct", required: true, owner: (x) => ownerOf(x.party) },
-        { key: "product_code", label: L("product"), type: "select", required: true, options: products.map((p) => ({ value: p.code ?? p.setup?.code, label: `${p.code ?? p.setup?.code} · ${p.name ?? p.setup?.name}` })) },
-        { key: "start_date", label: L("start_date"), type: "date", required: true },
-        { key: "instalments", label: L("instalments"), type: "int", required: true },
-        ...[...new Set(Object.values(TERMS_BY_TYPE).flat())].map((k) => ({ key: k, label: L(k), type: k.endsWith("_rate") || k.endsWith("_share") ? "rate" : "amount", showIf: (x) => (TERMS_BY_TYPE[typeOf(x.product_code)] ?? []).includes(k) })),
-        { key: "asset_description", label: L("Asset"), wide: true, required: true },
-        { key: "asset_reference", label: L("Asset reference") },
-        { key: "supplier", label: L("supplier") },
-        { key: "supplier_invoice", label: L("supplier_invoice") },
-        { key: "purchase_date", label: L("purchase_date"), type: "date" },
+        { key: "product_code", label: L("product"), type: "select", required: true, options: (c?.products ?? []).map((p) => ({ value: p.code, label: `${p.code} · ${p.name} · ${words(p.contract_type)}` })) },
+        { key: "start_date", label: L("start_date"), type: "date" },
+        ...TERM_KEYS.map((k) => ({
+          key: k,
+          label: L(k),
+          type: termType(k),
+          options: k === "frequency" ? (c?.frequencies ?? []).map((v) => ({ value: v, label: words(v) })) : undefined,
+          showIf: (x) => [...spec(x.product_code).required, ...spec(x.product_code).optional].includes(k),
+        })),
+        { key: "asset_description", label: L("Asset"), wide: true, showIf: (x) => !["QARD_HASAN", "MUDARABA"].includes(product(x.product_code)?.contract_type) },
+        { key: "asset_reference", label: L("Asset reference"), showIf: (x) => !["QARD_HASAN", "MUDARABA"].includes(product(x.product_code)?.contract_type) },
+        { key: "supplier", label: L("supplier"), showIf: (x) => !["QARD_HASAN", "MUDARABA"].includes(product(x.product_code)?.contract_type) },
+        { key: "supplier_invoice", label: L("supplier_invoice"), showIf: (x) => !["QARD_HASAN", "MUDARABA"].includes(product(x.product_code)?.contract_type) },
+        { key: "purchase_date", label: L("purchase_date"), type: "date", showIf: (x) => !["QARD_HASAN", "MUDARABA"].includes(product(x.product_code)?.contract_type) },
       ]}
       initial={{ start_date: today() }}
+      needs={(x) => x.product_code && spec(x.product_code).required.every((k) => x[k] !== "" && x[k] != null)}
       confirmLabel={L("Submit for approval")}
       run={(x) =>
         contractApi.add({
@@ -747,46 +762,52 @@ function ContractOpen({ onClose, onDone }) {
           acct_id: Number(x.acct_id),
           product_code: x.product_code,
           terms: terms(x),
-          asset: { description: x.asset_description, reference: x.asset_reference, supplier: x.supplier, supplier_invoice: x.supplier_invoice, purchase_date: x.purchase_date },
+          ...(x.asset_description ? { asset: { description: x.asset_description, reference: x.asset_reference, supplier: x.supplier, supplier_invoice: x.supplier_invoice, purchase_date: x.purchase_date } } : {}),
         })
       }
       onClose={onClose}
       onDone={onDone}
     >
-      {(form) => (
-        <div className="mb-3">
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={Calculator}
-            disabled={!form.product_code || !form.instalments}
-            disabledReason={L("Pick the product and fill the instalments.")}
-            onClick={() =>
-              contractApi
-                .calculate({ contract_type: typeOf(form.product_code), ...terms(form) })
-                .then((r) => setCalc(first(r)))
-                .catch((e) => notifications.error(e.message))
-            }
-          >
-            {L("Calculate")}
-          </Button>
-          {calc && (
-            <div className="mt-3">
-              <Facts className="mb-2" rows={factsOfObject(L, calc)} />
-              {(calc.notes ?? []).map((n) => (
-                <p key={n} className="text-xs text-muted-foreground">{n}</p>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {(form) => {
+        const p = product(form.product_code);
+        const sp = spec(form.product_code);
+        return (
+          <div className="mb-3">
+            {p && <p className="mb-2 text-xs text-muted-foreground">{[words(p.contract_type), p.currency, p.indicative_profit_rate && `${L("indicative_profit_rate")} ${pct(p.indicative_profit_rate)}`, p.maximum_instalments && `${L("maximum_instalments")} ${p.maximum_instalments}`, sp.note].filter(Boolean).join(" · ")}</p>}
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={Calculator}
+              disabled={!form.product_code || !sp.required.every((k) => form[k] !== "" && form[k] != null)}
+              disabledReason={L("Pick the product and fill its required terms.")}
+              onClick={() =>
+                contractApi
+                  .calculate({ contract_type: p.contract_type, ...terms(form) })
+                  .then((r) => setCalc(first(r)))
+                  .catch((e) => notifications.error(e.message))
+              }
+            >
+              {L("Calculate")}
+            </Button>
+            {calc && (
+              <div className="mt-3">
+                <Facts className="mb-2" rows={factsOfObject(L, calc)} />
+                {(calc.notes ?? []).map((n) => (
+                  <p key={n} className="text-xs text-muted-foreground">
+                    {n}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }}
     </OpDialog>
   );
 }
 
 function ContractView({ id, onBack }) {
   const L = useL();
-  const can = usePagePermission();
   const [data, setData] = useState(null);
   const [late, setLate] = useState(null);
   const [settle, setSettle] = useState(null);
@@ -807,17 +828,16 @@ function ContractView({ id, onBack }) {
   }, [id]);
   if (!data) return <PageSkeleton />;
   const c = data.contract ?? {};
-  const active = c.status === "ACTIVE";
-  const pending = ["PENDING", "PENDING_APPROVAL"].includes(c.status);
+  const a = data.actions ?? {};
   const close = () => setDialog(null);
   const done = () => (close(), reload());
   const buttons = [
-    active && can("Add") && { key: "pay", label: L("Pay instalments"), icon: Banknote, variant: "primary", run: () => setDialog("pay") },
-    active && can("Add") && Number(c.tawidh_due) + Number(c.gharamah_due) > 0 && { key: "pay_charges", label: L("Pay late charges"), icon: HandCoins, run: () => act(contractApi.pay_charges, { id }, reload) },
-    active && can("Authorize") && { key: "late_run", label: L("Charge late charges"), icon: Play, run: () => act(contractApi.late_charges_run, { id }, reload) },
-    active && c.contract_type === "IJARA" && can("Edit") && { key: "rental", label: L("Revise rental"), icon: RefreshCcw, run: () => setDialog("rental") },
-    active && c.contract_type === "MUDARABA" && can("Authorize") && { key: "mudaraba", label: L("Settle Mudaraba"), icon: CheckCircle2, run: () => setDialog("mudaraba") },
-    active && can("Authorize") && {
+    a.pay && { key: "pay", label: L("Pay instalments"), icon: Banknote, variant: "primary", run: () => setDialog("pay") },
+    a.pay_charges && { key: "pay_charges", label: L("Pay late charges"), icon: HandCoins, run: () => act(contractApi.pay_charges, { id }, reload) },
+    a.late_charges_run && { key: "late_run", label: L("Charge late charges"), icon: Play, run: () => act(contractApi.late_charges_run, { id }, reload) },
+    a.rental_revision && { key: "rental", label: L("Revise rental"), icon: RefreshCcw, run: () => setDialog("rental") },
+    a.mudaraba_settle && { key: "mudaraba", label: L("Settle Mudaraba"), icon: CheckCircle2, run: () => setDialog("mudaraba") },
+    a.settle && {
       key: "settle",
       label: L("Early settlement"),
       icon: Ban,
@@ -828,8 +848,8 @@ function ContractView({ id, onBack }) {
           .then((r) => setSettle(first(r)))
           .catch((e) => notifications.error(e.message)),
     },
-    pending && can("Authorize") && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => act(contractApi.deauth, { id }, reload) },
-    pending && can("Authorize") && { key: "auth", label: L("approve"), icon: CheckCircle2, variant: "primary", run: () => act(contractApi.auth, { id }, reload) },
+    a.reject && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => act(contractApi.deauth, { id }, reload) },
+    a.approve && { key: "auth", label: L("approve"), icon: CheckCircle2, variant: "primary", run: () => act(contractApi.auth, { id }, reload) },
   ];
   return (
     <div className="pt-1 pb-6">
@@ -902,7 +922,7 @@ export function IslamicFinancing() {
   const can = usePagePermission();
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
-  const list = useServerList({ api: contractApi.listPath, call: contractApi.list, describe: false, enabled: !openId });
+  const list = useServerList({ api: contractApi.listPath, call: contractApi.list, enabled: !openId });
   if (!can("View")) return <NoAccess />;
   if (openId) return <ContractView id={openId} onBack={() => (setOpenId(null), list.reload())} />;
   return (
@@ -943,7 +963,7 @@ export function CharityFund() {
   const can = usePagePermission();
   const [fund, setFund] = useState(null);
   const [remitting, setRemitting] = useState(false);
-  const list = useServerList({ api: charityApi.listPath, call: charityApi.list, describe: false });
+  const list = useServerList({ api: charityApi.listPath, call: charityApi.list });
   const loadFund = () =>
     charityApi
       .fund({})
@@ -983,7 +1003,7 @@ export function CharityFund() {
         <OpDialog
           title={L("Remit to a charity")}
           fields={[
-            { key: "currency_id", label: L("currency"), type: "select", required: true, options: (fund ?? []).filter((x) => x.currency_id).map((x) => ({ value: String(x.currency_id), label: `${x.currency ?? x.currency_name ?? x.currency_id} · ${x.balance ?? ""}` })) },
+            { key: "currency_id", label: L("currency"), type: "select", required: true, options: (fund ?? []).filter((x) => x.currency_id).map((x) => ({ value: String(x.currency_id), label: `${x.currency} · ${L("held")} ${x.held}` })) },
             { key: "amount", label: L("amount"), type: "amount", required: true },
             { key: "beneficiary", label: L("beneficiary"), required: true, wide: true },
           ]}
