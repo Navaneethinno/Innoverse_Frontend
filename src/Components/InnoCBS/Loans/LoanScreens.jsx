@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Ban, Banknote, Calculator, CheckCircle2, HandCoins, Play, Plus, RefreshCcw, XCircle } from "lucide-react";
@@ -24,8 +25,8 @@ import { loanFacilitiesApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // InnoCBS > Loans (Admin 21).
-const LN = "/config/loan";
-const IF = "/config/islamic_finance";
+const LN = API_ENDPOINTS.CBS_MODULES.LOAN;
+const IF = API_ENDPOINTS.CBS_MODULES.ISLAMIC_FINANCE;
 const regRuleApi = recordApi(`${LN}/regulatory_rule`);
 const structureApi = recordApi(`${LN}/repayment_structure`);
 const servicingApi = recordApi(`${LN}/servicing_rule`);

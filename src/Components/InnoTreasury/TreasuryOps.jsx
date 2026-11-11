@@ -11,7 +11,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { calls } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { CollateralMargin } from "./TreasuryRecords";
-import { T, bankAccountApi, borrowingApi, counterpartyApi, dematApi, fixedAssetApi, mapText, securityApi, today, useActive } from "./treasuryShared";
+import { T, choices, glChoices, useTreasuryOptions, bankAccountApi, borrowingApi, counterpartyApi, dematApi, fixedAssetApi, mapText, securityApi, today, useActive } from "./treasuryShared";
 
 const rateApi = calls(`${T}/rate`, ["list", "add"]);
 const entryApi = calls(`${T}/entry`, ["list", "add"]);
@@ -55,6 +55,7 @@ const approveReject = (L, api) => (r) => [
 
 export function MarketRates() {
   const L = useL();
+  const topt = useTreasuryOptions();
   return (
     <OpsList
       api={rateApi}
@@ -79,8 +80,8 @@ export function MarketRates() {
             title: L("Enter a rate"),
             fields: [
               { key: "rate_kind", label: L("kind"), type: "select", required: true, options: [{ value: "FX", label: "FX" }, { value: "BENCHMARK", label: L("Benchmark") }] },
-              { key: "base_currency", label: L("base_currency"), placeholder: "USD", showIf: (x) => x.rate_kind === "FX" },
-              { key: "quote_currency", label: L("quote_currency"), placeholder: "NGN", showIf: (x) => x.rate_kind === "FX" },
+              { key: "base_currency", label: L("base_currency"), type: "select", options: choices(topt.currencies), showIf: (x) => x.rate_kind === "FX" },
+              { key: "quote_currency", label: L("quote_currency"), type: "select", options: choices(topt.currencies), showIf: (x) => x.rate_kind === "FX" },
               { key: "benchmark_code", label: L("benchmark_code"), placeholder: "NIBOR_3M", showIf: (x) => x.rate_kind === "BENCHMARK" },
               { key: "rate", label: L("rate"), type: "rate", required: true },
               { key: "rate_date", label: L("rate_date"), type: "date", required: true },
@@ -99,6 +100,7 @@ export function MarketRates() {
 
 export function InterbankTransactions() {
   const L = useL();
+  const topt = useTreasuryOptions();
   const accounts = useActive(bankAccountApi, { value: (r) => r.id ?? r.record_id });
   return (
     <OpsList
@@ -126,9 +128,9 @@ export function InterbankTransactions() {
             title: L("Book an entry"),
             fields: [
               { key: "account_id", label: L("account"), type: "select", required: true, options: accounts },
-              { key: "entry_type", label: L("entry_type"), type: "select", required: true, options: ["CHARGE", "COMMISSION", "INTEREST", "INWARD", "OUTWARD", "ADJUSTMENT"].map((v) => ({ value: v, label: words(v) })) },
-              { key: "direction", label: L("direction"), type: "select", options: ["IN", "OUT"].map((v) => ({ value: v, label: v })), showIf: (x) => x.entry_type === "ADJUSTMENT" },
-              { key: "contra_gl_id", label: L("Contra GL ID"), type: "int", showIf: (x) => ["INWARD", "OUTWARD"].includes(x.entry_type) },
+              { key: "entry_type", label: L("entry_type"), type: "select", required: true, options: choices(topt.entry_types) },
+              { key: "direction", label: L("direction"), type: "select", options: choices(topt.adjustment_directions ?? ["IN", "OUT"]), showIf: (x) => x.entry_type === "ADJUSTMENT" },
+              { key: "contra_gl_id", label: L("Contra GL"), type: "select", options: glChoices(topt.gl_accounts), showIf: (x) => (topt.entry_types_needing_gl ?? ["INWARD", "OUTWARD", "ADJUSTMENT"]).includes(x.entry_type) },
               { key: "amount", label: L("amount"), type: "amount", required: true },
               { key: "entry_date", label: L("entry_date"), type: "date", required: true },
               { key: "statement_line_id", label: L("Statement line ID"), type: "int", hint: L("Matches it to a statement line.") },
@@ -153,7 +155,9 @@ export function InterbankTransfers() {
       sub="Transfers between interbank accounts; a checker approves."
       columns={[
         { key: "created_time", label: L("when"), render: (r) => dateCell(r.created_time ?? r.requested_at) },
-        { key: "route", label: L("From → to"), sortable: false, render: (r) => cell(`${r.from_account_code ?? r.from_account_id} → ${r.to_account_code ?? r.to_account_id}`) },
+        { key: "route", label: L("From → to"), sortable: false, render: (r) => cell(`${r.from_account} → ${r.to_account}`) },
+        { key: "transfer_date", label: L("transfer_date"), render: (r) => dateCell(r.transfer_date) },
+        { key: "to_amount", label: L("to_amount"), render: (r) => cell(r.to_amount) },
         { key: "amount", label: L("amount"), render: (r) => cell(r.amount) },
         { key: "fx_rate", label: L("fx_rate"), render: (r) => cell(r.fx_rate) },
         { key: "reference", label: L("reference"), render: (r) => cell(r.reference) },
@@ -204,6 +208,39 @@ function ReconStatus({ accountId, version }) {
   return <Facts className="mb-3" rows={[[L("matched"), s.matched], [L("unmatched_statement_lines"), s.unmatched_statement_lines, s.unmatched_statement_lines ? "text-amber-700" : undefined], [L("unmatched_book_entries"), s.unmatched_book_entries, s.unmatched_book_entries ? "text-amber-700" : undefined], [L("book_balance"), s.book_balance], [L("statement_balance"), s.statement_balance || "—"], [L("difference"), s.difference || "—", Number(s.difference) ? "text-red-700" : undefined]]} />;
 }
 
+// Unmatched book entries of the account with the line's amount (or near it).
+function EntryFinder({ line, accountId, value, onChange }) {
+  const L = useL();
+  const [exact, setExact] = useState(true);
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    const amt = Math.abs(Number(line.amount));
+    entryApi
+      .list({ page: 1, limit: 25, filters: { account_id: Number(accountId), unmatched: true, ...(exact ? { amount: line.amount } : {}) }, ...(exact ? {} : { amount_min: String(amt * 0.9), amount_max: String(amt * 1.1) }) })
+      .then((r) => setRows(itemsOf(r)))
+      .catch((e) => notifications.error(e.message));
+  }, [line, accountId, exact]);
+  return (
+    <div className="mb-3">
+      <label className="mb-2 flex items-center gap-2 text-xs">
+        <input type="checkbox" checked={exact} onChange={(e) => setExact(e.target.checked)} /> {L("Exact amount only")}
+      </label>
+      <RowsTable
+        rows={rows ?? []}
+        empty={L("No unmatched entries found.")}
+        columns={[
+          { key: "pick", label: "", render: (e) => <input type="radio" name="entry" aria-label={String(e.id)} checked={String(value) === String(e.id)} onChange={() => onChange(String(e.id))} /> },
+          { key: "entry_date", label: L("entry_date"), render: (e) => dateCell(e.entry_date) },
+          { key: "entry_type", label: L("entry_type"), render: (e) => words(e.entry_type) },
+          { key: "amount", label: L("amount"), numeric: true },
+          { key: "reference", label: L("reference") },
+          { key: "narration", label: L("narration") },
+        ]}
+      />
+    </div>
+  );
+}
+
 export function BankReconciliation() {
   const L = useL();
   const can = usePagePermission();
@@ -250,7 +287,7 @@ export function BankReconciliation() {
           { key: "match_status", label: L("match_status"), render: (r) => <Status code={r.match_status} /> },
         ]}
         rowActions={(r) => [
-          { key: "match", label: L("Match"), icon: Link2, right: "Edit", show: (x) => x.match_status !== "MATCHED", dialog: { title: L("Match to a book entry"), fields: [{ key: "entry_id", label: L("Book entry ID"), type: "int", required: true }], run: (x) => reconApi.match({ line_id: Number(r.id), entry_id: Number(x.entry_id), unmatch: false }), after: bump } },
+          { key: "match", label: L("Match"), icon: Link2, right: "Edit", show: (x) => x.match_status !== "MATCHED", dialog: { size: "lg", title: `${L("Match to a book entry")} · ${r.description} · ${r.amount}`, fields: [], needs: (x) => Boolean(x.entry_id), children: (form, setForm) => <EntryFinder line={r} accountId={account} value={form.entry_id} onChange={(v) => setForm((x) => ({ ...x, entry_id: v }))} />, run: (x) => reconApi.match({ line_id: r.id, entry_id: Number(x.entry_id), unmatch: false }), after: bump } },
           { key: "unmatch", label: L("Unmatch"), icon: XCircle, right: "Edit", show: (x) => x.match_status === "MATCHED", call: reconApi.match, body: { line_id: Number(r.id), entry_id: Number(r.entry_id || 0), unmatch: true } },
         ]}
       />
@@ -294,6 +331,7 @@ const TRADE_TYPES = ["BUY", "SELL", "RIGHTS", "BONUS", "SPLIT", "BUYBACK", "MERG
 
 export function SecurityTransactions() {
   const L = useL();
+  const topt = useTreasuryOptions();
   const securities = useActive(securityApi);
   const demats = useActive(dematApi);
   const accounts = useActive(bankAccountApi);
@@ -325,7 +363,7 @@ export function SecurityTransactions() {
             title: L("New transaction"),
             hint: L("A checker approves it."),
             fields: [
-              { key: "txn_type", label: L("txn_type"), type: "select", required: true, options: TRADE_TYPES.map((v) => ({ value: v, label: words(v) })) },
+              { key: "txn_type", label: L("txn_type"), type: "select", required: true, options: topt.trade_types ? choices(topt.trade_types) : TRADE_TYPES.map((v) => ({ value: v, label: words(v) })) },
               { key: "security_code", label: L("security"), type: "select", required: true, options: securities },
               { key: "demat_code", label: L("demat"), type: "select", required: true, options: demats },
               { key: "quantity", label: L("quantity"), type: "amount", showIf: (x) => !is("BONUS", "SPLIT", "DIVIDEND")(x) },
@@ -502,6 +540,7 @@ export function DrawdownsUtilisation() {
 
 export function ForexDeals() {
   const L = useL();
+  const topt = useTreasuryOptions();
   const parties = useActive(counterpartyApi);
   const accounts = useActive(bankAccountApi);
   return (
@@ -530,11 +569,12 @@ export function ForexDeals() {
             title: L("New deal"),
             hint: L("A checker approves it."),
             fields: [
-              { key: "deal_type", label: L("deal_type"), type: "select", required: true, options: ["SPOT", "FORWARD", "SWAP"].map((v) => ({ value: v, label: words(v) })) },
+              { key: "deal_type", label: L("deal_type"), type: "select", required: true, options: choices(topt.deal_types) },
+              { key: "linked_deal_id", label: L("Near leg deal ID"), type: "int", showIf: (x) => x.deal_type === "SWAP_FAR" },
               { key: "counterparty_code", label: L("counterparty"), type: "select", required: true, options: parties },
-              { key: "buy_currency", label: L("buy_currency"), required: true, placeholder: "USD" },
+              { key: "buy_currency", label: L("buy_currency"), type: "select", required: true, options: choices(topt.currencies) },
               { key: "buy_amount", label: L("buy_amount"), type: "amount", required: true },
-              { key: "sell_currency", label: L("sell_currency"), required: true, placeholder: "NGN" },
+              { key: "sell_currency", label: L("sell_currency"), type: "select", required: true, options: choices(topt.currencies) },
               { key: "deal_rate", label: L("deal_rate"), type: "rate", required: true },
               { key: "value_date", label: L("value_date"), type: "date", required: true },
               { key: "buy_account", label: L("buy_account"), type: "select", required: true, options: (_c, x) => accounts.filter((a) => !x.buy_currency || a.row.currency === x.buy_currency) },
@@ -564,7 +604,18 @@ export function FxRevaluation() {
         preview && (
           <Section title={L("Revaluation preview")} className="mb-3">
             <Facts rows={Object.entries(preview).filter(([, v]) => typeof v !== "object").map(([k, v]) => [L(k), String(v)])} />
-            {Array.isArray(preview.lines ?? preview.items) && <RowsTable rows={preview.lines ?? preview.items} columns={Object.keys((preview.lines ?? preview.items)[0] ?? { currency: 1 }).map((k) => ({ key: k, label: L(k) }))} />}
+            <RowsTable
+              rows={preview.lines}
+              columns={[
+                { key: "source", label: L("source"), render: (x) => words(x.source) },
+                { key: "code", label: L("code") },
+                { key: "currency", label: L("currency") },
+                { key: "amount", label: L("amount"), numeric: true },
+                { key: "rate", label: L("rate"), render: (x) => (x.rate_missing ? <b className="text-red-700">{L("Missing")}</b> : `${Number(x.previous_rate)} → ${Number(x.rate)}`) },
+                { key: "base_value", label: L("base_value"), numeric: true },
+                { key: "gain_loss", label: L("gain_loss"), render: (x) => warnCell(x.gain_loss, Number(x.gain_loss) < 0) },
+              ]}
+            />
           </Section>
         )
       }
@@ -641,6 +692,7 @@ export function CollateralAndMargin() {
 
 export function DepreciationDisposal() {
   const L = useL();
+  const topt = useTreasuryOptions();
   const assets = useActive(fixedAssetApi, { value: (r) => r.id ?? r.record_id });
   return (
     <OpsList
@@ -669,10 +721,10 @@ export function DepreciationDisposal() {
             title: L("Asset action"),
             fields: [
               { key: "id", label: L("asset"), type: "select", required: true, options: assets },
-              { key: "action", label: L("action"), type: "select", required: true, options: ["IMPAIRMENT", "TRANSFER", "MAINTENANCE", "DISPOSAL"].map((v) => ({ value: v, label: words(v) })) },
+              { key: "action", label: L("action"), type: "select", required: true, options: choices(topt.asset_actions) },
               { key: "amount", label: L("amount"), type: "amount", showIf: (x) => x.action !== "TRANSFER" },
-              { key: "proceeds_gl_id", label: L("Proceeds GL ID"), type: "int", showIf: (x) => x.action === "DISPOSAL" },
-              { key: "to_branch_id", label: L("To branch ID"), type: "int", showIf: (x) => x.action === "TRANSFER" },
+              { key: "proceeds_gl_id", label: L("Proceeds GL"), type: "select", options: glChoices(topt.gl_accounts), showIf: (x) => x.action === "DISPOSAL" },
+              { key: "to_branch_id", label: L("To branch"), type: "select", options: choices(topt.branches), showIf: (x) => x.action === "TRANSFER" },
               { key: "to_location", label: L("to_location"), showIf: (x) => x.action === "TRANSFER" },
               { key: "remarks", label: L("remarks"), type: "textarea", required: true },
             ],
@@ -958,7 +1010,7 @@ export function AlertCentre() {
       ]}
       toolbar={[{ key: "run", label: L("Raise alerts now"), icon: Bell, right: "Authorize", call: alertApi.run, body: {} }]}
       rowActions={(r) => [
-        { key: "ack", label: L("Acknowledge"), icon: CheckCircle2, right: "Edit", show: (x) => x.status === "OPEN", dialog: { title: L("Acknowledge"), fields: [{ key: "remarks", label: L("remarks"), type: "textarea", required: true }], run: (x) => alertApi.acknowledge({ ids: [Number(r.id)], close: false, remarks: x.remarks }) } },
+        { key: "ack", flag: "acknowledge", label: L("Acknowledge"), icon: CheckCircle2, right: "Edit", show: (x) => x.status === "OPEN", dialog: { title: L("Acknowledge"), fields: [{ key: "remarks", label: L("remarks"), type: "textarea", required: true }], run: (x) => alertApi.acknowledge({ ids: [Number(r.id)], close: false, remarks: x.remarks }) } },
         { key: "close", label: L("Close"), icon: CheckCheck, right: "Edit", show: (x) => x.status !== "CLOSED", dialog: { title: L("Close the alert"), fields: [{ key: "remarks", label: L("remarks"), type: "textarea", required: true }], run: (x) => alertApi.acknowledge({ ids: [Number(r.id)], close: true, remarks: x.remarks }) } },
       ]}
     />

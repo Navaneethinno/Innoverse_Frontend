@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { CheckCircle2, FileCheck2, Play, Plus, ReceiptText, ShieldCheck, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,7 +17,7 @@ import { calls } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // InnoCBS > Deposits > Settings, and the record screens of Deposits (Admin 20).
-const D = "/config/deposit";
+const D = API_ENDPOINTS.CBS_MODULES.DEPOSIT;
 export const rdProductApi = recordApi(`${D}/rd_product`);
 const islamicApi = recordApi(`${D}/islamic_product`);
 const ruleApi = recordApi(`${D}/product_rule`);

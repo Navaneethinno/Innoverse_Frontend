@@ -1,10 +1,11 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { recordApi } from "@/Services/api/recordApi";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useL } from "@/Components/InnoCBS/cbsOps";
 
 // InnoTreasury (Admin 24): shared record APIs and choices.
-export const T = "/config/treasury";
+export const T = API_ENDPOINTS.TREASURY.ROOT;
 export const counterpartyApi = recordApi(`${T}/counterparty`);
 export const exposureLimitApi = recordApi(`${T}/exposure_limit`);
 export const policyApi = recordApi(`${T}/investment_policy`);
@@ -31,6 +32,24 @@ export function useActive(api, { value = (r) => r.code, label = (r) => `${r.code
   }, [api]);
   return rows.map((r) => ({ value: String(value(r)), label: label(r), row: r }));
 }
+
+const optionsCall = (b) => request(`${T}/options`, b);
+let treasuryOptions = null;
+let treasuryLoad = null;
+// /config/treasury/options: currencies, deal and entry types, asset actions,
+// branches, users, GL accounts (loaded once).
+export function useTreasuryOptions() {
+  const [, bump] = useState(0);
+  useEffect(() => {
+    if (treasuryOptions) return;
+    treasuryLoad ??= optionsCall({}).then((r) => (treasuryOptions = rowsOf(r)[0] ?? r?.data ?? {}));
+    treasuryLoad.then(() => bump((n) => n + 1)).catch(() => {});
+  }, []);
+  return treasuryOptions ?? {};
+}
+// Choices of a list that holds { value, label } items or plain codes.
+export const choices = (list) => (list ?? []).map((x) => (x && typeof x === "object" ? { value: String(x.value ?? x.code ?? x.id), label: x.label ?? (x.code ? `${x.code} · ${x.name ?? ""}` : x.name) } : { value: x, label: x }));
+export const glChoices = (list) => (list ?? []).map((g) => ({ value: String(g.id), label: `${g.gl_code} · ${g.name}${g.currency_code ? ` · ${g.currency_code}` : ""}` }));
 
 export const useF = () => {
   const L = useL();

@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
@@ -68,7 +69,7 @@ export function AcctPick({ value, onChange, owner, currency, label }) {
   const ownerKey = owner?.owner_id ? `${owner.owner_type}:${owner.owner_id}` : "";
   const search = (text = "") => {
     const ticket = ++latest.current;
-    request("/config/account/pick", { search: text, page: 1, limit: 25, ...(owner?.owner_id ? owner : {}), ...(currency ? { currency } : {}) })
+    request(API_ENDPOINTS.CBS_MODULES.ACCOUNT_PICK, { search: text, page: 1, limit: 25, ...(owner?.owner_id ? owner : {}), ...(currency ? { currency } : {}) })
       .then((r) => {
         if (ticket === latest.current) setFound(rowsOf(r).map((a) => ({ value: String(a.acct_id), label: [a.acct_num, a.owner_name, a.product_name, a.currency, a.avail_bal].filter(Boolean).join(" · ") })));
       })

@@ -4,7 +4,7 @@ import { RowsInput, RowsTable, cell, codes, dateCell, pct, sv, useL, words } fro
 import { Status } from "@/Components/InnoCBS/OpsList";
 import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
-import { T, alertRuleApi, almApi, bankAccountApi, borrowingApi, collateralApi, counterpartyApi, dematApi, exposureLimitApi, fixedAssetApi, guaranteeApi, placementApi, policyApi, reserveReqApi, securityApi, toNum, useActive, useF } from "./treasuryShared";
+import { T, choices, glChoices, alertRuleApi, almApi, bankAccountApi, borrowingApi, collateralApi, counterpartyApi, dematApi, exposureLimitApi, fixedAssetApi, guaranteeApi, placementApi, policyApi, reserveReqApi, securityApi, toNum, useActive, useF } from "./treasuryShared";
 
 const eventApi = calls(`${T}/event`, ["list"]);
 const csv = (v) =>
@@ -15,15 +15,15 @@ const csv = (v) =>
 const csvField = (L, key, placeholder) => ({ key, label: L(key), type: "text", from: (s) => (s[key] ?? []).join(", "), placeholder, hint: L("Comma separated.") });
 
 // The events a contract wrote into the Treasury Schedule.
-function ContractEvents({ code }) {
+function ContractEvents({ kind, id }) {
   const L = useL();
   const [rows, setRows] = useState(null);
   useEffect(() => {
     eventApi
-      .list({ search: code, filters: { ref_code: code }, page: 1, page_size: 200 })
-      .then((r) => setRows(rowsOf(r).filter((e) => !e.ref_code || e.ref_code === code)))
+      .list({ filters: { kind, ref_id: id }, page: 1, limit: 100 })
+      .then((r) => setRows(rowsOf(r)))
       .catch(() => setRows([]));
-  }, [code]);
+  }, [kind, id]);
   return (
     <Section title={L("Schedule")}>
       <RowsTable
@@ -42,7 +42,7 @@ function ContractEvents({ code }) {
     </Section>
   );
 }
-const scheduleTab = (L) => [{ key: "schedule", label: L("Schedule"), render: (r) => <ContractEvents code={r.code ?? r.setup?.code} /> }];
+const scheduleTab = (L, kind) => [{ key: "schedule", label: L("Schedule"), render: (r) => <ContractEvents kind={kind} id={r.id} /> }];
 
 export function Counterparties() {
   const L = useL();
@@ -68,7 +68,7 @@ export function Counterparties() {
         f("group_code", "text"),
         f("country", "text", { placeholder: "NG" }),
         f("industry", "text"),
-        f("currency", "text"),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("swift_code", "text"),
         f("rating", "text"),
         f("rating_rank", "int", { hint: L("1 is the best; a higher number is a downgrade.") }),
@@ -104,7 +104,7 @@ export function ExposureLimits() {
         f("code", "code", { required: true, fixedOnEdit: true, placeholder: "CCY-USD" }),
         f("name", "text", { required: true }),
         f("limit_kind", "select", { required: true, options: codes("limit_kinds") }),
-        f("limit_key", "text", { required: true, hint: L("The group, country, currency, industry or instrument code.") }),
+        f("limit_key", "select", { hint: L("Not needed for the equity total."), options: () => [], optionsFor: (c, x) => choices(c.limit_keys?.[x.limit_kind]), showIf: (x) => x.limit_kind !== "EQUITY_TOTAL" }),
         f("limit_amount", "amount", { required: true }),
         f("warn_percent", "percent"),
         f("breach_action", "select", { required: true, options: codes("breach_actions") }),
@@ -166,12 +166,12 @@ export function InterbankAccounts() {
         f("name", "text", { required: true }),
         f("counterparty_code", "select", { required: true, options: parties }),
         f("account_number", "text", { required: true }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("account_type", "select", { required: true, options: codes("account_types") }),
         f("account_purpose", "select", { options: codes("account_purposes") }),
         f("account_status", "select", { options: codes("account_statuses") }),
         f("branch", "text"),
-        f("gl_account_id", "int", { required: true, label: L("GL account ID") }),
+        f("gl_account_id", "select", { required: true, label: L("GL account"), options: (c) => glChoices(c.gl_accounts) }),
         f("opening_balance", "amount"),
         f("opening_date", "date"),
         f("minimum_balance", "amount"),
@@ -241,7 +241,7 @@ export function Securities() {
         f("classification", "select", { required: true, options: codes("classifications") }),
         f("isin", "text"),
         f("issuer_code", "text"),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("face_value", "amount"),
         f("coupon_rate", "rate"),
         f("coupon_frequency", "select", { options: codes("coupon_frequencies") }),
@@ -253,7 +253,7 @@ export function Securities() {
         f("rating", "text"),
         f("industry", "text"),
         f("list_status", "select", { options: codes("list_statuses") }),
-        f("gl_account_id", "int", { label: L("GL account ID") }),
+        f("gl_account_id", "select", { label: L("GL account"), options: (c) => glChoices(c.gl_accounts) }),
         f("effective_from", "date", { required: true }),
       ]}
       bodyOf={toNum(["gl_account_id"])}
@@ -264,7 +264,7 @@ export function Securities() {
 export function StatutoryReserves() {
   const L = useL();
   const f = useF();
-  const ids = (key) => ({ key, label: L(key), type: "text", from: (s) => (s[key] ?? []).join(", "), hint: L("GL account IDs, comma separated.") });
+  const ids = (key) => ({ key, label: L(key), type: "multi", options: (c) => (c.gl_accounts ?? []).map((g) => ({ value: g.id, label: `${g.gl_code} · ${g.name}` })) });
   return (
     <RecordScreen
       api={reserveReqApi}
@@ -296,7 +296,7 @@ export function StatutoryReserves() {
         f("penalty_rate", "rate"),
         f("effective_from", "date", { required: true }),
       ]}
-      bodyOf={(x) => ({ ...x, ...Object.fromEntries(["basis_gl_ids", "exempt_gl_ids", "eligible_cash_gl_ids"].map((k) => [k, csv(x[k]).map(Number)])) })}
+      bodyOf={(x) => ({ ...x, ...Object.fromEntries(["basis_gl_ids", "exempt_gl_ids", "eligible_cash_gl_ids"].map((k) => [k, (x[k] ?? []).map(Number)])) })}
     />
   );
 }
@@ -379,7 +379,7 @@ export function AlertRules() {
         f("code", "code", { required: true, fixedOnEdit: true, placeholder: "MATURITIES" }),
         f("name", "text", { required: true }),
         f("kind", "select", { required: true, options: codes("kinds") }),
-        csvField(L, "event_types", "MATURITY, INTEREST_PAYMENT"),
+        { key: "event_types", label: L("event_types"), type: "multi", options: () => [], optionsFor: (c, x) => choices(c.event_types?.[x.kind] ?? c.event_types?.ANY), hint: L("Leave empty for every event of the kind.") },
         { ...csvField(L, "offsets", "90, 30, 7, 1, 0"), hint: L("Days before the event, comma separated.") },
         f("channels", "multi", { options: codes("channels") }),
         f("escalate_after_days", "int"),
@@ -389,13 +389,13 @@ export function AlertRules() {
           type: "custom",
           render: (v, set, _x, c) => (
             <RowsInput
-              value={(v ?? []).map((r) => ({ ...r, user_ids: Array.isArray(r.user_ids) ? r.user_ids.join(", ") : r.user_ids }))}
+              value={(v ?? []).map((r) => ({ ...r, user_ids: Array.isArray(r.user_ids) ? String(r.user_ids[0] ?? "") : r.user_ids }))}
               onChange={set}
               blank={() => ({ level: "0", role: "", user_ids: "" })}
               columns={[
                 { key: "level", label: L("level"), type: "int" },
                 { key: "role", label: L("role"), type: "select", options: codes("escalation_roles")(c) },
-                { key: "user_ids", label: L("User IDs (comma separated)") },
+                { key: "user_ids", label: L("User"), type: "select", options: choices(c?.users) },
               ]}
             />
           ),
@@ -404,7 +404,7 @@ export function AlertRules() {
       ]}
       bodyOf={(x) => ({
         ...toNum(["escalate_after_days"])(x),
-        event_types: csv(x.event_types),
+        event_types: x.event_types ?? [],
         offsets: csv(x.offsets).map(Number),
         recipients: (x.recipients ?? []).map((r) => ({ level: Number(r.level || 0), role: r.role, user_ids: csv(r.user_ids).map(Number) })),
       })}
@@ -425,7 +425,7 @@ export function FdMoneyMarket() {
       title={L("FD & Money Market")}
       subtitle={L("Fixed deposits and money market placements. On approval the schedule is written; settle its events in the Treasury Schedule.")}
       effectiveDated
-      extraTabs={scheduleTab(L)}
+      extraTabs={scheduleTab(L, "PLACEMENT")}
       columns={[
         { key: "counterparty_code", label: L("counterparty"), render: (r) => cell(sv(r, "counterparty_code")) },
         { key: "instrument", label: L("instrument"), render: (r) => cell(words(sv(r, "instrument"))) },
@@ -437,7 +437,7 @@ export function FdMoneyMarket() {
         f("counterparty_code", "select", { required: true, options: parties }),
         f("instrument", "select", { required: true, options: codes("instruments") }),
         f("amount", "amount", { required: true }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("booking_date", "date", { required: true }),
         f("value_date", "date", { required: true }),
         f("maturity_date", "date", { required: true }),
@@ -458,8 +458,8 @@ export function FdMoneyMarket() {
         f("collateral_code", "text"),
         f("confirmation_received", "bool"),
         f("instruction_confirmed", "bool"),
-        f("investment_gl_id", "int", { label: L("Investment GL ID") }),
-        f("interest_income_gl_id", "int", { label: L("Interest income GL ID") }),
+        f("investment_gl_id", "select", { label: L("Investment GL"), options: (c) => glChoices(c.gl_accounts) }),
+        f("interest_income_gl_id", "select", { label: L("Interest income GL"), options: (c) => glChoices(c.gl_accounts) }),
         f("code", "code", { fixedOnEdit: true, hint: L("Leave empty and the server gives one.") }),
         f("name", "text"),
         f("effective_from", "date", { required: true }),
@@ -481,7 +481,7 @@ export function BorrowingFacilities() {
       title={L("borrowingFacilities")}
       subtitle={L("Facilities the bank borrows on: limit, terms, security, covenants, and their utilisation.")}
       effectiveDated
-      extraTabs={scheduleTab(L)}
+      extraTabs={scheduleTab(L, "BORROWING")}
       columns={[
         { key: "lender_code", label: L("lender"), render: (r) => cell(sv(r, "lender_code")) },
         { key: "facility_limit", label: L("facility_limit"), render: (r) => cell(`${sv(r, "facility_limit") ?? ""} ${sv(r, "currency") ?? ""}`) },
@@ -495,7 +495,7 @@ export function BorrowingFacilities() {
         f("lender_code", "select", { required: true, options: parties }),
         f("facility_type", "select", { required: true, options: codes("facility_types") }),
         f("facility_limit", "amount", { required: true }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("revolving", "bool"),
         f("sanction_date", "date", { required: true }),
         f("facility_expiry_date", "date", { required: true }),
@@ -523,8 +523,8 @@ export function BorrowingFacilities() {
           type: "custom",
           render: (v, set, _x, c) => <RowsInput value={v} onChange={set} blank={() => ({ name: "", condition: "", review_frequency: "", next_review: "" })} columns={[{ key: "name", label: L("name") }, { key: "condition", label: L("condition") }, { key: "review_frequency", label: L("review_frequency"), type: "select", options: codes("interest_frequencies")(c) }, { key: "next_review", label: L("next_review"), type: "date" }]} />,
         },
-        f("liability_gl_id", "int", { label: L("Liability GL ID") }),
-        f("interest_expense_gl_id", "int", { label: L("Interest expense GL ID") }),
+        f("liability_gl_id", "select", { label: L("Liability GL"), options: (c) => glChoices(c.gl_accounts) }),
+        f("interest_expense_gl_id", "select", { label: L("Interest expense GL"), options: (c) => glChoices(c.gl_accounts) }),
         f("effective_from", "date", { required: true }),
         f("remarks", "textarea"),
       ]}
@@ -554,10 +554,10 @@ export function CollateralMargin() {
         f("direction", "select", { required: true, options: codes("directions") }),
         f("collateral_type", "select", { required: true, options: codes("collateral_types") }),
         f("counterparty_code", "select", { required: true, options: parties }),
-        f("linked_to", "text", { hint: L("The contract code it secures.") }),
+        f("linked_to", "select", { options: (c) => choices(c.linked_to) }),
         f("security_code", "select", { options: securities, showIf: (x) => x.collateral_type === "SECURITY" }),
         f("quantity", "amount", { showIf: (x) => x.collateral_type === "SECURITY" }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("market_value", "amount", { required: true }),
         f("haircut_percent", "percent"),
         f("required_cover", "amount"),
@@ -585,7 +585,7 @@ export function GuaranteesLcs() {
       title={L("Guarantees & LCs")}
       subtitle={L("Bank guarantees and letters of credit issued or received: commission schedule, claims and release.")}
       effectiveDated
-      extraTabs={scheduleTab(L)}
+      extraTabs={scheduleTab(L, "GUARANTEE")}
       columns={[
         { key: "guarantee_kind", label: L("guarantee_kind"), render: (r) => cell(words(sv(r, "guarantee_kind"))) },
         { key: "beneficiary", label: L("beneficiary"), render: (r) => cell(sv(r, "beneficiary")) },
@@ -598,7 +598,7 @@ export function GuaranteesLcs() {
         f("applicant", "text", { required: true }),
         f("beneficiary", "text", { required: true }),
         f("amount", "amount", { required: true }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("issue_date", "date", { required: true }),
         f("expiry_date", "date", { required: true }),
         f("claim_expiry_date", "date"),
@@ -639,7 +639,7 @@ export function AssetRegister() {
         f("ownership", "select", { required: true, options: codes("ownership") }),
         f("acquisition_date", "date", { required: true }),
         f("cost", "amount", { required: true }),
-        f("currency", "text", { required: true, placeholder: "NGN" }),
+        f("currency", "select", { required: true, options: (c) => choices(c.currencies) }),
         f("salvage_value", "amount"),
         f("depreciation_method", "select", { required: true, options: codes("depreciation_methods") }),
         f("useful_life_months", "int"),
@@ -653,8 +653,8 @@ export function AssetRegister() {
         f("insurance_expiry", "date"),
         f("maintenance_interval_months", "int"),
         f("maintenance_due", "date"),
-        f("asset_gl_id", "int", { label: L("Asset GL ID") }),
-        f("paid_from_gl_id", "int", { label: L("Paid from GL ID") }),
+        f("asset_gl_id", "select", { label: L("Asset GL"), options: (c) => glChoices(c.gl_accounts) }),
+        f("paid_from_gl_id", "select", { label: L("Paid from GL"), options: (c) => glChoices(c.gl_accounts) }),
         f("code", "code", { fixedOnEdit: true, hint: L("Leave empty and the server gives one.") }),
         f("effective_from", "date", { required: true }),
       ]}

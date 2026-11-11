@@ -46,6 +46,16 @@ export const INSTITUTION_DRAFT_STATUS_CODE = Number(
 //   3. Digital product KYC       -> no routes of its own; part of /config/digital_product/product/*
 // ---------------------------------------------------------------------------
 export const API_ENDPOINTS = {
+  // InnoCBS modules of Admin 19-23: each base route; screens add the verbs.
+  CBS_MODULES: {
+    INTEREST: "/config/interest",
+    DEPOSIT: "/config/deposit",
+    LOAN: "/config/loan",
+    ISLAMIC_FINANCE: "/config/islamic_finance",
+    SHARE: "/config/share",
+    GOLD: "/config/gold",
+    ACCOUNT_PICK: "/config/account/pick",
+  },
   AUTH: {
     LOGIN: "/config/user/login",
     REFRESH_TOKEN: "/config/user/refresh_token",

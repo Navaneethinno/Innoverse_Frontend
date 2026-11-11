@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calculator, Play } from "lucide-react";
@@ -21,7 +22,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { OpDialog, RowsInput, RowsTable, first } from "@/Components/InnoCBS/cbsOps";
 
 // InnoCBS > Interest Rate Management (Admin 19).
-const BASE = "/config/interest";
+const BASE = API_ENDPOINTS.CBS_MODULES.INTEREST;
 const schemeApi = recordApi(`${BASE}/scheme`);
 const ageApi = recordApi(`${BASE}/age_category`);
 const paramApi = recordApi(`${BASE}/parameter`);

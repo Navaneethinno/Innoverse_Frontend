@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Ban, Banknote, Calculator, CheckCircle2, FileBarChart, HandCoins, Play, Plus, RotateCcw, UserMinus, UserPlus, Wallet, XCircle } from "lucide-react";
@@ -19,7 +20,7 @@ import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // InnoCBS > Deposits: the deposit operations (Admin 20).
-const D = "/config/deposit";
+const D = API_ENDPOINTS.CBS_MODULES.DEPOSIT;
 const rdApi = calls(`${D}/rd`, ["list", "get", "options", "quote", "add", "auth", "deauth", "collect", "preclose", "revive", "service", "settle_quote", "waiver_add", "waiver_auth", "waiver_deauth"]);
 const noticeApi = calls(`${D}/notice`, ["list", "add", "cancel", "withdraw"]);
 const groupApi = calls(`${D}/group`, ["list", "get", "options", "add", "auth", "deauth", "contribute", "dissolve", "member_add", "member_approval", "member_remove", "service", "withdraw", "withdraw_auth"]);

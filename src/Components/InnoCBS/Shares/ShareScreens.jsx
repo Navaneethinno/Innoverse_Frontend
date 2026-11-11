@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calculator, CheckCircle2, Lock, Plus, Printer, RefreshCcw, ShieldCheck, Unlock, XCircle } from "lucide-react";
@@ -23,7 +24,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { OpsList } from "@/Components/InnoCBS/OpsList";
 
 // InnoCBS > Share Capital (Admin 22).
-const SH = "/config/share";
+const SH = API_ENDPOINTS.CBS_MODULES.SHARE;
 const categoryApi = recordApi(`${SH}/category`);
 const requirementRuleApi = recordApi(`${SH}/requirement_rule`);
 const requirementApi = calls(`${SH}/requirement`, ["calculate"]);

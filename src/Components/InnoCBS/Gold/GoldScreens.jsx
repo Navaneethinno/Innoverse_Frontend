@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Ban, Calculator, CheckCircle2, ClipboardCheck, FileSignature, Gavel, HandCoins, Lock, MailCheck, Package, PackageCheck, Play, Plus, RefreshCcw, ShieldAlert, ShieldCheck, Trash2, Truck, Undo2, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
@@ -18,7 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // InnoCBS > Gold Loan (Admin 23).
-const G = "/config/gold";
+const G = API_ENDPOINTS.CBS_MODULES.GOLD;
 const purityApi = recordApi(`${G}/purity`);
 const ratePolicyApi = recordApi(`${G}/rate_policy`);
 const rateApi = calls(`${G}/rate`, ["list", "add", "auth", "deauth", "status"]);
