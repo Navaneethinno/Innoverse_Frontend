@@ -63,7 +63,7 @@ const act = (call, body, after) =>
 const factsOfObject = (L, o, skip = []) => Object.entries(o ?? {}).filter(([k, v]) => !skip.includes(k) && (typeof v !== "object" || v === null)).map(([k, v]) => [L(k), v === "" || v == null ? "—" : String(v)]);
 
 // A loan facility, searched by number or borrower.
-function FacilityPick({ value, onChange }) {
+export function FacilityPick({ value, onChange }) {
   const L = useL();
   const [found, setFound] = useState([]);
   const latest = useRef(0);

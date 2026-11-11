@@ -66,6 +66,23 @@ const PAGES = {
   shareredemptions: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareRedemptions"),
   "returns&dividends": page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ReturnsDividends"),
   sharereports: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareReports"),
+  // Gold Loan (Admin 23).
+  "purity&valuation": page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "PurityValuation"),
+  goldratemanagement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldRateManagement"),
+  goldloanproducts: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldLoanProducts"),
+  lockermanagement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "LockerManagement"),
+  newgoldloanapplication: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "NewGoldLoanApplication"),
+  goldornamentinventory: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldOrnamentInventory"),
+  packetmanagement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "PacketManagement"),
+  packetmovement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "PacketMovement"),
+  goldloanaccounts: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldLoanAccounts"),
+  "interest&charges": page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldInterestCharges"),
+  "repayment&pre-closure": page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldPreclosure"),
+  goldrelease: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldRelease"),
+  overduemanagement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "OverdueManagement"),
+  auctionmanagement: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "AuctionManagement"),
+  physicalverification: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "PhysicalVerification"),
+  goldloanreports: page(() => import("@/Components/InnoCBS/Gold/GoldScreens.jsx"), "GoldLoanReports"),
 };
 
 export const cbsRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));
