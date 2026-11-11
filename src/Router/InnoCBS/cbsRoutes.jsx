@@ -55,6 +55,17 @@ const PAGES = {
   islamicfinancing: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "IslamicFinancing"),
   charityfund: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "CharityFund"),
   loanreports: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LoanReports"),
+  // Share Capital (Admin 22).
+  sharecategories: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareCategories"),
+  sharerequirementrules: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareRequirementRules"),
+  members: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "Members"),
+  sharepurchases: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "SharePurchases"),
+  shareholdings: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "Shareholdings"),
+  sharecertificates: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareCertificates"),
+  sharetransfers: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareTransfers"),
+  shareredemptions: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareRedemptions"),
+  "returns&dividends": page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ReturnsDividends"),
+  sharereports: page(() => import("@/Components/InnoCBS/Shares/ShareScreens.jsx"), "ShareReports"),
 };
 
 export const cbsRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));
