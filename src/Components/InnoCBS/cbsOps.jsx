@@ -16,10 +16,13 @@ import { cn } from "@/Utils/Lib/utils";
 
 // Shared pieces of the InnoCBS / InnoTreasury screens (Admin 19 onwards).
 
-// A code as words: TERM_DEPOSIT -> Term deposit.
+const PLAIN = new Set(["ALL", "AND", "ANY", "NEW", "OUT", "THE", "FOR", "OFF", "YES", "NO", "ONE", "DUE", "PER", "END", "TOP", "LOW", "PAY", "BUY", "NON", "IN", "ON", "OF", "TO", "AT", "BY", "OR", "UP", "SET", "RUN", "DAY", "OWN", "TAX", "FEE", "NET", "MAX", "MIN", "KEY", "AGE", "SMS"]);
+// A code as words: TERM_DEPOSIT -> Term deposit; short codes (EMI, LTV, FX) stay capitals.
 export const words = (code) => {
-  const s = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
-  return s ? s[0].toUpperCase() + s.slice(1) : "";
+  const raw = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").trim();
+  if (!raw) return "";
+  const parts = raw.split(/s+/).map((w, i) => (/^[A-Z]{2,3}$/.test(w) && !PLAIN.has(w) ? w : i === 0 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()));
+  return parts.join(" ");
 };
 // Choices from an options reply: a list of codes, or of { code, name } / { id, name }.
 export const codes = (key) => (c) => (c?.[key] ?? []).map((v) => ({ value: v, label: words(v) }));
@@ -28,10 +31,13 @@ export const byId = (key) => (c) => (c?.[key] ?? []).map((x) => ({ value: String
 // A label: its translation when one exists, else the key as words.
 export const useL = () => {
   const { t } = useTranslation("record");
-  return (key) => t(`ir_${key}`, { defaultValue: words(key) });
+  // A sentence is shown as written; a key (code or camelCase) as words.
+  return (key) => (/s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
 };
+// A decimal string ("700000.0000") with grouping and two decimals.
+export const fmtNum = (v) => (typeof v === "string" && /^-?d+.d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v);
 export const pct = (v) => (v === "" || v == null ? "—" : ratePct(v));
-export const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : v}</span>;
+export const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : fmtNum(v)}</span>;
 export const dateCell = (v) => cell(v ? accountDate(v) : null);
 export const first = (r) => rowsOf(r)[0] ?? (r?.data && !Array.isArray(r.data) ? r.data : null);
 // The value of a record row, in force or proposed.
@@ -181,7 +187,7 @@ export function RowsTable({ rows, columns, empty: emptyText }) {
             <tr key={r.id ?? i} className="border-b border-border/50 text-xs last:border-0">
               {columns.map((c) => (
                 <td key={c.key} className={cn("px-3 py-1.5", c.numeric && "tabular-nums")}>
-                  {c.render ? c.render(r) : (r[c.key] ?? "—")}
+                  {c.render ? c.render(r) : (fmtNum(r[c.key]) ?? "—")}
                 </td>
               ))}
             </tr>

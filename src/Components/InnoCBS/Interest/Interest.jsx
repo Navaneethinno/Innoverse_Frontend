@@ -19,7 +19,7 @@ import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { OpDialog, RowsInput, RowsTable, first } from "@/Components/InnoCBS/cbsOps";
+import { OpDialog, RowsInput, RowsTable, first, words as cbsWords } from "@/Components/InnoCBS/cbsOps";
 
 // InnoCBS > Interest Rate Management (Admin 19).
 const BASE = API_ENDPOINTS.CBS_MODULES.INTEREST;
@@ -35,19 +35,15 @@ const simulateApi = { ...calls(BASE, ["simulate"]), options: (b = {}) => calls(`
 const accountApi = calls(`${BASE}/account`, ["get", "list"]);
 const historyApi = calls(`${BASE}/history`, ["list"]);
 
-// Codes shown as words: TERM_DEPOSIT -> Term deposit.
-const words = (code) => {
-  const s = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
-  return s ? s[0].toUpperCase() + s.slice(1) : "";
-};
+const words = cbsWords;
 const codes = (key) => (c) => (c[key] ?? []).map((v) => ({ value: v, label: words(v) }));
 const coded = (key) => (c) => (c[key] ?? []).map((x) => ({ value: x.code, label: `${x.code} · ${x.name}` }));
 const useL = () => {
   const { t } = useTranslation("record");
-  return (key) => t(`ir_${key}`, { defaultValue: words(key) });
+  return (key) => (/s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
 };
 const pct = (v) => (v === "" || v == null ? "—" : ratePct(v));
-const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : v}</span>;
+const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : typeof v === "string" && /^-?d+.d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v}</span>;
 
 export function InterestSchemes() {
   const L = useL();
