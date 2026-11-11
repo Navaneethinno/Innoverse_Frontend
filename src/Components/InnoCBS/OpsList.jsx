@@ -28,12 +28,12 @@ export const runCall = (call, body, after) =>
 // `right` is the menu right the button needs; `show(row)` hides it.
 //   toolbar: [{ key, label, icon, right, variant, call, body, dialog }]
 //   rowActions: (row) => [same, plus show]
-export function OpsList({ api, call, title, sub, columns, toolbar = [], rowActions, rowKey = (r) => r.id, above, prefix = "", emptyTitle, enabled = true }) {
+export function OpsList({ api, call, title, sub, columns, toolbar = [], rowActions, rowKey = (r) => r.id, above, prefix = "", emptyTitle, enabled = true, select = null, extra = null }) {
   const L = useL();
   const { t } = useTranslation("common");
   const can = usePagePermission();
   const [dialog, setDialog] = useState(null);
-  const list = useServerList({ api: api.listPath, call: call ?? api.list, prefix, describe: false, enabled });
+  const list = useServerList({ api: api.listPath, call: call ?? api.list, prefix, describe: false, enabled, select, extra });
   if (!can("View")) return <NoAccess />;
   const allowed = (b) => b && (!b.right || can(b.right));
   const press = (b, row) => {
@@ -105,3 +105,10 @@ export function OpsList({ api, call, title, sub, columns, toolbar = [], rowActio
     </div>
   );
 }
+
+// A list reply of { items, total } as rows.
+export const itemsOf = (reply) => {
+  const d = reply?.data;
+  const o = Array.isArray(d) ? d[0] : d;
+  return Array.isArray(o?.items) ? o.items : Array.isArray(d) ? d : [];
+};
