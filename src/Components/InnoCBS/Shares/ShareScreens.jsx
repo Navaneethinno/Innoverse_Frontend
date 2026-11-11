@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Calculator, CheckCircle2, Lock, Plus, Printer, RefreshCcw, ShieldCheck, Unlock, XCircle } from "lucide-react";
+import { ArrowLeft, Calculator, CheckCircle2, Lock, Plus, Download, Printer, RefreshCcw, ShieldCheck, Unlock, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -22,6 +22,7 @@ import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { downloadAttachment, saveBlob } from "@/Services/api/fileTransfer";
 import { OpsList } from "@/Components/InnoCBS/OpsList";
 
 // InnoCBS > Share Capital (Admin 22).
@@ -695,6 +696,16 @@ export function ShareCertificates() {
       ]}
       rowActions={(r) => [
         { key: "print", flag: "_print", label: L("Print"), icon: Printer, onPress: () => view(r) },
+        {
+          key: "pdf",
+          flag: "_pdf",
+          label: L("Download PDF"),
+          icon: Download,
+          onPress: () =>
+            downloadAttachment(`${SH}/certificate/pdf`, { id: r.id }, `share-certificate-${r.certificate_number}.pdf`)
+              .then(({ blob, fileName }) => saveBlob(blob, fileName))
+              .catch((e) => notifications.error(e.message)),
+        },
         { key: "reissue", label: L("Reissue"), icon: RefreshCcw, dialog: { title: `${L("Reissue")} · ${r.certificate_number}`, hint: L("The old certificate is cancelled and a new number carries the same shares. It takes effect at once."), fields: [{ key: "reason", label: L("reason"), type: "textarea", required: true }], run: (x) => certificateApi.reissue({ id: r.id, reason: x.reason }), after: (reply) => first(reply) && printCertificate(first(reply)) } },
       ]}
     />

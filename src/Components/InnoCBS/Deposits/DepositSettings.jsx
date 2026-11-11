@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
-import { CheckCircle2, FileCheck2, Play, Plus, Printer, ReceiptText, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, FileCheck2, Play, Plus, Download, Printer, ReceiptText, ShieldCheck, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { ListTable } from "@/Components/Common/ListView";
@@ -15,6 +15,7 @@ import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
 import { calls } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { downloadAttachment, saveBlob } from "@/Services/api/fileTransfer";
 
 // InnoCBS > Deposits > Settings, and the record screens of Deposits (Admin 20).
 const D = API_ENDPOINTS.CBS_MODULES.DEPOSIT;
@@ -905,6 +906,20 @@ function TaxCertificate({ record }) {
             {L("Print")}
           </Button>
         )}
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={Download}
+          disabled={!year}
+          disabledReason={L("Enter a year.")}
+          onClick={() =>
+            downloadAttachment(`${D}/tax/certificate_pdf`, { entity_type: s.entity_type, entity_id: s.entity_id, year: Number(year) }, `tax-certificate-${year}.pdf`)
+              .then(({ blob, fileName }) => saveBlob(blob, fileName))
+              .catch((e) => notifications.error(e.message))
+          }
+        >
+          {L("Download PDF")}
+        </Button>
       </div>
       {c && (
         <>

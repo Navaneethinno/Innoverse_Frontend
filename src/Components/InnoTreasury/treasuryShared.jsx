@@ -16,10 +16,10 @@ export const securityApi = recordApi(`${T}/security`);
 export const reserveReqApi = recordApi(`${T}/statutory_requirement`);
 export const almApi = recordApi(`${T}/alm_assumption`);
 export const alertRuleApi = recordApi(`${T}/alert_rule`);
-export const placementApi = recordApi(`${T}/placement`);
-export const borrowingApi = recordApi(`${T}/borrowing`);
-export const collateralApi = recordApi(`${T}/collateral`);
-export const guaranteeApi = recordApi(`${T}/guarantee`);
+export const placementApi = recordApi(`${T}/placement`, ["close_quote", "close"]);
+export const borrowingApi = recordApi(`${T}/borrowing`, ["utilisation"]);
+export const collateralApi = recordApi(`${T}/collateral`, ["revalue", "release"]);
+export const guaranteeApi = recordApi(`${T}/guarantee`, ["claim", "release"]);
 export const fixedAssetApi = recordApi(`${T}/fixed_asset`, ["action", "depreciate", "events"]);
 
 // Active records of a treasury master as choices ({ value: code, label, row }).
@@ -29,7 +29,7 @@ export function useActive(api, { value = (r) => r.code, label = (r) => `${r.code
   useEffect(() => {
     api
       .active(scope({}))
-      .then((r) => setRows(rowsOf(r).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
+      .then((r) => setRows((rowsOf(r)[0]?.items ?? rowsOf(r)).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, institution]);

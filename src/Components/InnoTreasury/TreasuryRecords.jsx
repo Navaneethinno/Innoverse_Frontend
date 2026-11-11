@@ -3,6 +3,11 @@ import { Section } from "@/Components/InnoCBS/Deposits/depositShared";
 import { RowsInput, RowsTable, cell, codes, dateCell, pct, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { Status } from "@/Components/InnoCBS/OpsList";
 import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
+import { Button } from "@/Components/Common/Button";
+import { Facts } from "@/Components/InnoCBS/Deposits/depositShared";
+import { OpDialog, first } from "@/Components/InnoCBS/cbsOps";
+import { usePagePermission } from "@/Hooks/usePermission";
+import { notifications } from "@/Utils/Lib/notifications";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { T, choices, glChoices, alertRuleApi, almApi, bankAccountApi, borrowingApi, collateralApi, counterpartyApi, dematApi, exposureLimitApi, fixedAssetApi, guaranteeApi, placementApi, policyApi, reserveReqApi, securityApi, toNum, useActive, useF } from "./treasuryShared";
 
@@ -42,7 +47,135 @@ function ContractEvents({ kind, id }) {
     </Section>
   );
 }
-const scheduleTab = (L, kind) => [{ key: "schedule", label: L("Schedule"), render: (r) => <ContractEvents kind={kind} id={r.id} /> }];
+// Actions on an approved contract (close early, claim, revalue, release...).
+function ContractActions({ kind, record }) {
+  const L = useL();
+  const can = usePagePermission();
+  const [dialog, setDialog] = useState(null);
+  const [info, setInfo] = useState(null);
+  const id = record.id;
+  const today0 = new Date().toISOString().slice(0, 10);
+  useEffect(() => {
+    if (kind === "BORROWING")
+      borrowingApi
+        .utilisation({ id })
+        .then((r) => setInfo(first(r)))
+        .catch(() => {});
+  }, [kind, id]);
+  if (Number(record.status) !== 1) return <Section title={L("Actions")}><p className="text-xs text-muted-foreground">{L("Available once the contract is approved and active.")}</p></Section>;
+  const close = () => setDialog(null);
+  const buttons = {
+    PLACEMENT: [{ key: "close", label: L("Close early"), right: "Authorize" }],
+    GUARANTEE: [{ key: "claim", label: L("Record a claim"), right: "Authorize" }, { key: "release", label: L("Release"), right: "Authorize" }],
+    COLLATERAL: [{ key: "revalue", label: L("Revalue"), right: "Edit" }, { key: "release", label: L("Release"), right: "Authorize" }],
+    BORROWING: [],
+  }[kind].filter((b) => can(b.right));
+  return (
+    <Section title={L(kind === "BORROWING" ? "Utilisation" : "Actions")}>
+      {info && (
+        <Facts
+          className="mb-3"
+          rows={[
+            [L("sanctioned_limit"), info.sanctioned_limit],
+            [L("total_drawn"), info.total_drawn],
+            [L("utilised_amount"), info.utilised_amount],
+            [L("available_limit"), info.available_limit],
+            [L("expired_amount"), info.expired_amount],
+            [L("utilisation_percent"), pct(info.utilisation_percent)],
+            [L("revolving"), info.revolving ? "✓" : "—"],
+            [L("facility_expiry_date"), info.facility_expiry_date],
+          ]}
+        />
+      )}
+      <div className="flex flex-wrap gap-2">
+        {buttons.map((b) => (
+          <Button key={b.key} size="sm" variant={b.key === "release" ? "danger" : "secondary"} onClick={() => setDialog(b.key)}>
+            {b.label}
+          </Button>
+        ))}
+      </div>
+      {dialog === "close" && (
+        <OpDialog
+          title={L("Close early")}
+          hint={L("Quote first. Leave the amount empty to book the quoted total.")}
+          fields={[
+            { key: "close_date", label: L("close_date"), type: "date", required: true },
+            { key: "amount_received", label: L("amount_received"), type: "amount" },
+            { key: "reference", label: L("reference"), required: true },
+          ]}
+          initial={{ close_date: today0 }}
+          variant="danger"
+          run={(x) => placementApi.close({ id, ...x })}
+          onClose={() => (close(), setInfo(null))}
+          onDone={close}
+        >
+          {(form) => (
+            <div className="mb-3">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() =>
+                  placementApi
+                    .close_quote({ id, date: form.close_date })
+                    .then((r) => setInfo(first(r)))
+                    .catch((e) => notifications.error(e.message))
+                }
+              >
+                {L("Quote")}
+              </Button>
+              {info && <Facts className="mt-3" rows={Object.entries(info).filter(([k]) => k !== "code").map(([k, v]) => [L(k), String(v), k === "interest_due" && Number(v) < 0 ? "text-red-700" : undefined])} />}
+            </div>
+          )}
+        </OpDialog>
+      )}
+      {dialog === "claim" && (
+        <OpDialog
+          title={L("Record a claim")}
+          hint={L("The contingent amount falls by the claim; it goes on the schedule as a payment or receipt.")}
+          fields={[
+            { key: "amount", label: L("amount"), type: "amount", required: true },
+            { key: "claim_date", label: L("claim_date"), type: "date", required: true },
+            { key: "reference", label: L("reference"), required: true },
+            { key: "remarks", label: L("remarks"), type: "textarea" },
+          ]}
+          initial={{ claim_date: today0 }}
+          run={(x) => guaranteeApi.claim({ id, ...x })}
+          onClose={close}
+          onDone={(r) => {
+            const d = first(r);
+            if (d) notifications.success(`${L("Remaining")}: ${d.remaining} · ${words(d.status)}`);
+            close();
+          }}
+        />
+      )}
+      {dialog === "revalue" && (
+        <OpDialog
+          title={L("Revalue")}
+          hint={L("A margin call is raised when the cover falls below the margin-call level.")}
+          fields={[
+            { key: "market_value", label: L("market_value"), type: "amount", required: true },
+            { key: "source", label: L("source"), type: "select", options: ["MANUAL", "MARKET", "VALUER"].map((v) => ({ value: v, label: words(v) })) },
+          ]}
+          initial={{ source: "MANUAL" }}
+          run={(x) => collateralApi.revalue({ id, ...x })}
+          onClose={close}
+          onDone={(r) => {
+            const d = first(r);
+            if (d?.margin_call) notifications.error(`${L("Margin call")}: ${d.margin_call.shortfall}`);
+            close();
+          }}
+        />
+      )}
+      {dialog === "release" && (
+        <OpDialog title={L("Release")} variant="danger" fields={[{ key: "remarks", label: L("remarks"), type: "textarea", required: true }]} run={(x) => (kind === "GUARANTEE" ? guaranteeApi : collateralApi).release({ id, remarks: x.remarks })} onClose={close} onDone={close} />
+      )}
+    </Section>
+  );
+}
+
+const actionsTab = (L, kind) => ({ key: "actions", label: L(kind === "BORROWING" ? "Utilisation" : "Actions"), render: (r) => <ContractActions kind={kind} record={r} /> });
+
+const scheduleTab = (L, kind) => [actionsTab(L, kind), { key: "schedule", label: L("Schedule"), render: (r) => <ContractEvents kind={kind} id={r.id} /> }];
 
 export function Counterparties() {
   const L = useL();
@@ -542,6 +675,7 @@ export function CollateralMargin() {
     <RecordScreen
       api={collateralApi}
       title={L("Collateral & Margin")}
+      extraTabs={[actionsTab(L, "COLLATERAL")]}
       subtitle={L("Collateral pledged or received: valuations, cover after haircut, margin calls.")}
       effectiveDated
       columns={[

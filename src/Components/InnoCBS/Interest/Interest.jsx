@@ -40,10 +40,10 @@ const codes = (key) => (c) => (c[key] ?? []).map((v) => ({ value: v, label: word
 const coded = (key) => (c) => (c[key] ?? []).map((x) => ({ value: x.code, label: `${x.code} · ${x.name}` }));
 const useL = () => {
   const { t } = useTranslation("record");
-  return (key) => (/s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
+  return (key) => (/\s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
 };
 const pct = (v) => (v === "" || v == null ? "—" : ratePct(v));
-const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : typeof v === "string" && /^-?d+.d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v}</span>;
+const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : typeof v === "string" && /^-?\d+\.\d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v}</span>;
 
 export function InterestSchemes() {
   const L = useL();
@@ -386,15 +386,34 @@ function ApprovalView({ row, onClose }) {
             )}
             {impact && (
               <Section title={L("What approving touches")}>
-                <Facts rows={facts(impact)} />
-                {Object.entries(impact)
-                  .filter(([, v]) => Array.isArray(v) && v.length && typeof v[0] === "object")
-                  .map(([k, v]) => (
-                    <div key={k} className="mt-2">
-                      <p className="mb-1 text-xs font-bold text-muted-foreground">{L(k)}</p>
-                      <RowsTable rows={v} columns={Object.keys(v[0]).map((c) => ({ key: c, label: L(c) }))} />
-                    </div>
-                  ))}
+                <Facts
+                  className="mb-3"
+                  rows={[
+                    [L("Accounts"), impact.accounts_total],
+                    [L("Will reprice"), impact.accounts_repriced, impact.accounts_repriced ? "text-amber-800" : undefined],
+                    [L("Keep their rate"), impact.accounts_preserved],
+                    [L("schemes"), (impact.schemes ?? []).join(", ") || "—"],
+                  ]}
+                />
+                {(impact.products ?? []).length > 0 && (
+                  <div className="mb-3">
+                    <p className="mb-1 text-xs font-bold text-muted-foreground">{L("Products")}</p>
+                    <RowsTable rows={impact.products} columns={[{ key: "product_kind", label: L("kind"), render: (p) => words(p.product_kind) }, { key: "product_code", label: L("code") }, { key: "product_name", label: L("name") }, { key: "scheme_code", label: L("scheme") }]} />
+                  </div>
+                )}
+                <RowsTable
+                  rows={impact.accounts}
+                  empty={L("No accounts are on these schemes.")}
+                  columns={[
+                    { key: "account_ref", label: L("account") },
+                    { key: "account_kind", label: L("kind"), render: (a) => words(a.account_kind) },
+                    { key: "scheme_code", label: L("scheme") },
+                    { key: "current_rate", label: L("current_rate"), render: (a) => pct(a.current_rate) },
+                    { key: "rate_change_rule", label: L("rate_change_rule"), render: (a) => words(a.rate_change_rule) },
+                    { key: "treatment", label: L("treatment"), render: (a) => <span className={a.treatment === "REPRICE" ? "font-bold text-amber-800" : ""}>{words(a.treatment)}</span> },
+                  ]}
+                />
+                {impact.accounts_total > (impact.accounts ?? []).length && <p className="mt-2 text-xs text-muted-foreground">{`${L("and")} ${impact.accounts_total - impact.accounts.length} ${L("more")}`}</p>}
               </Section>
             )}
           </div>
@@ -807,7 +826,7 @@ export function InterestRateHistory() {
 // ---------- Rate matrix ----------
 
 const matrixApi = calls(`${BASE}/rate`, ["matrix", "matrix_view"]);
-const cellInput = "w-20 rounded-lg border border-border bg-card px-2 py-1 text-xs tabular-nums outline-none focus:border-primary";
+const cellInput = "w-full min-w-24 rounded-lg border border-border bg-card px-2 py-1 text-xs tabular-nums outline-none focus:border-primary";
 
 // A whole rate card at once: columns are conditions, rows tenure bands, and
 // each filled cell proposes one slab (each approved by a checker).
@@ -885,6 +904,7 @@ function MatrixEntry() {
       {open === "add" && (
         <OpDialog
           size="xl"
+          childrenAfter
           title={L("Enter a rate card")}
           hint={L("Each filled cell proposes one rate slab, approved by a checker. Leave a cell empty for no slab.")}
           fields={[
@@ -928,12 +948,12 @@ function MatrixEntry() {
             );
             return (
               <div className="mb-3 overflow-x-auto rounded-xl border border-border p-2">
-                <table className="text-xs">
+                <table className="w-full text-xs">
                   <thead>
                     <tr>
-                      <th className="px-1 text-left align-bottom">{L("Tenure band")}</th>
+                      <th className="w-64 px-1 text-left align-bottom">{L("Tenure band")}</th>
                       {form.columns.map((col, j) => (
-                        <th key={j} className="px-1 align-top">
+                        <th key={j} className="w-36 px-1 align-top">
                           <div className="grid gap-1">
                             <input className={cellInput} placeholder={L("label")} value={col.label ?? ""} onChange={(e) => setCol(j, { label: e.target.value })} />
                             {sel(L("age_category"), col.age_category, (v) => setCol(j, { age_category: v }), opt((c.age_categories ?? []).map((a) => ({ value: a.code, label: a.name }))))}
@@ -951,7 +971,7 @@ function MatrixEntry() {
                       ))}
                       <th className="px-1 align-top">
                         <Button size="sm" variant="ghost" onClick={() => setForm((x) => ({ ...x, columns: [...x.columns, { label: "" }], rows: x.rows.map((r) => ({ ...r, rates: [...r.rates, ""] })) }))}>
-                          + {L("column")}
+                          + {L("Column")}
                         </Button>
                       </th>
                     </tr>
@@ -960,11 +980,11 @@ function MatrixEntry() {
                     {form.rows.map((r, i) => (
                       <tr key={i} className="border-t border-border/50">
                         <td className="px-1 py-1">
-                          <div className="flex flex-wrap gap-1">
+                          <div className="grid grid-cols-2 gap-1">
                             <input className={cellInput} placeholder={L("min")} value={r.min_tenure} onChange={(e) => setRow(i, { min_tenure: e.target.value.replace(/\D/g, "") })} />
                             <input className={cellInput} placeholder={L("max")} value={r.max_tenure} onChange={(e) => setRow(i, { max_tenure: e.target.value.replace(/\D/g, "") })} />
-                            <input className={cellInput} placeholder={L("min amount")} value={r.min_amount} onChange={(e) => setRow(i, { min_amount: e.target.value.replace(/[^\d.]/g, "") })} />
-                            <input className={cellInput} placeholder={L("max amount")} value={r.max_amount} onChange={(e) => setRow(i, { max_amount: e.target.value.replace(/[^\d.]/g, "") })} />
+                            <input className={cellInput} placeholder={L("Min amount")} value={r.min_amount} onChange={(e) => setRow(i, { min_amount: e.target.value.replace(/[^\d.]/g, "") })} />
+                            <input className={cellInput} placeholder={L("Max amount")} value={r.max_amount} onChange={(e) => setRow(i, { max_amount: e.target.value.replace(/[^\d.]/g, "") })} />
                           </div>
                         </td>
                         {form.columns.map((_, j) => (
@@ -984,7 +1004,7 @@ function MatrixEntry() {
                   </tbody>
                 </table>
                 <Button className="mt-2" size="sm" variant="ghost" onClick={() => setForm((x) => ({ ...x, rows: [...x.rows, { label: "", min_tenure: "", max_tenure: "", min_amount: "", max_amount: "", rates: x.columns.map(() => "") }] }))}>
-                  + {L("tenure band")}
+                  + {L("Tenure band")}
                 </Button>
               </div>
             );

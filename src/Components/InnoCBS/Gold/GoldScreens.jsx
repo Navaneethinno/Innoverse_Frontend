@@ -107,7 +107,7 @@ function useActive(api, label = (r) => `${r.code} · ${r.name}`) {
   useEffect(() => {
     api
       .active(scope({}))
-      .then((r) => setRows(rowsOf(r).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
+      .then((r) => setRows((rowsOf(r)[0]?.items ?? rowsOf(r)).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, institution]);

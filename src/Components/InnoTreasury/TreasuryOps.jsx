@@ -541,6 +541,13 @@ export function DrawdownsUtilisation() {
 export function ForexDeals() {
   const L = useL();
   const topt = useTreasuryOptions();
+  const [nearLegs, setNearLegs] = useState([]);
+  useEffect(() => {
+    forexApi
+      .list({ page: 1, limit: 100, filters: { deal_type: "SWAP_NEAR" } })
+      .then((r) => setNearLegs(rowsOrOne(r).filter((d) => !d.linked_deal_id && !["REJECTED", "CANCELLED"].includes(d.status)).map((d) => ({ value: String(d.id), label: `${d.deal_number} · ${d.counterparty_code} · ${d.buy_amount} ${d.buy_currency} / ${d.sell_currency} · ${d.value_date}` }))))
+      .catch(() => {});
+  }, []);
   const parties = useActive(counterpartyApi);
   const accounts = useActive(bankAccountApi);
   return (
@@ -570,7 +577,7 @@ export function ForexDeals() {
             hint: L("A checker approves it."),
             fields: [
               { key: "deal_type", label: L("deal_type"), type: "select", required: true, options: choices(topt.deal_types) },
-              { key: "linked_deal_id", label: L("Near leg deal ID"), type: "int", showIf: (x) => x.deal_type === "SWAP_FAR" },
+              { key: "linked_deal_id", label: L("Near leg"), type: "select", required: true, options: nearLegs, hint: L("The far leg reverses the near leg's currencies, with a later value date."), showIf: (x) => x.deal_type === "SWAP_FAR" },
               { key: "counterparty_code", label: L("counterparty"), type: "select", required: true, options: parties },
               { key: "buy_currency", label: L("buy_currency"), type: "select", required: true, options: choices(topt.currencies) },
               { key: "buy_amount", label: L("buy_amount"), type: "amount", required: true },
@@ -581,7 +588,7 @@ export function ForexDeals() {
               { key: "sell_account", label: L("sell_account"), type: "select", required: true, options: (_c, x) => accounts.filter((a) => !x.sell_currency || a.row.currency === x.sell_currency) },
             ],
             initial: { deal_type: "SPOT", value_date: today() },
-            run: (x) => forexApi.add(x),
+            run: (x) => forexApi.add({ ...x, ...(x.deal_type === "SWAP_FAR" ? { linked_deal_id: Number(x.linked_deal_id) } : { linked_deal_id: undefined }) }),
           },
         },
       ]}

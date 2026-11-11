@@ -21,7 +21,7 @@ const PLAIN = new Set(["ALL", "AND", "ANY", "NEW", "OUT", "THE", "FOR", "OFF", "
 export const words = (code) => {
   const raw = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").trim();
   if (!raw) return "";
-  const parts = raw.split(/s+/).map((w, i) => (/^[A-Z]{2,3}$/.test(w) && !PLAIN.has(w) ? w : i === 0 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()));
+  const parts = raw.split(/\s+/).map((w, i) => (/^[A-Z]{2,3}$/.test(w) && !PLAIN.has(w) ? w : i === 0 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()));
   return parts.join(" ");
 };
 // Choices from an options reply: a list of codes, or of { code, name } / { id, name }.
@@ -32,10 +32,10 @@ export const byId = (key) => (c) => (c?.[key] ?? []).map((x) => ({ value: String
 export const useL = () => {
   const { t } = useTranslation("record");
   // A sentence is shown as written; a key (code or camelCase) as words.
-  return (key) => (/s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
+  return (key) => (/\s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
 };
 // A decimal string ("700000.0000") with grouping and two decimals.
-export const fmtNum = (v) => (typeof v === "string" && /^-?d+.d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v);
+export const fmtNum = (v) => (typeof v === "string" && /^-?\d+\.\d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v);
 export const pct = (v) => (v === "" || v == null ? "—" : ratePct(v));
 export const cell = (v) => <span className="text-xs">{v === "" || v == null ? "—" : fmtNum(v)}</span>;
 export const dateCell = (v) => cell(v ? accountDate(v) : null);
@@ -107,7 +107,7 @@ const empty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length);
 
 // A small action form: fields, then `run(form)` (the call). The reply's
 // message is shown; `onDone(reply)` afterwards.
-export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLabel, variant = "primary", run, onClose, onDone, children, size = "md", needs }) {
+export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLabel, variant = "primary", run, onClose, onDone, children, size = "md", needs, childrenAfter = false }) {
   const L = useL();
   const { t } = useTranslation("common");
   const [form, setForm] = useState(() => ({ ...Object.fromEntries(fields.map((f) => [f.key, f.type === "bool" ? false : f.type === "multi" ? [] : ""])), ...initial }));
@@ -147,7 +147,7 @@ export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLa
       }
     >
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
-      {children?.(form, setForm)}
+      {!childrenAfter && children?.(form, setForm)}
       <div className="grid gap-3 sm:grid-cols-2">
         {shown.map((f) =>
           f.type === "bool" ? (
@@ -164,6 +164,7 @@ export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLa
           ),
         )}
       </div>
+      {childrenAfter && <div className="mt-3">{children?.(form, setForm)}</div>}
       {problems.length > 0 && (
         <ul className="mt-3 list-disc rounded-xl border border-red-200 bg-red-50 px-3 py-2 pl-7 text-xs font-semibold text-red-700">
           {problems.map((p) => (
