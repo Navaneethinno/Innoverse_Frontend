@@ -42,6 +42,19 @@ const PAGES = {
   savingsgroups: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "SavingsGroups"),
   profitdistribution: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "ProfitDistribution"),
   depositreports: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "DepositReports"),
+  // Loans (Admin 21).
+  lendingregulatoryrules: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LendingRegulatoryRules"),
+  repaymentstructures: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "RepaymentStructures"),
+  loanservicingrules: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LoanServicingRules"),
+  loanschemes: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LoanSchemes"),
+  islamicfinancingproducts: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "IslamicFinancingProducts"),
+  loancalculator: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LoanCalculator"),
+  prepayments: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "Prepayments"),
+  moratoriums: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "Moratoriums"),
+  "penalties&waivers": page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "PenaltiesWaivers"),
+  islamicfinancing: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "IslamicFinancing"),
+  charityfund: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "CharityFund"),
+  loanreports: page(() => import("@/Components/InnoCBS/Loans/LoanScreens.jsx"), "LoanReports"),
 };
 
 export const cbsRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));

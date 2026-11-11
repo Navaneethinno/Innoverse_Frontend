@@ -71,14 +71,14 @@ const empty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length);
 
 // A small action form: fields, then `run(form)` (the call). The reply's
 // message is shown; `onDone(reply)` afterwards.
-export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLabel, variant = "primary", run, onClose, onDone, children, size = "md" }) {
+export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLabel, variant = "primary", run, onClose, onDone, children, size = "md", needs }) {
   const L = useL();
   const { t } = useTranslation("common");
   const [form, setForm] = useState(() => ({ ...Object.fromEntries(fields.map((f) => [f.key, f.type === "bool" ? false : f.type === "multi" ? [] : ""])), ...initial }));
   const [busy, setBusy] = useState(false);
   const [problems, setProblems] = useState([]);
   const shown = fields.filter((f) => !f.showIf || f.showIf(form));
-  const missing = shown.some((f) => f.required && empty(form[f.key]));
+  const missing = shown.some((f) => f.required && empty(form[f.key])) || (needs ? !needs(form) : false);
   const save = async () => {
     setBusy(true);
     setProblems([]);
@@ -186,5 +186,39 @@ export function EventsTable({ rows }) {
         { key: "detail", label: L("detail"), render: (e) => [e.narration, detail(e.detail)].filter(Boolean).join(" · ") || "—" },
       ]}
     />
+  );
+}
+
+// Editable rows of a record field (penalties, buckets...): columns
+// [{ key, label, type, options }], `blank` a new row.
+export function RowsInput({ value, onChange, columns, blank, addLabel }) {
+  const L = useL();
+  const rows = value ?? [];
+  const set = (i, patch) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="mt-1 grid gap-2">
+      {rows.map((r, i) => (
+        <div key={i} className="grid items-end gap-2 rounded-xl border border-border p-2 sm:grid-cols-4">
+          {columns.map((c) =>
+            c.type === "bool" ? (
+              <div key={c.key} className="self-end pb-2">
+                <Field field={{ type: "bool", label: c.label }} value={r[c.key]} onChange={(v) => set(i, { [c.key]: v })} />
+              </div>
+            ) : (
+              <label key={c.key} className="text-[11px] font-semibold text-muted-foreground">
+                {c.label}
+                <Field field={{ ...c, options: c.options ?? [] }} value={r[c.key] == null ? "" : String(r[c.key])} onChange={(v) => set(i, { [c.key]: v })} />
+              </label>
+            ),
+          )}
+          <Button size="sm" variant="ghost" className="justify-self-start" onClick={() => onChange(rows.filter((_, j) => j !== i))}>
+            {L("remove")}
+          </Button>
+        </div>
+      ))}
+      <Button size="sm" variant="secondary" className="justify-self-start" onClick={() => onChange([...rows, blank()])}>
+        {addLabel ?? L("Add row")}
+      </Button>
+    </div>
   );
 }

@@ -802,6 +802,11 @@ export function ProfitDistribution() {
 // ---------- Reports ----------
 
 export function DepositReports() {
+  return <CatalogueReports api={reportApi} title="depositReports" sub="Pick a report from the catalogue and run it." />;
+}
+
+// A catalogue of reports (code, group, columns) and running one.
+export function CatalogueReports({ api, title, sub }) {
   const L = useL();
   const can = usePagePermission();
   const [catalogue, setCatalogue] = useState(null);
@@ -811,18 +816,18 @@ export function DepositReports() {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    reportApi
+    api
       .catalogue({})
       .then((r) => setCatalogue(first(r)?.items ?? rowsOf(r)))
       .catch((e) => (notifications.error(e.message), setCatalogue([])));
-  }, []);
+  }, [api]);
   if (!can("View")) return <NoAccess />;
   const report = (catalogue ?? []).find((x) => x.code === code);
   const groups = [...new Set((catalogue ?? []).map((x) => x.group))];
   const run = async () => {
     setBusy(true);
     try {
-      setResult(first(await reportApi.run({ report: code, ...(report?.uses_period ? { from, to } : { to }) })));
+      setResult(first(await api.run({ report: code, ...(report?.uses_period ? { from, to } : { to }) })));
     } catch (e) {
       notifications.error(e.message);
     } finally {
@@ -832,7 +837,7 @@ export function DepositReports() {
   const cols = result?.report?.columns ?? [];
   return (
     <div className="pt-1 pb-6">
-      {header(L, "depositReports", "Pick a report from the catalogue and run it.")}
+      {header(L, title, sub)}
       <Section title={L("Report")} className="mb-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className={`${labelClass} sm:col-span-2`}>
