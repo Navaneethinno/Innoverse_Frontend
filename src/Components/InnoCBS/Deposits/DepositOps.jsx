@@ -162,7 +162,6 @@ function RdView({ id, onBack }) {
     a.deauth && can("Authorize") && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
     a.auth && can("Authorize") && { key: "auth", label: L("approve"), icon: CheckCircle2, variant: "primary", run: () => act(rdApi.auth, { id }, reload) },
   ];
-  const pendingWaiver = (w) => can("Authorize") && (w.status === "PENDING" || w.status === "PENDING_APPROVAL");
   return (
     <div className="pt-1 pb-6">
       <BackButton onClick={onBack}>
@@ -244,19 +243,22 @@ function RdView({ id, onBack }) {
             rows={r.waivers}
             columns={[
               { key: "instalment_number", label: "#" },
-              { key: "amount", label: L("amount"), numeric: true },
+              { key: "original_amount", label: L("original_amount"), numeric: true },
+              { key: "waived_amount", label: L("waived_amount"), numeric: true },
               { key: "reason", label: L("reason") },
+              { key: "requested_by", label: L("requested_by") },
+              { key: "decided_by", label: L("decided_by"), render: (x) => [x.decided_by, x.decision_note].filter(Boolean).join(" · ") || "—" },
               { key: "status", label: L("status"), render: (x) => <Status code={x.status} /> },
               {
                 key: "actions",
                 label: "",
                 render: (w) =>
-                  pendingWaiver(w) && (
+                  (w.actions?.waiver_auth || w.actions?.waiver_deauth) && (
                     <span className="flex gap-1">
-                      <Button size="sm" variant="ghost" icon={CheckCircle2} onClick={() => act(rdApi.waiver_auth, { waiver_id: w.id }, reload)}>
+                      <Button size="sm" variant="ghost" icon={CheckCircle2} onClick={() => act(rdApi.waiver_auth, { waiver_id: w.waiver_id, narration: "" }, reload)}>
                         {L("approve")}
                       </Button>
-                      <Button size="sm" variant="ghost" icon={XCircle} onClick={() => setDialog({ waiver: w.id })}>
+                      <Button size="sm" variant="ghost" icon={XCircle} onClick={() => setDialog({ waiver: w.waiver_id })}>
                         {L("reject")}
                       </Button>
                     </span>
@@ -296,7 +298,7 @@ export function RecurringDeposits() {
   const can = usePagePermission();
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
-  const list = useServerList({ api: rdApi.listPath, call: rdApi.list, describe: false, enabled: !openId });
+  const list = useServerList({ api: rdApi.listPath, call: rdApi.list, enabled: !openId });
   if (!can("View")) return <NoAccess />;
   if (openId) return <RdView id={openId} onBack={() => (setOpenId(null), list.reload())} />;
   return (
@@ -337,7 +339,7 @@ export function NoticeDeposits() {
   const { t } = useTranslation("common");
   const can = usePagePermission();
   const [dialog, setDialog] = useState(null);
-  const list = useServerList({ api: noticeApi.listPath, call: noticeApi.list, describe: false });
+  const list = useServerList({ api: noticeApi.listPath, call: noticeApi.list });
   if (!can("View")) return <NoAccess />;
   const done = () => (setDialog(null), list.reload());
   return (
@@ -356,11 +358,13 @@ export function NoticeDeposits() {
           )
         }
         columns={[
-          { key: "acct_num", label: L("account"), render: (r) => cell(r.acct_num ?? r.acct_id) },
+          { key: "acct_num", label: L("account"), render: (r) => cell(r.acct_num) },
           { key: "owner_name", label: L("owner"), render: (r) => cell(r.owner_name) },
+          { key: "terms_code", label: L("terms"), render: (r) => cell(r.terms_code) },
           { key: "amount", label: L("amount"), render: (r) => cell(r.amount) },
-          { key: "notice_date", label: L("notice_date"), render: (r) => dateCell(r.notice_date ?? r.created_time) },
-          { key: "available_from", label: L("available_from"), render: (r) => dateCell(r.available_from ?? r.withdrawable_from) },
+          { key: "notice_date", label: L("notice_date"), render: (r) => dateCell(r.notice_date) },
+          { key: "available_from", label: L("available_from"), render: (r) => dateCell(r.available_from) },
+          { key: "early_withdrawal_charge", label: L("early_withdrawal_charge"), render: (r) => cell(Number(r.early_withdrawal_charge) ? r.early_withdrawal_charge : "") },
           { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
           {
             key: "actions",
@@ -370,12 +374,12 @@ export function NoticeDeposits() {
               r.status !== "WITHDRAWN" &&
               r.status !== "CANCELLED" && (
                 <span className="flex gap-1">
-                  {can("Authorize") && r.actions?.withdraw !== false && (
+                  {r.actions?.withdraw && (
                     <Button size="sm" variant="ghost" icon={Wallet} onClick={() => setDialog({ kind: "withdraw", id: r.id })}>
                       {L("Withdraw")}
                     </Button>
                   )}
-                  {can("Edit") && r.actions?.cancel !== false && (
+                  {r.actions?.cancel && (
                     <Button size="sm" variant="ghost" icon={XCircle} onClick={() => act(noticeApi.cancel, { id: r.id }, list.reload)}>
                       {L("Cancel notice")}
                     </Button>
@@ -456,9 +460,9 @@ function GroupView({ id, onBack }) {
   const memberOpts = members.map((m) => ({ value: String(m.member_id), label: `${m.name} · ${words(m.role)}` }));
   const buttons = [
     a.contribute && can("Edit") && { key: "contribute", label: L("Contribution"), icon: Banknote, variant: "primary", run: () => setDialog("contribute") },
-    can("Edit") && { key: "member_add", label: L("Add member"), icon: UserPlus, run: () => setDialog("member_add") },
-    a.withdraw !== false && can("Edit") && { key: "withdraw", label: L("Withdraw"), icon: Wallet, run: () => setDialog("withdraw") },
-    can("Authorize") && { key: "service", label: L("Service now"), icon: Play, run: () => act(groupApi.service, { id }, reload) },
+    a.member_add && { key: "member_add", label: L("Add member"), icon: UserPlus, run: () => setDialog("member_add") },
+    a.withdraw && { key: "withdraw", label: L("Withdraw"), icon: Wallet, run: () => setDialog("withdraw") },
+    a.service && { key: "service", label: L("Service now"), icon: Play, run: () => act(groupApi.service, { id }, reload) },
     a.dissolve && can("Authorize") && { key: "dissolve", label: L("Dissolve"), icon: Ban, variant: "danger", run: () => setDialog("dissolve") },
     a.deauth && can("Authorize") && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => act(groupApi.deauth, { id }, reload) },
     a.auth && can("Authorize") && { key: "auth", label: L("approve"), icon: CheckCircle2, variant: "primary", run: () => act(groupApi.auth, { id }, reload) },
@@ -505,7 +509,7 @@ function GroupView({ id, onBack }) {
               { key: "arrears", label: L("arrears"), render: (m) => (m.arrears_count ? `${m.arrears_count} · ${m.arrears_amount}` : "—") },
               { key: "joining_date", label: L("joining_date"), render: (m) => dateCell(m.joining_date) },
               { key: "status", label: L("status"), render: (m) => <Status code={m.status} /> },
-              { key: "x", label: "", render: (m) => m.status === "ACTIVE" && can("Edit") && <Button size="sm" variant="ghost" icon={UserMinus} onClick={() => setDialog({ remove: m.member_id })}>{L("remove")}</Button> },
+              { key: "x", label: "", render: (m) => m.status === "ACTIVE" && a.member_remove && <Button size="sm" variant="ghost" icon={UserMinus} onClick={() => setDialog({ remove: m.member_id })}>{L("remove")}</Button> },
             ]}
           />
         )}
@@ -526,18 +530,21 @@ function GroupView({ id, onBack }) {
           <RowsTable
             rows={g.withdrawals}
             columns={[
+              { key: "requested_at", label: L("when"), render: (w) => dateCell(w.requested_at) },
               { key: "amount", label: L("amount"), numeric: true },
+              { key: "to_acct_num", label: L("To account") },
               { key: "purpose", label: L("purpose") },
-              { key: "approvals", label: L("Member approvals"), render: (w) => (w.approvals ?? []).map((x) => x.name ?? nameOf(x.member_id ?? x)).join(", ") || "—" },
+              { key: "approvals", label: L("Member approvals"), render: (w) => `${w.approvals}/${w.approvals_needed}${(w.member_approvals ?? []).length ? ` · ${w.member_approvals.map((x) => `${x.name} (${words(x.role)})`).join(", ")}` : ""}` },
+              { key: "rrn", label: "RRN" },
               { key: "status", label: L("status"), render: (w) => <Status code={w.status} /> },
               {
                 key: "x",
                 label: "",
                 render: (w) =>
-                  !["PAID", "REJECTED", "CANCELLED"].includes(w.status) && (
+                  (w.actions?.member_approval || w.actions?.withdraw_auth) && (
                     <span className="flex gap-1">
-                      {can("Edit") && <Button size="sm" variant="ghost" icon={CheckCircle2} onClick={() => setDialog({ approve: w.id })}>{L("Member approves")}</Button>}
-                      {can("Authorize") && <Button size="sm" variant="ghost" icon={Wallet} onClick={() => act(groupApi.withdraw_auth, { withdrawal_id: w.id }, reload)}>{L("Pay")}</Button>}
+                      {w.actions?.member_approval && <Button size="sm" variant="ghost" icon={CheckCircle2} onClick={() => setDialog({ approve: w.withdrawal_id })}>{L("Member approves")}</Button>}
+                      {w.actions?.withdraw_auth && <Button size="sm" variant="ghost" icon={Wallet} onClick={() => act(groupApi.withdraw_auth, { withdrawal_id: w.withdrawal_id }, reload)}>{L("Pay")}</Button>}
                     </span>
                   ),
               },
@@ -601,7 +608,7 @@ export function SavingsGroups() {
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
   const [choices, setChoices] = useState(null);
-  const list = useServerList({ api: groupApi.listPath, call: groupApi.list, describe: false, enabled: !openId });
+  const list = useServerList({ api: groupApi.listPath, call: groupApi.list, enabled: !openId });
   useEffect(() => {
     groupApi
       .options({})
@@ -688,7 +695,19 @@ function DistributionFacts({ d }) {
       {(d.notes ?? []).map((n) => (
         <p key={n} className="mb-2 text-xs text-muted-foreground">{n}</p>
       ))}
-      <RowsTable rows={d.allocations} empty={L("No accounts share in this pool for the period.")} columns={Object.keys(d.allocations?.[0] ?? { account: 1 }).map((k) => ({ key: k, label: L(k) }))} />
+      <RowsTable
+        rows={d.allocations}
+        empty={L("No accounts share in this pool for the period.")}
+        columns={[
+          { key: "acct_num", label: L("account") },
+          { key: "average_balance", label: L("average_balance"), numeric: true },
+          { key: "weight", label: L("weight"), numeric: true },
+          { key: "weighted_balance", label: L("weighted_balance"), numeric: true },
+          { key: "share_percent", label: L("share"), render: (x) => pct(x.share_percent) },
+          { key: "expected_profit", label: L("expected_profit"), numeric: true },
+          { key: "actual_profit", label: L("actual_profit"), render: (x) => <span className={Number(x.actual_profit) < 0 ? "font-bold text-red-700" : ""}>{x.actual_profit}</span> },
+        ]}
+      />
     </>
   );
 }
@@ -700,7 +719,7 @@ export function ProfitDistribution() {
   const [open, setOpen] = useState(null);
   const [calc, setCalc] = useState(false);
   const [preview, setPreview] = useState(null);
-  const list = useServerList({ api: profitApi.listPath, call: profitApi.list, describe: false });
+  const list = useServerList({ api: profitApi.listPath, call: profitApi.list });
   if (!can("View")) return <NoAccess />;
   const view = (id) =>
     profitApi
@@ -744,7 +763,7 @@ export function ProfitDistribution() {
           {() => (
             <>
               <DistributionFacts d={open} />
-              {open.status === "CALCULATED" && can("Authorize") && (
+              {(open.actions?.approve || open.actions?.reject) && (
                 <div className="mt-3 flex gap-2">
                   <Button size="sm" variant="danger" icon={XCircle} onClick={() => decide("reject")}>
                     {L("reject")}

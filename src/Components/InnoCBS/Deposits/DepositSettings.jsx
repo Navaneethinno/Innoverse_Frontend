@@ -7,7 +7,8 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { Field } from "@/Components/InnoCBS/Loans/loanShared";
-import { AcctPick, OpDialog, PartyPick, RowsTable, byId, cell, codes, coded, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { AcctPick, OpDialog, PartyPick, RowsInput, RowsTable, byId, cell, codes, coded, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { OpsList, Status } from "@/Components/InnoCBS/OpsList";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
@@ -28,7 +29,7 @@ const insuranceApi = { ...recordApi(`${D}/insurance`), ...calls(D, ["insurance_c
 const sweepRuleApi = recordApi(`${D}/sweep_rule`);
 const sweepApi = calls(`${D}/sweep`, ["links", "run"]);
 const mandateApi = recordApi(`${D}/mandate`);
-const instructionApi = calls(`${D}/mandate_instruction`, ["add", "evaluate", "execute", "signatory"]);
+const instructionApi = calls(`${D}/mandate_instruction`, ["list", "get", "add", "evaluate", "execute", "signatory"]);
 const taxProfileApi = recordApi(`${D}/tax_profile`);
 const taxApi = calls(`${D}/tax`, ["certificate"]);
 
@@ -131,7 +132,7 @@ export function IslamicDepositProducts() {
         f("name", "text", { required: true }),
         f("contract_type", "select", { required: true, options: codes("contract_types") }),
         f("acct_product_id", "select", { required: true, options: acctProducts("acct_products") }),
-        f("currency", "text", { placeholder: "NGN" }),
+        f("currency", "select", { options: (c) => (c.currencies ?? []).map((x) => (typeof x === "object" ? { value: x.code, label: `${x.code} · ${x.name}` } : { value: x, label: x })) }),
         f("depositor_profit_share", "percent", { hint: L("Depositor and mudarib shares add up to 100.") }),
         f("mudarib_profit_share", "percent"),
         f("agency_fee_percent", "percent"),
@@ -144,8 +145,14 @@ export function IslamicDepositProducts() {
         f("sharia_approval_reference", "text", { required: true }),
         f("effective_from", "date", { required: true }),
         f("withdrawal_rules", "textarea"),
+        {
+          key: "weightages",
+          label: L("Weightages"),
+          type: "custom",
+          render: (v, set) => <RowsInput value={v} onChange={set} blank={() => ({ min_balance: "", weight: "" })} addLabel={L("Add a balance band")} columns={[{ key: "min_balance", label: L("min_balance"), type: "amount" }, { key: "weight", label: L("weight"), type: "rate" }]} />,
+        },
       ]}
-      bodyOf={(x, rec) => ({ ...x, acct_product_id: Number(x.acct_product_id), weightages: (rec?.setup ?? {}).weightages ?? [] })}
+      bodyOf={(x) => ({ ...x, acct_product_id: Number(x.acct_product_id), weightages: (x.weightages ?? []).filter((w) => w.min_balance !== "" && w.weight !== "") })}
     />
   );
 }
@@ -213,7 +220,7 @@ function ChargeRequests() {
   const L = useL();
   const { t } = useTranslation("common");
   const can = usePagePermission();
-  const list = useServerList({ api: chargeApi.listPath, call: chargeApi.list, describe: false });
+  const list = useServerList({ api: chargeApi.listPath, call: chargeApi.list });
   const [dialog, setDialog] = useState(null);
   const decide = async (verb, id) => {
     try {
@@ -248,7 +255,8 @@ function ChargeRequests() {
         emptyTitle={L("No charge requests")}
         columns={[
           { key: "charge_code", label: L("charge_code"), render: (r) => cell(r.charge_code) },
-          { key: "acct_num", label: L("account"), render: (r) => cell(r.acct_num ?? r.acct_id) },
+          { key: "acct_num", label: L("account"), render: (r) => <span className="text-xs"><b>{r.acct_num}</b><span className="block text-[10px] text-muted-foreground">{r.owner_name}</span></span> },
+          { key: "charge_type", label: L("charge_type"), render: (r) => cell(words(r.charge_type)) },
           { key: "amount", label: L("amount"), render: (r) => cell(r.amount) },
           { key: "reason", label: L("reason"), render: (r) => cell(r.reason) },
           { key: "status", label: L("status"), render: (r) => cell(words(r.status)) },
@@ -258,7 +266,7 @@ function ChargeRequests() {
             label: t("actions"),
             sortable: false,
             render: (r) =>
-              can("Authorize") && (r.actions?.approve ?? r.status === "PENDING") ? (
+              r.actions?.approve || r.actions?.reject ? (
                 <span className="flex gap-1">
                   <Button size="sm" variant="ghost" icon={CheckCircle2} onClick={() => decide("approve", r.id)}>
                     {L("approve")}
@@ -345,7 +353,7 @@ export function DepositCharges() {
           f("maximum_charge", "amount"),
           f("tax_percent", "percent"),
           f("collection_timing", "select", { required: true, options: codes("collection_timings") }),
-          f("gl_purpose", "text", { placeholder: "DEPOSIT_CHARGE_INCOME" }),
+          f("gl_purpose", "select", { blank: L("Deposit charge income (default)"), options: (c) => (c.gl_purposes ?? []).map((g) => ({ value: g.code, label: g.name })) }),
           f("waive_if_balance_at_least", "amount"),
           f("waivable", "bool"),
           f("refundable", "bool"),
@@ -420,7 +428,7 @@ export function NoticeDepositTerms() {
       fields={[
         f("code", "code", { required: true, fixedOnEdit: true, placeholder: "AP_NOTICE7" }),
         f("name", "text", { required: true }),
-        f("acct_product_id", "int", { required: true, label: L("Account product ID"), hint: L("The savings product these terms belong to.") }),
+        f("acct_product_id", "select", { required: true, label: L("Savings product"), options: byId("account_products") }),
         f("minimum_notice_days", "int", { required: true }),
         f("maximum_notice_days", "int"),
         f("withdrawal_window_days", "int"),
@@ -536,7 +544,7 @@ export function DepositInsurance() {
         f("code", "code", { required: true, fixedOnEdit: true, placeholder: "AP_NDIC" }),
         f("name", "text", { required: true }),
         f("insurer", "text", { required: true, wide: true }),
-        f("currency", "text", { placeholder: "NGN" }),
+        f("currency", "select", { options: (c) => (c.currencies ?? []).map((x) => (typeof x === "object" ? { value: x.code, label: `${x.code} · ${x.name}` } : { value: x, label: x })) }),
         f("coverage_limit_per_depositor", "amount", { required: true }),
         f("premium_rate", "rate"),
         f("covered_deposits", "multi", { options: codes("covered_deposits") }),
@@ -584,8 +592,11 @@ function SweepLinks({ acctId }) {
         rows={links ?? []}
         empty={L("No deposits are linked by this sweep.")}
         columns={[
-          { key: "deposit_number", label: L("deposit_number"), render: (x) => x.deposit_number ?? x.reference_no ?? x.id },
-          { key: "amount", label: L("amount"), numeric: true, render: (x) => x.amount ?? x.principal ?? "—" },
+          { key: "reference_no", label: L("reference_no") },
+          { key: "principal", label: L("principal"), numeric: true },
+          { key: "annual_rate", label: L("annual_rate"), render: (x) => pct(x.annual_rate) },
+          { key: "start_date", label: L("start_date"), render: (x) => dateCell(x.start_date) },
+          { key: "swept_in", label: L("swept_in"), numeric: true },
           { key: "maturity_date", label: L("maturity_date"), render: (x) => dateCell(x.maturity_date) },
           { key: "status", label: L("status"), render: (x) => words(x.status) },
         ]}
@@ -677,16 +688,6 @@ function MandateActions() {
           {L("New instruction")}
         </Button>
       )}
-      {can("Edit") && (
-        <Button size="sm" variant="secondary" icon={FileCheck2} onClick={() => setDialog("signatory")}>
-          {L("Sign an instruction")}
-        </Button>
-      )}
-      {can("Authorize") && (
-        <Button size="sm" variant="secondary" icon={CheckCircle2} onClick={() => setDialog("execute")}>
-          {L("Pay an instruction")}
-        </Button>
-      )}
       {dialog === "evaluate" && (
         <OpDialog
           title={L("Check signatories")}
@@ -731,28 +732,96 @@ function MandateActions() {
           onDone={close}
         />
       )}
-      {dialog === "signatory" && (
-        <OpDialog
-          title={L("Sign an instruction")}
-          fields={[
-            { key: "id", label: L("Instruction ID"), type: "int", required: true },
-            { key: "party", label: L("Signatory"), type: "party", required: true },
-          ]}
-          run={(x) => instructionApi.signatory({ id: Number(x.id), entity_id: splitParty(x.party).entity_id })}
-          onClose={close}
-          onDone={(r) => {
-            const met = first(r)?.mandate_met;
-            if (met != null) notifications.info?.(met ? L("The mandate is met") : L("More signatures are needed"));
-            close();
-          }}
-        />
-      )}
-      {dialog === "execute" && <OpDialog title={L("Pay an instruction")} hint={L("Pays once the mandate is met.")} fields={[{ key: "id", label: L("Instruction ID"), type: "int", required: true }]} run={(x) => instructionApi.execute({ id: Number(x.id) })} onClose={close} onDone={close} />}
     </div>
   );
 }
 
+// Debit instructions signed under a mandate: record each signatory's
+// approval, then a checker pays once the mandate is met.
+function SignatoryPick({ id, value, onChange }) {
+  const L = useL();
+  const [d, setD] = useState(null);
+  useEffect(() => {
+    instructionApi
+      .get({ id })
+      .then((r) => setD(first(r)))
+      .catch((e) => notifications.error(e.message));
+  }, [id]);
+  if (!d) return null;
+  const ev = d.evaluation ?? {};
+  return (
+    <div className="mb-3">
+      <p className="mb-2 text-xs text-muted-foreground">{`${words(d.operating_instruction)} · ${L("approvals_needed")}: ${ev.approvals_needed ?? "—"} · ${L("approved_by")}: ${(ev.approved_by ?? []).join(", ") || "—"}`}</p>
+      <label className={labelClass}>
+        {L("Signatory")}
+        <Field field={{ type: "select", blank: L("choose"), options: (d.signatories ?? []).filter((x) => !x.approved).map((x) => ({ value: String(x.entity_id), label: `${x.name} · ${words(x.role)}${x.limit_amount ? ` ≤ ${x.limit_amount}` : ""}` })) }} value={value} onChange={onChange} />
+      </label>
+    </div>
+  );
+}
+
+function MandateInstructions() {
+  const L = useL();
+  return (
+    <OpsList
+      api={instructionApi}
+      title="Debit instructions"
+      sub="Payments signed under an account's mandate; a checker pays once the mandate is met."
+      columns={[
+        { key: "requested_at", label: L("when"), render: (r) => dateCell(r.requested_at) },
+        { key: "acct_num", label: L("account"), align: "left", render: (r) => <span className="text-xs"><b>{r.acct_num}</b><span className="block text-[10px] text-muted-foreground">{r.owner_name}</span></span> },
+        { key: "amount", label: L("amount"), render: (r) => cell(`${r.amount} ${r.currency ?? ""}`) },
+        { key: "to_acct_num", label: L("To account"), render: (r) => cell(r.to_acct_num) },
+        { key: "purpose", label: L("purpose"), render: (r) => cell(r.purpose) },
+        { key: "approvals", label: L("Signatures"), render: (r) => cell(r.approvals) },
+        { key: "requested_by", label: L("requested_by"), render: (r) => cell(r.requested_by) },
+        { key: "rrn", label: "RRN", render: (r) => cell(r.rrn) },
+        { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
+      ]}
+      rowActions={(r) => [
+        {
+          key: "signatory",
+          label: L("Record a signature"),
+          icon: FileCheck2,
+          right: "Edit",
+          dialog: {
+            title: `${L("Record a signature")} · ${r.acct_num}`,
+            fields: [],
+            needs: (x) => Boolean(x.entity_id),
+            children: (form, setForm) => <SignatoryPick id={r.id} value={form.entity_id ?? ""} onChange={(v) => setForm((x) => ({ ...x, entity_id: v }))} />,
+            run: (x) => instructionApi.signatory({ id: r.id, entity_id: Number(x.entity_id) }),
+            after: (reply) => {
+              const met = first(reply)?.mandate_met;
+              if (met != null) notifications.success(met ? L("The mandate is met") : L("More signatures are needed"));
+            },
+          },
+        },
+        { key: "execute", label: L("Pay"), icon: CheckCircle2, right: "Authorize", call: instructionApi.execute, body: { id: r.id } },
+      ]}
+    />
+  );
+}
+
 export function AccountMandates() {
+  const [tab, setTab] = useState("mandates");
+  const L0 = useL();
+  const switcher = <SegmentedSwitch className="mb-3" value={tab} onChange={setTab} options={[{ value: "mandates", label: L0("Mandates") }, { value: "instructions", label: L0("Debit instructions") }]} />;
+  if (tab === "instructions")
+    return (
+      <div className="pt-1">
+        {switcher}
+        <MandateInstructions />
+      </div>
+    );
+  return (
+    <>
+      <div className="pt-1">{switcher}</div>
+      <MandateRecords />
+    </>
+  );
+}
+
+function MandateRecords() {
   const L = useL();
   const f = useF();
   return (
