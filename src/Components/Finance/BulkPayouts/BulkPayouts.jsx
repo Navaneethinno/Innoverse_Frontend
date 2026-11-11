@@ -104,42 +104,47 @@ function BulkPayoutScreen({ api, readOnly = false }) {
           <PageTitle>{t(readOnly ? "bp_merchantTitle" : "bp_title")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t(readOnly ? "bp_merchantSubtitle" : "bp_subtitle")}</p>
         </div>
-        {!readOnly && can("Add") && (
-          <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={Download}
-            onClick={() =>
-              api
-                .template({})
-                .then((r) => rowsOf(r)[0] ?? {})
-                .then((tpl) => saveBase64(tpl.csv_base64, tpl.file_name ?? "bulk_payout_template.csv"))
-                .catch((e) => notifications.error(e.message))
-            }
-          >
-            {t("bp_template")}
-          </Button>
-          <Button size="sm" icon={Upload} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setUploading(true)}>
-            {t("bp_upload")}
-          </Button>
+      </div>
+      {/* The standard list card: batch tabs, then search, then the table. */}
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
+        <div className="flex flex-col gap-2 border-b border-border p-3">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+            <div className="thin-scrollbar flex min-w-0 items-center gap-1.5 overflow-x-auto">
+              <TabButton active={!status} onClick={() => setStatus("")}>
+                {t("bp_all")}
+              </TabButton>
+              {BATCH_STATUSES.map((s) => (
+                <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
+                  {t(`bp_status_${s}`)}
+                </TabButton>
+              ))}
+            </div>
+          {!readOnly && can("Add") && (
+            <div className="ml-auto flex shrink-0 items-center gap-2 [&>button]:h-8">
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={Download}
+              onClick={() =>
+                api
+                  .template({})
+                  .then((r) => rowsOf(r)[0] ?? {})
+                  .then((tpl) => saveBase64(tpl.csv_base64, tpl.file_name ?? "bulk_payout_template.csv"))
+                  .catch((e) => notifications.error(e.message))
+              }
+            >
+              {t("bp_template")}
+            </Button>
+            <Button size="sm" icon={Upload} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setUploading(true)}>
+              {t("bp_upload")}
+            </Button>
+            </div>
+          )}
           </div>
-        )}
-      </div>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1">
-          <TabButton active={!status} onClick={() => setStatus("")}>
-            {t("bp_all")}
-          </TabButton>
-          {BATCH_STATUSES.map((s) => (
-            <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
-              {t(`bp_status_${s}`)}
-            </TabButton>
-          ))}
+          <div className="flex w-full flex-wrap items-center gap-2">
+            <SearchBox search={search} onSearch={setSearch} placeholder={t("bp_searchHint")} className="min-w-[16rem] flex-[1_1_16rem]" />
+          </div>
         </div>
-        <SearchBox search={search} onSearch={setSearch} placeholder={t("bp_searchHint")} className="max-w-sm" />
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(b) => b.id} title={t("bp_title")} emptyTitle={t("bp_none")} emptyDescription={t(readOnly ? "bp_noneMerchantHint" : "bp_noneHint")} />
       </div>
       {uploading && (

@@ -1,15 +1,15 @@
 import { test } from "@playwright/test";
-import { API, fillLogin } from "./helpers";
+import { fillLogin } from "./helpers";
 
-// Prints the first row of a few /active replies (reads only).
-test("active rows", async ({ page }) => {
+// Screenshots of a few screens (reads only), slugs from E2E_SLUGS.
+test("screens", async ({ page }) => {
+  test.setTimeout(600000);
   await fillLogin(page, process.env.E2E_ORG ?? "AP", process.env.E2E_USER ?? "Astra1", process.env.E2E_PASSWORD);
   await page.waitForURL((url) => !url.pathname.includes("login"), { timeout: 60000 });
-  const token = await page.evaluate(() => sessionStorage.getItem("access_token"));
-  for (const path of ["/config/gold/product/active", "/config/gold/purity/active", "/config/treasury/counterparty/active", "/config/interest/scheme/active"]) {
-    const r = await page.request.post(`${API}${path}`, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, data: {} });
-    const j = await r.json().catch(() => null);
-    const row = Array.isArray(j?.data) ? j.data[0] : j?.data;
-    console.log(path, r.status(), JSON.stringify(row)?.slice(0, 400));
+  for (const slug of (process.env.E2E_SLUGS ?? "").split(",").filter(Boolean)) {
+    await page.goto(`/${slug}`);
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: `${process.env.E2E_SHOTS}/p-${slug}.png` });
   }
 });

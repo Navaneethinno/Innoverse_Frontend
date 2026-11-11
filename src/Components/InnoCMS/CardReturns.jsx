@@ -92,20 +92,22 @@ export function CardReturns() {
           )}
         </div>
       </div>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1">
-          <TabButton active={!status} onClick={() => setStatus("")}>
-            {t("ret_all")}
-          </TabButton>
-          {STATUSES.map((s) => (
-            <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
-              {t(`ret_status_${s}`)}
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
+        <div className="flex flex-col gap-2 border-b border-border p-3">
+          <div className="thin-scrollbar flex min-w-0 items-center gap-1.5 overflow-x-auto">
+            <TabButton active={!status} onClick={() => setStatus("")}>
+              {t("ret_all")}
             </TabButton>
-          ))}
+            {STATUSES.map((s) => (
+              <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
+                {t(`ret_status_${s}`)}
+              </TabButton>
+            ))}
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-2">
+            <FilterSelect size="sm" className="w-56" value={holderType} onChange={setHolderType} options={[{ value: "", label: t("ret_anyHolder") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`ret_holder_${h}`) }))]} />
+          </div>
         </div>
-        <FilterSelect className="w-48" value={holderType} onChange={setHolderType} options={[{ value: "", label: t("ret_anyHolder") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`ret_holder_${h}`) }))]} />
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.id} title={t("ret_title")} emptyTitle={t("ret_none")} emptyDescription={t("ret_noneHint")} />
       </div>
       {starting && (

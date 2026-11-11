@@ -173,14 +173,12 @@ function Blocks() {
           </Button>
         )}
       </div>
-      <div className="mb-3 flex flex-wrap gap-1">
-        {STATUSES.map((s) => (
+      <PagedTable
+        tabs={STATUSES.map((s) => (
           <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
             {t(`blockStatus_${s}`)}
           </TabButton>
         ))}
-      </div>
-      <PagedTable
         paged={paged}
         search={search}
         onSearch={setSearch}

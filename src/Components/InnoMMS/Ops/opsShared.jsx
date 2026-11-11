@@ -52,13 +52,24 @@ export function usePagedCall({ call, body = {}, sizeKey = "limit", enabled = tru
 }
 
 // A paged table: columns [{ label, render(row) }].
-export function PagedTable({ paged, columns, rowKey = (r) => r.id, empty, search, onSearch, searchPlaceholder, actions }) {
+// The standard list card: tabs (and buttons) on top, then search and filters.
+export function PagedTable({ paged, columns, rowKey = (r) => r.id, empty, search, onSearch, searchPlaceholder, actions, tabs, buttons }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
-      {(onSearch || actions) && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-          {onSearch && <SearchBox search={search} onSearch={onSearch} placeholder={searchPlaceholder} />}
-          {actions}
+    <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
+      {(onSearch || actions || tabs || buttons) && (
+        <div className="flex flex-col gap-2 border-b border-border p-3">
+          {(tabs || buttons) && (
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+              <div className="thin-scrollbar flex min-w-0 items-center gap-1.5 overflow-x-auto">{tabs}</div>
+              {buttons && <div className="ml-auto flex shrink-0 items-center gap-2 [&>button]:h-8">{buttons}</div>}
+            </div>
+          )}
+          {(onSearch || actions) && (
+            <div className="flex w-full flex-wrap items-center gap-2">
+              {onSearch && <SearchBox search={search} onSearch={onSearch} placeholder={searchPlaceholder} className="min-w-[16rem] flex-[1_1_16rem]" />}
+              {actions}
+            </div>
+          )}
         </div>
       )}
       {paged.loading ? (

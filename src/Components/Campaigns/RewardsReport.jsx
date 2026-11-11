@@ -126,7 +126,7 @@ export function RewardsReport() {
           </>
         )}
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
         <DataTable bare columns={columnsOf(report, t)} rows={list.rows} rowKey={(r, i) => r.id ?? i} isLoading={list.loading} title={t(`rep_${report}`)} emptyTitle={t("reportEmpty")} serverPagination={list.pagination} />
       </div>
     </div>

@@ -136,7 +136,7 @@ function StatusReport({ products }) {
         </div>
         <FilterSelect className="w-56" value={product} onChange={setProduct} options={productOptions(t, products)} />
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
         <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_status")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noCardsHint")} />
       </div>
     </>
@@ -165,7 +165,7 @@ function ExpiringReport({ products }) {
         <FilterSelect className="w-56" value={product} onChange={setProduct} options={productOptions(t, products)} />
       </div>
       <p className="mb-2 text-xs text-muted-foreground">{t("rep_expiringHint", { days: applied })}</p>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
         <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_expiring")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noExpiringHint")} />
       </div>
     </>
