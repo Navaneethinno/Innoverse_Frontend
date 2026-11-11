@@ -25,6 +25,23 @@ const PAGES = {
   interestsimulation: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestSimulation"),
   accountinterestinquiry: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "AccountInterestInquiry"),
   interestratehistory: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestRateHistory"),
+  // Deposits (Admin 20).
+  recurringdepositproducts: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "RecurringDepositProducts"),
+  islamicdepositproducts: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "IslamicDepositProducts"),
+  depositproductrules: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "DepositProductRules"),
+  depositcharges: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "DepositCharges"),
+  prematureclosurerules: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "PrematureClosureRules"),
+  noticedepositterms: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "NoticeDepositTerms"),
+  groupsavingsschemes: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "GroupSavingsSchemes"),
+  depositinsurance: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "DepositInsurance"),
+  "sweep&flexideposits": page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "SweepFlexiDeposits"),
+  accountmandates: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "AccountMandates"),
+  depositortaxprofiles: page(() => import("@/Components/InnoCBS/Deposits/DepositSettings.jsx"), "DepositorTaxProfiles"),
+  recurringdeposits: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "RecurringDeposits"),
+  noticedeposits: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "NoticeDeposits"),
+  savingsgroups: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "SavingsGroups"),
+  profitdistribution: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "ProfitDistribution"),
+  depositreports: page(() => import("@/Components/InnoCBS/Deposits/DepositOps.jsx"), "DepositReports"),
 };
 
 export const cbsRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));

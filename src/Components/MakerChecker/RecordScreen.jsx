@@ -322,7 +322,7 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
   const { t } = useTranslation(["record", "common"]);
   const [choices, setChoices] = useState(null);
   const start = record?.pending?.setup ?? record?.setup ?? {};
-  const [form, setForm] = useState(() => Object.fromEntries(fields.map((f) => [f.key, f.type === "select" && start[f.key] != null ? String(start[f.key]) : (start[f.key] ?? blankOf(f))])));
+  const [form, setForm] = useState(() => Object.fromEntries(fields.map((f) => [f.key, f.from ? f.from(start) : f.type === "select" && start[f.key] != null ? String(start[f.key]) : (start[f.key] ?? blankOf(f))])));
   const [problems, setProblems] = useState([]);
   const [busy, setBusy] = useState(false);
 
