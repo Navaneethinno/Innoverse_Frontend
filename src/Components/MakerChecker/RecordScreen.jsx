@@ -60,7 +60,7 @@ function problemsOf(e) {
   return lines.length ? lines : [e?.message].filter(Boolean);
 }
 
-export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (r) => r.name ?? r.code ?? `#${r.id}`, bodyOf, factsOf, effectiveDated = false, addLabel, emptyTitle, emptyDescription, extraTabs, headerFacts }) {
+export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (r) => r.name ?? r.code ?? `#${r.id}`, bodyOf, factsOf, effectiveDated = false, addLabel, emptyTitle, emptyDescription, extraTabs, headerFacts, pageActions }) {
   const { t } = useTranslation(["record", "common"]);
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
@@ -142,9 +142,12 @@ export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (
 
   return (
     <div className="pt-1 pb-6">
-      <div className="mb-4">
-        <PageTitle>{title}</PageTitle>
-        {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <PageTitle>{title}</PageTitle>
+          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
+        {pageActions}
       </div>
       <SegmentedSwitch
         className="mb-3"
@@ -319,7 +322,7 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
   const { t } = useTranslation(["record", "common"]);
   const [choices, setChoices] = useState(null);
   const start = record?.pending?.setup ?? record?.setup ?? {};
-  const [form, setForm] = useState(() => Object.fromEntries(fields.map((f) => [f.key, start[f.key] ?? blankOf(f)])));
+  const [form, setForm] = useState(() => Object.fromEntries(fields.map((f) => [f.key, f.type === "select" && start[f.key] != null ? String(start[f.key]) : (start[f.key] ?? blankOf(f))])));
   const [problems, setProblems] = useState([]);
   const [busy, setBusy] = useState(false);
 
@@ -383,6 +386,13 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
                   {f.hint && <span className="mt-1 block text-[11px] text-muted-foreground">{f.hint}</span>}
                 </div>
               );
+            if (f.type === "custom")
+              return (
+                <div key={f.key} className={cn(labelClass, "sm:col-span-2")}>
+                  {f.label}
+                  {f.render(form[f.key], set, form, choices)}
+                </div>
+              );
             const Wrap = f.type === "multi" ? "div" : "label";
             return (
               <Wrap key={f.key} className={cn(labelClass, wide && "sm:col-span-2")}>
@@ -391,7 +401,7 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
                 {f.type === "textarea" ? (
                   <textarea className="mt-1 min-h-20 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary" maxLength={f.maxLength ?? 1000} disabled={disabled} value={form[f.key] ?? ""} onChange={(e) => set(e.target.value)} />
                 ) : (
-                  <Field field={{ ...f, blank: f.type === "select" ? (f.blank ?? t("choose")) : undefined, options: optionsOf(f, choices) }} value={form[f.key]} disabled={disabled} onChange={set} />
+                  <Field field={{ ...f, blank: f.type === "select" ? (f.blank ?? t("choose")) : undefined, options: f.optionsFor ? f.optionsFor(choices, form) : optionsOf(f, choices) }} value={form[f.key]} disabled={disabled} onChange={set} />
                 )}
                 {f.hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{f.hint}</span>}
               </Wrap>

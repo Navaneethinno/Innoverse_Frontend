@@ -14,6 +14,17 @@ const PAGES = {
   teller: page(() => import("@/Components/InnoCBS/Teller/Teller.jsx"), "Teller"),
   borrowergroups: page(() => import("@/Components/InnoCBS/Loans/Groups/BorrowerGroups.jsx"), "BorrowerGroups"),
   treasury: page(() => import("@/Components/InnoCBS/Treasury/Treasury.jsx"), "Treasury"),
+  // Interest Rate Management (Admin 19).
+  interestschemes: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestSchemes"),
+  agecategories: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "AgeCategories"),
+  customerparameters: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "CustomerParameters"),
+  benchmarkrates: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "BenchmarkRates"),
+  interestrateconfiguration: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestRateConfiguration"),
+  productinterestmapping: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "ProductInterestMapping"),
+  interestrateapproval: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestRateApproval"),
+  interestsimulation: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestSimulation"),
+  accountinterestinquiry: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "AccountInterestInquiry"),
+  interestratehistory: page(() => import("@/Components/InnoCBS/Interest/Interest.jsx"), "InterestRateHistory"),
 };
 
 export const cbsRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));
