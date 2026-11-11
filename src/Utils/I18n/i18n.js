@@ -80,6 +80,7 @@ void i18n
       "paysePay",
       "keyCustody",
       "corebank",
+      "record",
     ],
     interpolation: { escapeValue: false },
     detection: {

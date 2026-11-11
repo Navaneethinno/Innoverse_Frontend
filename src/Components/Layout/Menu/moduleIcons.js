@@ -1,4 +1,5 @@
 import {
+  Vault,
   Banknote,
   CalendarCheck,
   Building,
@@ -76,6 +77,7 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/innotreasury/i, Vault],
   [/innolrms/i, Gift],
   [/^finance$/i, Calculator],
   [/innocbs/i, Landmark],
