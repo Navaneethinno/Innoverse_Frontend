@@ -15,6 +15,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { recordApi } from "@/Services/api/recordApi";
 import { calls, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // InnoCBS > Gold Loan (Admin 23).
 const G = "/config/gold";
@@ -33,7 +34,7 @@ const dashboardApi = calls(G, ["dashboard"]);
 const chargesApi = calls(`${G}/charges`, ["list"]);
 const preclosureApi = calls(`${G}/preclosure`, ["quote", "settle"]);
 const releaseApi = calls(`${G}/release`, ["list", "add", "auth", "deauth"]);
-const holdApi = calls(`${G}/hold`, ["add", "resolve"]);
+const holdApi = calls(`${G}/hold`, ["list", "get", "add", "resolve"]);
 const noticeApi = calls(`${G}/notice`, ["list", "run", "delivery"]);
 const revaluationApi = calls(`${G}/revaluation`, ["list", "run"]);
 const auctionApi = calls(`${G}/auction`, ["list", "add", "auth", "deauth", "bid", "complete", "eligibility", "schedule", "surplus_refund"]);
@@ -41,8 +42,58 @@ const exceptionApi = calls(`${G}/exception`, ["list", "resolve"]);
 const verificationApi = calls(`${G}/verification`, ["list", "add"]);
 const goldReportApi = calls(`${G}/report`, ["catalogue", "run"]);
 
+const goldOptionsApi = calls(G, ["options", "upload"]);
+let goldOptions = null;
+let goldOptionsLoad = null;
+function useGoldOptions() {
+  const [, bump] = useState(0);
+  useEffect(() => {
+    if (goldOptions) return;
+    goldOptionsLoad ??= goldOptionsApi.options({}).then((r) => (goldOptions = first(r) ?? {}));
+    goldOptionsLoad.then(() => bump((n) => n + 1)).catch(() => {});
+  }, []);
+}
+const gl = (key, fallback = []) => (goldOptions?.[key] ?? fallback).map((v) => ({ value: v, label: words(v) }));
+
+// Upload a file (photo, signature, proof) and keep its stored path.
+function GoldUpload({ kind, value, onChange }) {
+  const L = useL();
+  useGoldOptions();
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2">
+      <input
+        type="file"
+        accept="image/jpeg,image/png,application/pdf"
+        className="text-xs"
+        disabled={busy}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          setBusy(true);
+          uploadFile(`${G}/upload`, { file, kind })
+            .then((d) => onChange(d.path))
+            .catch((err) => notifications.error(err.message))
+            .finally(() => setBusy(false));
+        }}
+      />
+      {value && (
+        <button type="button" className="text-xs font-semibold text-primary underline" onClick={() => viewGoldFile(value)}>
+          {L("View file")}
+        </button>
+      )}
+    </div>
+  );
+}
+const viewGoldFile = (path) =>
+  downloadFile(`${G}/file`, { path })
+    .then((blob) => window.open(URL.createObjectURL(blob), "_blank"))
+    .catch((e) => notifications.error(e.message));
+const uploadField = (L, key, kind, extra = {}) => ({ key, label: L(key), wide: true, render: (v, set) => <GoldUpload kind={kind} value={v} onChange={set} />, ...extra });
+
 const useF = () => {
   const L = useL();
+  useGoldOptions();
   return (key, type = "text", extra = {}) => ({ key, label: L(key), type, ...extra });
 };
 const toNum = (keys) => (x) => ({ ...x, ...Object.fromEntries(keys.filter((k) => k in x).map((k) => [k, x[k] === "" || x[k] == null ? 0 : Number(x[k])])) });
@@ -65,11 +116,12 @@ function useValuations(filter) {
   const [rows, setRows] = useState([]);
   useEffect(() => {
     valuationApi
-      .list({ page: 1, page_size: 100 })
+      .list({ page: 1, limit: 100, ...(filter ? { filters: filter } : {}) })
       .then((r) => setRows(rowsOf(r)))
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return rows.filter(filter ?? (() => true)).map((v) => ({ value: String(v.id), label: `${v.valuation_number} · ${v.customer ?? ""} · ${words(v.status)}` }));
+  return rows.map((v) => ({ value: String(v.id), label: `${v.valuation_number} · ${v.customer ?? ""} · ${words(v.status)}` }));
 }
 const facilityInput = (L) => (form, setForm) => (
   <div className={`${labelClass} mb-3`}>
@@ -82,6 +134,7 @@ const facilityInput = (L) => (form, setForm) => (
 
 export function PurityValuation() {
   const L = useL();
+  useGoldOptions();
   const f = useF();
   return (
     <RecordScreen
@@ -110,6 +163,7 @@ export function PurityValuation() {
 // Today's rate slots, entries and the alert.
 function RateStatus() {
   const L = useL();
+  useGoldOptions();
   const [s, setS] = useState(null);
   useEffect(() => {
     rateApi
@@ -129,6 +183,7 @@ function RateStatus() {
 
 function DailyRates() {
   const L = useL();
+  useGoldOptions();
   const purities = useActive(purityApi);
   return (
     <OpsList
@@ -174,6 +229,7 @@ function DailyRates() {
 
 export function GoldRateManagement() {
   const L = useL();
+  useGoldOptions();
   const f = useF();
   const [view, setView] = useState("rates");
   const switcher = <SegmentedSwitch className="mb-3" value={view} onChange={setView} options={[{ value: "rates", label: L("Daily rates") }, { value: "policy", label: L("Rate policy") }]} />;
@@ -217,6 +273,7 @@ export function GoldRateManagement() {
 
 export function GoldLoanProducts() {
   const L = useL();
+  useGoldOptions();
   const f = useF();
   return (
     <RecordScreen
@@ -277,6 +334,7 @@ export function GoldLoanProducts() {
 
 export function LockerManagement() {
   const L = useL();
+  useGoldOptions();
   const f = useF();
   return (
     <RecordScreen
@@ -295,10 +353,10 @@ export function LockerManagement() {
         f("locker_number", "text", { required: true }),
         f("locker_type", "select", { required: true, options: codes("locker_types") }),
         f("location", "text", { wide: true }),
-        f("branch_id", "int", { label: L("Branch ID"), hint: L("0 for the head office.") }),
+        f("branch_id", "select", { label: L("branch"), blank: L("Head office"), options: (c) => (c.branches ?? []).map((b) => ({ value: String(b.id), label: `${b.code} · ${b.name}` })) }),
         f("capacity", "int", { required: true }),
-        f("custodian1_userid", "int", { required: true, label: L("First custodian (user ID)") }),
-        f("custodian2_userid", "int", { required: true, label: L("Second custodian (user ID)") }),
+        f("custodian1_userid", "select", { required: true, label: L("First custodian"), options: (c) => (c.custodians ?? []).map((u) => ({ value: String(u.id), label: u.user_name })) }),
+        f("custodian2_userid", "select", { required: true, label: L("Second custodian"), options: (c) => (c.custodians ?? []).map((u) => ({ value: String(u.id), label: u.user_name })) }),
         f("last_inspection_date", "date"),
         f("effective_from", "date", { required: true }),
       ]}
@@ -313,6 +371,7 @@ const ORNAMENT_BLANK = () => ({ category: "", description: "", gross_weight: "",
 
 function ValuationNew({ onClose, onDone }) {
   const L = useL();
+  useGoldOptions();
   const products = useActive(productApi);
   const purities = useActive(purityApi);
   const [quote, setQuote] = useState(null);
@@ -345,7 +404,8 @@ function ValuationNew({ onClose, onDone }) {
               blank={ORNAMENT_BLANK}
               addLabel={L("Add ornament")}
               columns={[
-                { key: "category", label: L("category"), placeholder: "CHAIN" },
+                { key: "category", label: L("category"), type: "select", options: gl("ornament_categories", ["CHAIN"]) },
+                { key: "condition", label: L("condition"), type: "select", options: gl("ornament_conditions", ["GOOD"]) },
                 { key: "description", label: L("description") },
                 { key: "purity_code", label: L("purity"), type: "select", options: purities },
                 { key: "testing_method", label: L("testing_method"), type: "select", options: methods },
@@ -380,6 +440,7 @@ function ValuationNew({ onClose, onDone }) {
 
 function ValuationTotals({ v }) {
   const L = useL();
+  useGoldOptions();
   return (
     <div className="mt-3">
       <Facts
@@ -418,7 +479,7 @@ function ValuationTotals({ v }) {
 
 function ValuationView({ id, onBack }) {
   const L = useL();
-  const can = usePagePermission();
+  useGoldOptions();
   const [v, setV] = useState(null);
   const [dialog, setDialog] = useState(null);
   const reload = () =>
@@ -431,15 +492,16 @@ function ValuationView({ id, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
   if (!v) return <PageSkeleton />;
-  const pending = isPending(v) || v.status === "SAVED";
-  const approved = v.status === "APPROVED";
+  const a = v.actions ?? {};
   const close = () => setDialog(null);
   const done = () => (close(), reload());
   const buttons = [
-    pending && can("Authorize") && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => runCall(valuationApi.deauth, { id }, reload) },
-    pending && can("Authorize") && { key: "auth", label: L("Approve valuation"), icon: CheckCircle2, variant: "primary", run: () => runCall(valuationApi.auth, { id }, reload) },
-    approved && !v.customer_acknowledged && can("Edit") && { key: "ack", label: L("Customer acknowledges"), icon: FileSignature, run: () => setDialog("ack") },
-    approved && v.customer_acknowledged && !v.loan_application_id && can("Add") && { key: "book", label: L("Book the loan"), icon: HandCoins, variant: "primary", run: () => setDialog("book") },
+    a.deauth && { key: "deauth", label: L("reject"), icon: XCircle, variant: "danger", run: () => runCall(valuationApi.deauth, { id }, reload) },
+    a.auth && { key: "auth", label: L("Approve valuation"), icon: CheckCircle2, variant: "primary", run: () => runCall(valuationApi.auth, { id }, reload) },
+    a.acknowledge && { key: "ack", label: L("Customer acknowledges"), icon: FileSignature, run: () => setDialog("ack") },
+    a.book && { key: "book", label: L("Book the loan"), icon: HandCoins, variant: "primary", run: () => setDialog("book") },
+    a.pack && { key: "pack", label: L("Pack and seal"), icon: Package, run: () => setDialog("pack") },
+    a.release && { key: "release", label: L("Request a release"), icon: Undo2, run: () => setDialog("release") },
   ];
   return (
     <div className="pt-1 pb-6">
@@ -465,14 +527,40 @@ function ValuationView({ id, onBack }) {
       <Section title={L("Rates used")}>
         <RowsTable rows={v.rate_snapshot} columns={[{ key: "purity_code", label: L("purity") }, { key: "rate_per_gram", label: L("rate_per_gram"), numeric: true }, { key: "rate_date", label: L("rate_date"), render: (x) => `${x.rate_date} ${x.rate_time}` }, { key: "rule", label: L("rule"), render: (x) => `${words(x.rule)}${x.fallback ? " · fallback" : ""}${x.exception ? " · exception" : ""}` }]} />
       </Section>
-      {dialog === "ack" && <OpDialog title={L("Customer acknowledges")} hint={L("The customer accepted the inventory and value.")} fields={[{ key: "acknowledgement_method", label: L("acknowledgement_method"), required: true, placeholder: "SIGNED_INVENTORY" }]} initial={{ acknowledgement_method: "SIGNED_INVENTORY" }} run={(x) => valuationApi.acknowledge({ id, ...x })} onClose={close} onDone={done} />}
+      {dialog === "ack" && <OpDialog title={L("Customer acknowledges")} hint={L("The customer accepted the inventory and value.")} fields={[{ key: "acknowledgement_method", label: L("acknowledgement_method"), type: "select", required: true, options: gl("acknowledgement_methods", ["SIGNED_INVENTORY"]) }]} initial={{ acknowledgement_method: "SIGNED_INVENTORY" }} run={(x) => valuationApi.acknowledge({ id, ...x })} onClose={close} onDone={done} />}
+      {dialog === "pack" && (
+        <OpDialog
+          title={L("Pack and seal")}
+          fields={[
+            { key: "packet_number", label: L("packet_number"), required: true, placeholder: "AP-PKT-0003" },
+            { key: "seal_number", label: L("seal_number"), required: true, placeholder: "AP-SEAL-10023" },
+            uploadField(L, "photo", "PACKET_PHOTO"),
+          ]}
+          run={(x) => packetApi.add({ valuation_id: id, ...x })}
+          onClose={close}
+          onDone={done}
+        />
+      )}
+      {dialog === "release" && (
+        <OpDialog
+          title={L("Request a release")}
+          hint={L("None picked releases everything (after settlement). The LTV after a partial release is checked.")}
+          fields={[]}
+          initial={{ ornament_ids: [] }}
+          run={(x) => releaseApi.add({ valuation_id: id, ...(x.ornament_ids?.length ? { ornament_ids: x.ornament_ids.map(Number) } : {}) })}
+          onClose={close}
+          onDone={done}
+        >
+          {(form, setForm) => <ReleaseOrnaments valuationId={id} value={form.ornament_ids} onChange={(val) => setForm((x) => ({ ...x, ornament_ids: val }))} />}
+        </OpDialog>
+      )}
       {dialog === "book" && (
         <OpDialog
           title={L("Book the loan")}
           hint={L("Creates the loan application; the normal loan approval follows. Disbursement waits until the gold is in a locker.")}
           fields={[
             { key: "amount", label: L("amount"), type: "amount", required: true, hint: `${L("maximum_eligible_loan")}: ${v.maximum_eligible_loan}` },
-            { key: "term_id", label: L("Term ID"), type: "int", required: true },
+            { key: "term_id", label: L("term"), type: "select", required: true, options: (v.booking?.terms ?? []).map((t0) => ({ value: String(t0.id), label: `${t0.term_code} · ${t0.term_value} ${words(t0.term_unit)}${Number(t0.maximum_amount) ? ` · ≤ ${t0.maximum_amount}` : ""}` })) },
             { key: "disbursement_acct_id", label: L("Disbursement account"), type: "acct", required: true, owner: () => (v.booking ? { owner_type: v.booking.owner_type, owner_id: v.booking.owner_id } : null) },
             { key: "purpose_code", label: L("purpose_code"), required: true, placeholder: "WORKING_CAPITAL" },
             { key: "monthly_income", label: L("monthly_income"), type: "amount" },
@@ -488,6 +576,7 @@ function ValuationView({ id, onBack }) {
 
 export function NewGoldLoanApplication() {
   const L = useL();
+  useGoldOptions();
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
   const [key, setKey] = useState(0);
@@ -520,6 +609,7 @@ export function NewGoldLoanApplication() {
 
 export function GoldOrnamentInventory() {
   const L = useL();
+  useGoldOptions();
   return (
     <OpsList
       api={ornamentApi}
@@ -542,7 +632,8 @@ export function GoldOrnamentInventory() {
 
 export function PacketManagement() {
   const L = useL();
-  const valuations = useValuations((v) => ["APPROVED", "BOOKED"].includes(v.status));
+  useGoldOptions();
+  const valuations = useValuations({ status: "BOOKED" });
   return (
     <OpsList
       api={packetApi}
@@ -571,6 +662,7 @@ export function PacketManagement() {
               { key: "valuation_id", label: L("valuation"), type: "select", required: true, options: valuations },
               { key: "packet_number", label: L("packet_number"), required: true, placeholder: "AP-PKT-0003" },
               { key: "seal_number", label: L("seal_number"), required: true, placeholder: "AP-SEAL-10023" },
+              uploadField(L, "photo", "PACKET_PHOTO"),
             ],
             run: (x) => packetApi.add({ ...x, valuation_id: Number(x.valuation_id) }),
           },
@@ -583,7 +675,7 @@ export function PacketManagement() {
           icon: ShieldCheck,
           right: "Authorize",
           show: (x) => !x.verified_by,
-          dialog: { title: `${L("Verify seal")} · ${r.packet_number}`, hint: L("Another employee checks the seal."), fields: [{ key: "seal_condition", label: L("seal_condition"), type: "select", required: true, options: ["INTACT", "DAMAGED", "BROKEN"].map((v) => ({ value: v, label: words(v) })) }], run: (x) => packetApi.verify({ id: Number(r.id), ...x }) },
+          dialog: { title: `${L("Verify seal")} · ${r.packet_number}`, hint: L("Another employee checks the seal."), fields: [{ key: "seal_condition", label: L("seal_condition"), type: "select", required: true, options: gl("seal_conditions", ["INTACT", "DAMAGED", "BROKEN", "REPLACED"]) }], run: (x) => packetApi.verify({ id: Number(r.id), ...x }) },
         },
       ]}
     />
@@ -592,6 +684,7 @@ export function PacketManagement() {
 
 export function PacketMovement() {
   const L = useL();
+  useGoldOptions();
   const lockers = useActive(lockerApi);
   const [packets, setPackets] = useState([]);
   useEffect(() => {
@@ -626,10 +719,11 @@ export function PacketMovement() {
             hint: L("Another employee approves the movement."),
             fields: [
               { key: "packet_id", label: L("packet"), type: "select", required: true, options: packets },
-              { key: "kind", label: L("kind"), type: "select", required: true, options: ["DEPOSIT", "WITHDRAW", "TRANSFER"].map((v) => ({ value: v, label: words(v) })) },
-              { key: "to_locker_code", label: L("To locker"), type: "select", options: lockers, showIf: (x) => x.kind !== "WITHDRAW" },
-              { key: "seal_condition", label: L("seal_condition"), type: "select", required: true, options: ["INTACT", "DAMAGED", "BROKEN"].map((v) => ({ value: v, label: words(v) })) },
+              { key: "kind", label: L("kind"), type: "select", required: true, options: gl("movement_kinds", ["DEPOSIT"]) },
+              { key: "to_locker_code", label: L("To locker"), type: "select", options: lockers, showIf: (x) => ["DEPOSIT", "RETURN_TO_LOCKER", "TRANSFER_LOCKER", "TRANSFER_BRANCH", "RECEIVE_BRANCH"].includes(x.kind) },
+              { key: "seal_condition", label: L("seal_condition"), type: "select", required: true, options: gl("seal_conditions", ["INTACT", "DAMAGED", "BROKEN", "REPLACED"]) },
               { key: "reason", label: L("reason"), required: true, wide: true },
+              uploadField(L, "evidence", "MOVEMENT_EVIDENCE"),
             ],
             initial: { kind: "DEPOSIT", seal_condition: "INTACT" },
             run: (x) => movementApi.add({ ...x, packet_id: Number(x.packet_id) }),
@@ -648,6 +742,7 @@ export function PacketMovement() {
 
 function GoldDashboard() {
   const L = useL();
+  useGoldOptions();
   const [d, setD] = useState(null);
   useEffect(() => {
     dashboardApi
@@ -681,6 +776,7 @@ function GoldDashboard() {
 
 export function GoldLoanAccounts() {
   const L = useL();
+  useGoldOptions();
   return (
     <OpsList
       api={accountApi}
@@ -706,6 +802,7 @@ export function GoldLoanAccounts() {
 
 export function GoldInterestCharges() {
   const L = useL();
+  useGoldOptions();
   return (
     <OpsList
       api={chargesApi}
@@ -725,6 +822,7 @@ export function GoldInterestCharges() {
 
 export function GoldPreclosure() {
   const L = useL();
+  useGoldOptions();
   const can = usePagePermission();
   const [facility, setFacility] = useState("");
   const [q, setQ] = useState(null);
@@ -769,7 +867,7 @@ export function GoldPreclosure() {
           title={L("Settle")}
           hint={L("Closes the loan; the gold can then be released.")}
           fields={[
-            { key: "source", label: L("source"), type: "select", required: true, options: ["WALLET", "CASH", "TRANSFER"].map((v) => ({ value: v, label: words(v) })) },
+            { key: "source", label: L("source"), type: "select", required: true, options: gl("settle_sources", ["WALLET", "CASH", "TILL"]) },
             { key: "narration", label: L("narration"), wide: true },
           ]}
           initial={{ source: "WALLET" }}
@@ -786,6 +884,7 @@ export function GoldPreclosure() {
 
 function ReleaseOrnaments({ valuationId, value, onChange }) {
   const L = useL();
+  useGoldOptions();
   const [orn, setOrn] = useState([]);
   useEffect(() => {
     if (!valuationId) return;
@@ -806,7 +905,8 @@ function ReleaseOrnaments({ valuationId, value, onChange }) {
 
 export function GoldRelease() {
   const L = useL();
-  const valuations = useValuations((v) => v.status === "BOOKED" || v.status === "APPROVED");
+  useGoldOptions();
+  const valuations = useValuations({ open_packet: true });
   return (
     <OpsList
       api={releaseApi}
@@ -849,9 +949,9 @@ export function GoldRelease() {
             hint: L("Record the handover evidence; this approves the release."),
             fields: [
               { key: "identity_verification", label: L("identity_verification"), required: true, placeholder: "NIN card" },
-              { key: "packet_condition", label: L("packet_condition"), type: "select", required: true, options: ["INTACT", "DAMAGED", "BROKEN"].map((v) => ({ value: v, label: words(v) })) },
-              { key: "customer_signature", label: L("customer_signature"), placeholder: "assets/gold/sig.png", hint: L("Path of the uploaded signature.") },
-              { key: "new_seal_number", label: L("new_seal_number"), hint: L("For a partial release, the packet's new seal.") },
+              { key: "packet_condition", label: L("packet_condition"), type: "select", required: true, options: gl("packet_conditions", ["INTACT", "DAMAGED", "BROKEN", "REPLACED"]) },
+              uploadField(L, "customer_signature", "CUSTOMER_SIGNATURE"),
+              { key: "new_seal", label: L("new_seal_number"), hint: L("When the packet is resealed (REPLACED)."), showIf: (x) => x.packet_condition === "REPLACED" },
             ],
             initial: { packet_condition: "INTACT" },
             run: (x) => releaseApi.auth({ id: Number(r.id), handover: x }),
@@ -867,6 +967,7 @@ export function GoldRelease() {
 
 export function OverdueManagement() {
   const L = useL();
+  useGoldOptions();
   const can = usePagePermission();
   const [tab, setTab] = useState("notices");
   const [hold, setHold] = useState(null);
@@ -877,11 +978,6 @@ export function OverdueManagement() {
           {L("Place a hold")}
         </Button>
       )}
-      {can("Edit") && (
-        <Button size="sm" variant="secondary" icon={CheckCircle2} onClick={() => setHold("resolve")}>
-          {L("Resolve a hold")}
-        </Button>
-      )}
     </>
   );
   return (
@@ -889,7 +985,7 @@ export function OverdueManagement() {
       <h1 className="text-2xl font-black">{L("overdueManagement")}</h1>
       <p className="mt-1 mb-3 text-sm text-muted-foreground">{L("Overdue notices and their delivery, holds that stop an auction, and revaluation at today's rates.")}</p>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <SegmentedSwitch value={tab} onChange={setTab} options={[{ value: "notices", label: L("Notices") }, { value: "revaluation", label: L("Revaluation") }]} />
+        <SegmentedSwitch value={tab} onChange={setTab} options={[{ value: "notices", label: L("Notices") }, { value: "holds", label: L("Holds") }, { value: "revaluation", label: L("Revaluation") }]} />
         <div className="flex gap-2">{holdDialog}</div>
       </div>
       {tab === "notices" && (
@@ -898,11 +994,13 @@ export function OverdueManagement() {
           columns={[
             { key: "facility_number", label: L("Facility"), render: (r) => cell(r.facility_number ?? r.facility_id) },
             { key: "customer", label: L("customer"), render: (r) => cell(r.customer) },
-            { key: "notice_type", label: L("notice"), render: (r) => cell(words(r.notice_type ?? r.kind)) },
-            { key: "due_day", label: "DPD", render: (r) => cell(r.dpd ?? r.due_day) },
-            { key: "generated_at", label: L("generated"), render: (r) => dateCell(r.generated_at ?? r.created_time) },
-            { key: "reference", label: L("reference"), render: (r) => cell(r.reference) },
-            { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
+            { key: "kind", label: L("notice"), render: (r) => cell(words(r.kind)) },
+            { key: "channel", label: L("channel"), render: (r) => cell(words(r.channel)) },
+            { key: "due_reference", label: L("Due"), render: (r) => dateCell(r.due_reference) },
+            { key: "generated_at", label: L("generated"), render: (r) => dateCell(r.generated_at) },
+            { key: "provider_reference", label: L("reference"), render: (r) => cell(r.provider_reference) },
+            { key: "proof", label: L("proof"), render: (r) => (r.proof ? <button type="button" className="text-xs text-primary underline" onClick={() => viewGoldFile(r.proof)}>{L("View")}</button> : "—") },
+            { key: "delivery_status", label: L("status"), render: (r) => <Status code={r.delivery_status} /> },
           ]}
           toolbar={[{ key: "run", label: L("Generate due notices"), icon: Play, right: "Authorize", call: noticeApi.run, body: {} }]}
           rowActions={(r) => [
@@ -915,15 +1013,31 @@ export function OverdueManagement() {
               dialog: {
                 title: L("Record delivery"),
                 fields: [
-                  { key: "status", label: L("status"), type: "select", required: true, options: ["SENT", "SERVED", "RETURNED", "FAILED"].map((v) => ({ value: v, label: words(v) })) },
-                  { key: "reference", label: L("reference"), placeholder: "REG-POST-55821" },
-                  { key: "proof", label: L("proof"), placeholder: "assets/gold/receipt.pdf", hint: L("Path of the uploaded proof.") },
+                  { key: "status", label: L("status"), type: "select", required: true, options: gl("delivery_statuses", ["DISPATCHED", "SERVED", "FAILED", "RETURNED"]) },
+                                    { key: "provider_reference", label: L("reference") },
+                  uploadField(L, "proof", "NOTICE_PROOF"),
                 ],
                 initial: { status: "SERVED" },
                 run: (x) => noticeApi.delivery({ id: Number(r.id), ...x }),
               },
             },
           ]}
+        />
+      )}
+      {tab === "holds" && (
+        <OpsList
+          api={holdApi}
+          prefix="hd_"
+          columns={[
+            { key: "created_time", label: L("when"), render: (r) => dateCell(r.created_time) },
+            { key: "facility_number", label: L("Facility"), align: "left", render: (r) => <span className="text-xs"><b>{r.facility_number}</b><span className="block text-[10px] text-muted-foreground">{r.customer}</span></span> },
+            { key: "kind", label: L("kind"), render: (r) => cell(words(r.kind)) },
+            { key: "detail", label: L("detail"), render: (r) => cell(r.detail) },
+            { key: "created_by", label: L("by"), render: (r) => cell(r.created_by) },
+            { key: "resolved_by", label: L("resolved_by"), render: (r) => cell(r.resolved_by ? `${r.resolved_by} · ${r.resolved_at}` : "") },
+            { key: "status", label: L("status"), render: (r) => <Status code={r.status} /> },
+          ]}
+          rowActions={(r) => [{ key: "resolve", label: L("Resolve"), icon: CheckCircle2, right: "Edit", call: holdApi.resolve, body: { id: r.id } }]}
         />
       )}
       {tab === "revaluation" && (
@@ -947,7 +1061,7 @@ export function OverdueManagement() {
           title={L("Place a hold")}
           hint={L("A hold stops notices and auction until it is resolved.")}
           fields={[
-            { key: "kind", label: L("kind"), type: "select", required: true, options: ["DISPUTE", "LEGAL", "COURT_ORDER", "DECEASED"].map((v) => ({ value: v, label: words(v) })) },
+            { key: "kind", label: L("kind"), type: "select", required: true, options: gl("hold_kinds", ["DISPUTE"]) },
             { key: "detail", label: L("detail"), type: "textarea", required: true },
           ]}
           needs={(x) => Boolean(x.facility_id)}
@@ -958,7 +1072,6 @@ export function OverdueManagement() {
           {facilityInput(L)}
         </OpDialog>
       )}
-      {hold === "resolve" && <OpDialog title={L("Resolve a hold")} fields={[{ key: "id", label: L("Hold ID"), type: "int", required: true }]} run={(x) => holdApi.resolve({ id: Number(x.id) })} onClose={() => setHold(null)} onDone={() => setHold(null)} />}
     </div>
   );
 }
@@ -967,6 +1080,7 @@ export function OverdueManagement() {
 
 function EligibilityCheck() {
   const L = useL();
+  useGoldOptions();
   const [open, setOpen] = useState(false);
   const [res, setRes] = useState(null);
   return (
@@ -1005,6 +1119,7 @@ function EligibilityCheck() {
 
 export function AuctionManagement() {
   const L = useL();
+  useGoldOptions();
   const st = (r, ...s) => s.includes(r.status);
   return (
     <OpsList
@@ -1035,11 +1150,11 @@ export function AuctionManagement() {
           icon: Lock,
           right: "Edit",
           show: (x) => st(x, "APPROVED"),
-          dialog: { title: L("Schedule the auction"), hint: L("Sets the reserve price from the latest value."), fields: [{ key: "auction_date", label: L("auction_date"), type: "date", required: true }, { key: "method", label: L("method"), type: "select", required: true, options: ["PUBLIC", "SEALED_BID", "ONLINE"].map((v) => ({ value: v, label: words(v) })) }], initial: { method: "PUBLIC" }, run: (x) => auctionApi.schedule({ id: Number(r.id), ...x }) },
+          dialog: { title: L("Schedule the auction"), hint: L("Sets the reserve price from the latest value."), fields: [{ key: "auction_date", label: L("auction_date"), type: "date", required: true }, { key: "method", label: L("method"), type: "select", required: true, options: gl("auction_methods", ["PUBLIC", "SEALED_BID", "ONLINE"]) }], initial: { method: "PUBLIC" }, run: (x) => auctionApi.schedule({ id: Number(r.id), ...x }) },
         },
         { key: "bid", label: L("Record a bid"), icon: Plus, right: "Edit", show: (x) => st(x, "SCHEDULED", "OPEN"), dialog: { title: L("Record a bid"), fields: [{ key: "bidder", label: L("bidder"), required: true }, { key: "amount", label: L("amount"), type: "amount", required: true }], run: (x) => auctionApi.bid({ id: Number(r.id), ...x }) } },
         { key: "complete", label: L("Complete"), icon: CheckCircle2, right: "Authorize", show: (x) => st(x, "SCHEDULED", "OPEN"), dialog: { title: L("Complete the auction"), hint: L("The highest bid settles the loan; any surplus or shortfall is worked out."), fields: [{ key: "expenses", label: L("expenses"), type: "amount" }], run: (x) => auctionApi.complete({ id: Number(r.id), expenses: x.expenses || "0" }) } },
-        { key: "refund", label: L("Refund surplus"), icon: HandCoins, right: "Authorize", show: (x) => st(x, "COMPLETED") && Number(x.surplus) > 0 && !x.surplus_refunded, call: auctionApi.surplus_refund, body: { id: Number(r.id) } },
+        { key: "refund", flag: "surplus_refund", label: L("Refund surplus"), icon: HandCoins, right: "Authorize", show: (x) => st(x, "COMPLETED") && Number(x.surplus) > 0 && !x.surplus_refunded, call: auctionApi.surplus_refund, body: { id: Number(r.id) } },
       ]}
     />
   );
@@ -1049,6 +1164,7 @@ export function AuctionManagement() {
 
 export function PhysicalVerification() {
   const L = useL();
+  useGoldOptions();
   const lockers = useActive(lockerApi);
   const [tab, setTab] = useState("verifications");
   return (

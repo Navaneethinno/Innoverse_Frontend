@@ -88,6 +88,7 @@ export const ownerOf = (party) => {
 
 // One input of an OpDialog / form row. Types: those of Field, plus party and textarea.
 export function OpInput({ f, value, onChange, choices, form }) {
+  if (f.render) return f.render(value, onChange, form);
   if (f.type === "party") return <PartyPick value={value} onChange={onChange} />;
   if (f.type === "acct") return <AcctPick value={value} onChange={onChange} owner={f.owner?.(form)} currency={f.currency?.(form)} />;
   if (f.type === "textarea") return <textarea className="mt-1 min-h-16 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />;
