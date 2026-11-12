@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { Toggle } from "@/Components/Common/Toggle";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
@@ -149,19 +150,23 @@ export function OpDialog({ title, hint, fields, initial = {}, choices, confirmLa
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
       {!childrenAfter && children?.(form, setForm)}
       <div className="grid gap-3 sm:grid-cols-2">
-        {shown.map((f) =>
-          f.type === "bool" ? (
-            <div key={f.key} className="self-end">
-              <Field field={{ type: "bool", label: f.label }} value={form[f.key]} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
-            </div>
-          ) : (
+        {shown.filter((f) => f.type !== "bool").map((f) => (
             <div key={f.key} className={cn(labelClass, (f.wide || f.type === "textarea" || f.type === "party" || f.type === "acct" || f.type === "multi") && "sm:col-span-2")}>
               {f.label}
               {f.required && <RequiredMark />}
               <OpInput f={f} value={form[f.key]} choices={choices} form={form} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
               {f.hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{f.hint}</span>}
             </div>
-          ),
+          ))}
+        {shown.some((f) => f.type === "bool") && (
+          <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+            {shown.filter((f) => f.type === "bool").map((f) => (
+              <div key={f.key}>
+                <Toggle showLabel label={f.label} checked={Boolean(form[f.key])} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
+                {f.hint && <span className="mt-1 block text-[11px] text-muted-foreground">{f.hint}</span>}
+              </div>
+            ))}
+          </div>
         )}
       </div>
       {childrenAfter && <div className="mt-3">{children?.(form, setForm)}</div>}

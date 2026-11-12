@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Toggle } from "@/Components/Common/Toggle";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Trash2, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
@@ -384,17 +385,10 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
         <PageSkeleton />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {shown.map((f) => {
+          {shown.filter((f) => f.type !== "bool").map((f) => {
             const set = (v) => setForm((x) => ({ ...x, [f.key]: v }));
             const disabled = Boolean(record && f.fixedOnEdit);
             const wide = f.wide || f.type === "multi" || f.type === "textarea";
-            if (f.type === "bool")
-              return (
-                <div key={f.key} className={cn("self-end", wide && "sm:col-span-2")}>
-                  <Field field={{ type: "bool", label: f.label }} value={form[f.key]} disabled={disabled} onChange={set} />
-                  {f.hint && <span className="mt-1 block text-[11px] text-muted-foreground">{f.hint}</span>}
-                </div>
-              );
             if (f.type === "custom")
               return (
                 <div key={f.key} className={cn(labelClass, "sm:col-span-2")}>
@@ -416,6 +410,16 @@ function RecordForm({ api, fields, bodyOf, nameOf, scope, record, onClose, onSav
               </Wrap>
             );
           })}
+          {shown.some((f) => f.type === "bool") && (
+            <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+              {shown.filter((f) => f.type === "bool").map((f) => (
+                <div key={f.key}>
+                  <Toggle showLabel label={f.label} checked={Boolean(form[f.key])} disabled={Boolean(record && f.fixedOnEdit)} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
+                  {f.hint && <span className="mt-1 block text-[11px] text-muted-foreground">{f.hint}</span>}
+                </div>
+              ))}
+            </div>
+          )}
           {problems.length > 0 && (
             <ul className="list-disc rounded-xl border border-red-200 bg-red-50 px-3 py-2 pl-7 text-xs font-semibold text-red-700 sm:col-span-2">
               {problems.map((p) => (

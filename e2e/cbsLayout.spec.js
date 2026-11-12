@@ -38,6 +38,10 @@ test("add forms lay out", async ({ page }) => {
     await page.getByRole("button", { name: button, exact: true }).first().click();
     await page.waitForTimeout(1500);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/f-${slug}.png` });
+    // and the bottom of the form, where the toggles sit
+    await page.locator("[role=dialog] *").evaluateAll((els) => els.forEach((e) => { if (e.scrollHeight > e.clientHeight + 4) e.scrollTop = e.scrollHeight; }));
+    await page.waitForTimeout(300);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/f-${slug}-end.png` });
     await page.keyboard.press("Escape");
   }
 });

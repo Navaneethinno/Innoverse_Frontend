@@ -41,7 +41,7 @@ test("InnoCBS and InnoTreasury screens open without errors", async ({ page }) =>
   let refused = [];
   page.on("response", async (res) => {
     if (res.request().method() !== "POST" || !res.url().includes("/config/")) return;
-    let body = null;
+    let body;
     try {
       body = await res.json();
     } catch {
