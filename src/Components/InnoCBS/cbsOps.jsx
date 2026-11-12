@@ -29,11 +29,16 @@ export const words = (code) => {
 export const codes = (key) => (c) => (c?.[key] ?? []).map((v) => ({ value: v, label: words(v) }));
 export const coded = (key) => (c) => (c?.[key] ?? []).map((x) => ({ value: x.code, label: `${x.code} · ${x.name}` }));
 export const byId = (key) => (c) => (c?.[key] ?? []).map((x) => ({ value: String(x.id), label: [x.code, x.name].filter(Boolean).join(" · ") }));
-// A label: its translation when one exists, else the key as words.
+// A label: a key (code or camelCase) as words, a sentence as written; then
+// the English shown is looked up in the language's label list.
+// The list is the `cbsText` namespace, keyed by English text like `labels`.
+const BY_TEXT = { ns: "cbsText", keySeparator: false, nsSeparator: false };
 export const useL = () => {
-  const { t } = useTranslation("record");
-  // A sentence is shown as written; a key (code or camelCase) as words.
-  return (key) => (/\s/.test(String(key)) ? key : t(`ir_${key}`, { defaultValue: words(key) }));
+  const { t } = useTranslation(["record", "cbsText"]);
+  return (key) => {
+    const shown = /\s/.test(String(key)) ? key : t(`ir_${key}`, { ns: "record", defaultValue: words(key) });
+    return t(shown, { ...BY_TEXT, defaultValue: shown });
+  };
 };
 // A decimal string ("700000.0000") with grouping and two decimals.
 export const fmtNum = (v) => (typeof v === "string" && /^-?\d+\.\d+$/.test(v) ? Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v);

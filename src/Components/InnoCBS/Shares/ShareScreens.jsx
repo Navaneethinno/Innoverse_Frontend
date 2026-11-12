@@ -16,7 +16,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { CatalogueReports } from "@/Components/InnoCBS/Deposits/DepositOps";
-import { OpDialog, ownerOf, RowsTable, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
+import { OpDialog, ownerOf, RowsTable, cell, coded, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { recordApi } from "@/Services/api/recordApi";
@@ -553,6 +553,7 @@ export function Shareholdings() {
   const { t } = useTranslation("common");
   const can = usePagePermission();
   const categories = useCategories();
+  const shareOpts = useShareOptions();
   const [tab, setTab] = useState("holdings");
   const [adding, setAdding] = useState(false);
   const holdings = useServerList({ api: holdingApi.listPath, call: holdingApi.list, enabled: tab === "holdings" });
@@ -619,7 +620,7 @@ export function Shareholdings() {
           title={L("Mark a lien")}
           fields={[
             { key: "reason", label: L("reason"), required: true, wide: true },
-            { key: "source_module", label: L("Linked to"), type: "select", required: true, options: [{ value: "LOAN", label: L("A loan of the member") }, { value: "OTHER", label: L("Other (say why above)") }] },
+            { key: "source_module", label: L("Linked to"), type: "select", required: true, options: shareOpts.lien_sources?.length ? coded("lien_sources")(shareOpts) : [{ value: "LOAN", label: L("A loan of the member") }, { value: "OTHER", label: L("Other (say why above)") }] },
           ]}
           initial={{ source_module: "OTHER" }}
           needs={(x) => x.member_id && x.share_category_code && x.shares}

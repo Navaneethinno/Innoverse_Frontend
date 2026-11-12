@@ -1,3 +1,5 @@
+import cbsText from "./cbsText.ar";
+
 // Arabic translation objects: same keys as en.js. A namespace or key not
 // here falls back to English. appName stays the brand name.
 export const bulkReg = {
@@ -10802,7 +10804,8 @@ export const record = {
 
 export default Object.fromEntries(
   Object.entries({
-  record,
+    record,
+    cbsText,
     campaigns,
     atm,
     statements,

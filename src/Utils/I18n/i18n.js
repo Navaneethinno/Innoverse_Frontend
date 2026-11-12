@@ -81,6 +81,7 @@ void i18n
       "keyCustody",
       "corebank",
       "record",
+      "cbsText",
     ],
     interpolation: { escapeValue: false },
     detection: {

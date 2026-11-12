@@ -1,3 +1,5 @@
+import cbsText from "./cbsText.pt";
+
 // Portuguese translation objects — same shape/keys as en.js, one file per
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
@@ -10821,6 +10823,7 @@ export const record = {
 
 export default {
   record,
+  cbsText,
   campaigns,
   atm,
   statements,

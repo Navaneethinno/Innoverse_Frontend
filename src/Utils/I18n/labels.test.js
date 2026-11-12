@@ -19,6 +19,12 @@ describe("text-keyed translations", () => {
     expect(i18n.t("Session expired. Please sign in again.", { ns: "toasts", lng: "ar", ...BY_TEXT })).toBe("انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.");
   });
 
+  it("translates the InnoCBS / InnoTreasury screen labels", () => {
+    expect(i18n.t("Interest schemes", { ns: "cbsText", lng: "pt", ...BY_TEXT })).toBe("Esquemas de juros");
+    expect(i18n.t("Override allowed", { ns: "cbsText", lng: "ar", ...BY_TEXT })).toBe("يُسمح بالتجاوز");
+    expect(i18n.t("A checker approves it.", { ns: "cbsText", lng: "pt", ...BY_TEXT })).toBe("Um verificador aprova-o.");
+  });
+
   it("shows an unlisted text as it is", () => {
     expect(i18n.t("Nothing like this", { ns: "labels", lng: "ar", ...BY_TEXT, defaultValue: "Nothing like this" })).toBe("Nothing like this");
   });

@@ -79,7 +79,7 @@ export function MarketRates() {
           dialog: {
             title: L("Enter a rate"),
             fields: [
-              { key: "rate_kind", label: L("kind"), type: "select", required: true, options: [{ value: "FX", label: "FX" }, { value: "BENCHMARK", label: L("Benchmark") }] },
+              { key: "rate_kind", label: L("kind"), type: "select", required: true, options: topt.rate_kinds?.length ? choices(topt.rate_kinds) : [{ value: "FX", label: "FX" }, { value: "BENCHMARK", label: L("Benchmark") }] },
               { key: "base_currency", label: L("base_currency"), type: "select", options: choices(topt.currencies), showIf: (x) => x.rate_kind === "FX" },
               { key: "quote_currency", label: L("quote_currency"), type: "select", options: choices(topt.currencies), showIf: (x) => x.rate_kind === "FX" },
               { key: "benchmark_code", label: L("benchmark_code"), placeholder: "NIBOR_3M", showIf: (x) => x.rate_kind === "BENCHMARK" },
