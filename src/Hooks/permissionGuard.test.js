@@ -15,7 +15,9 @@ const files = (dir) =>
 const sources = files(ROOT).map((file) => ({ file: path.relative(ROOT, file).replaceAll("\\", "/"), text: readFileSync(file, "utf8") }));
 
 const WRITES = /\b\w*[aA]pi(?:\.\w+)*\.(add|edit|delete|auth|deauth|deactivate|reactivate|submit|cancel|release)\(/;
-const ASKS = /usePagePermission|useMenuPermission|usePartyMenuPermission|LifecycleList|getMakerCheckerButtons|\.actions\b|actions\?\.|\bcan\w*\b/;
+// OpsList and RecordScreen read the page's rights themselves and show a
+// button only for its `right` (or the row's backend `actions` flag).
+const ASKS = /usePagePermission|useMenuPermission|usePartyMenuPermission|LifecycleList|getMakerCheckerButtons|<OpsList\b|<RecordScreen\b|\.actions\b|actions\?\.|\bcan\w*\b/;
 
 // Forms and panels opened only by a parent screen that has already asked.
 // Adding one here means checking that parent first.
