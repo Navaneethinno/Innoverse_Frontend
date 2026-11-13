@@ -43,7 +43,7 @@ export function ProfileFormModal({ editing = false, open, onClose, form, setForm
         </>
       }
     >
-      <ProfileForm form={form} setForm={setForm} institutions={institutions} onSubmit={onSubmit} />
+      <ProfileForm form={form} setForm={setForm} institutions={institutions} onSubmit={onSubmit} editing={editing} />
     </Modal>
   );
 }

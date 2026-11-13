@@ -16,7 +16,7 @@ export function profileId(profile) {
 // monolithic ProfilesPage.jsx so AddProfile/EditProfile both render the same
 // markup. Still uses the existing ProfilePermissionTree.jsx building block
 // for the menu/action grant tree (not duplicated here).
-export function ProfileForm({ form, setForm, institutions, onSubmit }) {
+export function ProfileForm({ form, setForm, institutions, onSubmit, editing = false }) {
   const { t } = useTranslation("profiles");
   // A bank / fintech user is always in its own institution: no picker.
   const canChooseInstitution = useCanChooseInstitution();
@@ -56,6 +56,7 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
           <RequiredMark /> <span className="text-[11px] font-normal text-muted-foreground">{t("common:atLeastOne")}</span>
         </p>
         <ProfilePermissionTree
+          scope={{ institution: canChooseInstitution ? Number(form.inst_profile_id) || null : null, chosen: !canChooseInstitution || Boolean(form.inst_profile_id), keepHeld: editing }}
           selected={form.menu_actions}
           onChange={(menu_actions) => setForm({ ...form, menu_actions })}
         />

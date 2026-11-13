@@ -104,6 +104,14 @@ export const API_ENDPOINTS = {
       AUDIT: "/config/institution/module/audit",
       PENDING: "/config/institution/module/pending",
     },
+    // Which menus of its modules an institution gets (maker-checker).
+    INSTITUTION_MENU: {
+      OPTIONS: "/config/institution/menu/options",
+      GET: "/config/institution/menu/get",
+      EDIT: "/config/institution/menu/edit",
+      AUTH: "/config/institution/menu/auth",
+      DEAUTH: "/config/institution/menu/deauth",
+    },
     INSTITUTION_LEGAL: {
       ADD: "/config/institution/legal/add",
       SUBMIT: "/config/institution/legal/submit",
@@ -149,6 +157,8 @@ export const API_ENDPOINTS = {
       SUBMIT: "/config/user/profile/submit",
       GET: "/config/user/profile/get",
       GET_ACTIVE: "/config/user/profile/get_active",
+      // The menus and actions a role of an institution may be given.
+      OPTIONS: "/config/user/profile/options",
       ADD: "/config/user/profile/add",
       AUDIT: "/config/user/profile/audit",
       PENDING: "/config/user/profile/pending",

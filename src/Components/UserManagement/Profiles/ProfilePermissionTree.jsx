@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { masterApi } from "@/Services/Master/master.api";
+import { profilesApi } from "@/Services/UserManagement/profiles.api";
+import { Button } from "@/Components/Common/Button";
 import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { useTranslation } from "react-i18next";
 
@@ -34,9 +36,10 @@ const numericId = (value) => {
 // Profile grants must be built from master menu/action relations, not from
 // the current user's sidebar permissions. A sidebar action can be permitted
 // for the current user while still being invalid for a different menu.
-function useMenuTreeSource() {
-  const [source, setSource] = useState({ modules: [], isLoading: true, error: null });
+function useMenuTreeSource(enabled = true) {
+  const [source, setSource] = useState({ modules: [], isLoading: enabled, error: null });
   const load = useCallback(async () => {
+    if (!enabled) return;
     setSource((current) => ({ ...current, isLoading: true, error: null }));
     try {
       const [rawModules, rawMenus, rawRelations, rawActions] = await Promise.all([
@@ -96,7 +99,44 @@ function useMenuTreeSource() {
         error: error instanceof Error ? error : new Error("Failed to load menu permissions"),
       });
     }
-  }, []);
+  }, [enabled]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  return { ...source, refetch: load };
+}
+
+// Adding or editing a role: only the menus its institution has, from
+// /user/profile/options (sidebar order, names in the user's language).
+// `institution` = the institution's id; null = the user's own (a bank /
+// fintech user sends none).
+function useInstitutionOptions(institution, enabled) {
+  const [source, setSource] = useState({ modules: [], selfActionId: null, isLoading: enabled, error: null });
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    setSource((current) => ({ ...current, isLoading: true, error: null }));
+    try {
+      const result = await profilesApi.options(institution ? { inst_profile_id: institution } : {});
+      const data = (Array.isArray(result?.data) ? result.data[0] : result?.data) ?? {};
+      const byModule = new Map();
+      (data.menus ?? []).forEach((menu) => {
+        const menuId = numericId(menu.menu_id);
+        const moduleId = numericId(menu.module_id);
+        if (!menuId || !moduleId || !(menu.actions ?? []).length) return;
+        if (!byModule.has(moduleId)) byModule.set(moduleId, { moduleId, moduleName: menu.module_label || menu.module_name || `Module #${moduleId}`, menus: [] });
+        const name = menu.menu_label || menu.menu_name || `Menu #${menuId}`;
+        const parent = menu.parent_menu_label || menu.parent_menu_name;
+        byModule.get(moduleId).menus.push({
+          menu_id: menuId,
+          menu_name: parent && parent !== name ? `${parent} › ${name}` : name,
+          actions: menu.actions.map((a) => ({ action_id: numericId(a.action_id), action_name: a.action_name })).filter((a) => a.action_id).sort(byActionOrder),
+        });
+      });
+      setSource({ modules: [...byModule.values()], selfActionId: numericId(data.self_action_id), isLoading: false, error: null });
+    } catch (error) {
+      setSource({ modules: [], selfActionId: null, isLoading: false, error: error instanceof Error ? error : new Error("Failed to load menu permissions") });
+    }
+  }, [institution, enabled]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -107,7 +147,9 @@ function allActionIds(menu) {
   return (menu.actions || []).map((a) => a.action_id);
 }
 
-function normalizeGrants(grants, modules) {
+// keepOthers: a role being edited keeps the menus its institution no longer
+// has (the server lets them stay; they do nothing until given back).
+function normalizeGrants(grants, modules, keepOthers = false) {
   const validActionsByMenu = new Map(
     modules.flatMap((module) =>
       module.menus.map((menu) => [menu.menu_id, new Set(allActionIds(menu))]),
@@ -116,6 +158,7 @@ function normalizeGrants(grants, modules) {
   return (Array.isArray(grants) ? grants : []).flatMap((grant) => {
     const menuId = numericId(grant?.menu_id);
     const validActions = validActionsByMenu.get(menuId);
+    if (menuId && !validActions && keepOthers) return [grant];
     if (!menuId || !validActions) return [];
     const actions = [...new Set((grant?.actions ?? []).map(numericId).filter((id) => id && validActions.has(id)))];
     return actions.length > 0
@@ -142,15 +185,22 @@ function normalizeGrants(grants, modules) {
  * readOnly: renders the same grants without any click handlers (e.g. the
  * Profiles "View" action) instead of a second, duplicated read-only tree.
  */
-export function ProfilePermissionTree({ selected, onChange, readOnly = false }) {
+export function ProfilePermissionTree({ selected, onChange, readOnly = false, scope }) {
   const { t } = useTranslation();
-  const { modules, isLoading, error, refetch } = useMenuTreeSource();
+  // scope = { institution, chosen, keepHeld }: the role's institution
+  // (chosen = false while the service provider has not picked one yet).
+  const scoped = Boolean(scope) && !readOnly;
+  const master = useMenuTreeSource(!scoped);
+  const options = useInstitutionOptions(scope?.institution ?? null, scoped && scope.chosen !== false);
+  const { modules, isLoading, error, refetch } = scoped ? options : master;
+  // Editing: menus the role holds but its institution lost stay (scope.keepHeld).
+  const keepOthers = scoped && Boolean(scope.keepHeld);
   const [query, setQuery] = useState("");
   const [openModuleIds, setOpenModuleIds] = useState(() => new Set());
-  const grants = useMemo(() => normalizeGrants(selected, modules), [selected, modules]);
+  const grants = useMemo(() => normalizeGrants(selected, modules, keepOthers), [selected, modules, keepOthers]);
   const selectedKey = JSON.stringify(selected ?? []);
   const grantsKey = JSON.stringify(grants);
-  const commit = (nextGrants) => onChange(normalizeGrants(nextGrants, modules));
+  const commit = (nextGrants) => onChange(normalizeGrants(nextGrants, modules, keepOthers));
 
   useEffect(() => {
     if (!isLoading && selectedKey !== grantsKey) onChange(grants);
@@ -283,6 +333,16 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     commit(next.filter((g) => g.actions.length > 0));
   };
 
+  // An institution's SuperAdmin: every action of every menu but "Self"
+  // (which lets a user skip the checker).
+  const fullAccess = () =>
+    commit([
+      ...grants.filter((g) => !modules.some((m) => m.menus.some((menu) => menu.menu_id === g.menu_id))),
+      ...modules.flatMap((module) =>
+        module.menus.map((menu) => ({ menu_id: menu.menu_id, actions: allActionIds(menu).filter((id) => id !== options.selfActionId), is_configuration_only: 0 })),
+      ),
+    ]);
+
   const filteredModules = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return modules;
@@ -305,6 +365,9 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         .filter((module) => module.menus.length > 0)
     : filteredModules;
 
+  if (scoped && scope.chosen === false) {
+    return <p className="text-sm text-muted-foreground">{t("profiles:chooseInstitutionFirst")}</p>;
+  }
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">{t("profiles:loadingAvailableMenuActions")}</p>;
   }
@@ -343,6 +406,15 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
             placeholder={t("profiles:searchModulesOrMenus")}
             className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
           />
+        </div>
+      )}
+
+      {scoped && options.selfActionId && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-3 py-2">
+          <span className="text-[11px] text-muted-foreground">{t("profiles:fullAccessHint")}</span>
+          <Button size="xs" variant="outline" onClick={fullAccess}>
+            {t("profiles:selectAllFullAccess")}
+          </Button>
         </div>
       )}
 

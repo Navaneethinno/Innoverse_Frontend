@@ -26,6 +26,7 @@ import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
+import { InstitutionMenus } from "@/Components/Institution/Modules/InstitutionMenus";
 
 const displayValue = (value) => value ?? "—";
 
@@ -143,7 +144,9 @@ export function InstitutionModule() {
             }}>
             <Plus size={14} /> {tr("Add")} {tr("module")}
           </Button>
-        )} columns={columns} rowKey={(row) => row.id} title={tr("Institution Module")} emptyTitle={tr("No institution modules found")} emptyDescription={tr("Module assignments will appear here when available.")} /><Modal
+        )} columns={columns} rowKey={(row) => row.id} title={tr("Institution Module")} emptyTitle={tr("No institution modules found")} emptyDescription={tr("Module assignments will appear here when available.")} />
+      <InstitutionMenus institutions={institutions.data} />
+      <Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? tr("Edit institution module") : tr("Add institution module")}

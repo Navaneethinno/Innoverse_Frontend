@@ -75,6 +75,8 @@ export const profilesApi = {
   // has a real get-by-id endpoint (unlike Institution, which has none), so
   // detail/edit screens use this directly instead of scanning a list page.
   get: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET, payload),
+  // The institution's menus with their actions: all a role of it may hold.
+  options: (payload = {}) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.OPTIONS, payload),
   // POST /profile/add, body {profile_info: {profile_id: 0, profile_name,
   // inst_profile_id}, menu_actions: [{menu_id, actions: [action_id...],
   // is_configuration_only}]} — creates a pending-add.
