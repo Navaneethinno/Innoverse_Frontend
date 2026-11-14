@@ -4,6 +4,7 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  shownOf: "Showing {{shown}} of {{total}}",
   "alreadyStarted": "Already started. Wait for it to finish.",
   // Why a button is blocked, for the hover hint.
   blockedNeedsInstitution: "Choose an institution first.",

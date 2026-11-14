@@ -4,6 +4,7 @@ import cbsText from "./cbsText.pt";
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  shownOf: "A mostrar {{shown}} de {{total}}",
   "alreadyStarted": "Já foi iniciado. Aguarde a conclusão.",
   orDropHere: "ou largue-o aqui",
   fileTypeRefused: "Este tipo de ficheiro não é aceite aqui ({{accept}}).",

@@ -2729,6 +2729,7 @@ export const myProfile = {
 };
 
 export const common = {
+  shownOf: "عرض {{shown}} من {{total}}",
   "alreadyStarted": "بدأت العملية بالفعل. انتظر حتى تكتمل.",
   orDropHere: "أو أفلته هنا",
   fileTypeRefused: "نوع الملف هذا غير مقبول هنا ({{accept}}).",

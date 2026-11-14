@@ -1,5 +1,5 @@
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ListChecks } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -15,9 +15,13 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ApprovalTimeline, approvalText } from "./approvalShared";
 import { useLatest } from "@/Hooks/useLatest";
 
-// What the signed-in user can approve now, across the admin menus, oldest
-// first (/config/approval/queue). Open in the top bar; the count shows on
+// What the signed-in user can approve now, across the admin menus, newest
+// first (/config/approval/queue). The queue comes whole (no paging on the
+// server), so the list shows PAGE items and adds more as it is scrolled. Open in the top bar; the count shows on
 // the button.
+const PAGE = 20;
+const newestFirst = (a, b) => String(b.submitted_at ?? "").localeCompare(String(a.submitted_at ?? ""));
+
 export function MyApprovalsButton() {
   const { t } = useTranslation("common");
   const [items, setItems] = useState(null);
@@ -46,6 +50,12 @@ export function MyApprovalsButton() {
     // Loaded once at sign-in and again on every opening.
   }, [latest]);
   const count = items?.length ?? 0;
+  const sorted = useMemo(() => [...(items ?? [])].sort(newestFirst), [items]);
+  const [shown, setShown] = useState(PAGE);
+  const more = (e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80) setShown((n) => (n < sorted.length ? n + PAGE : n));
+  };
   return (
     <>
       <UiTooltip label={t("myApprovals")}>
@@ -55,6 +65,7 @@ export function MyApprovalsButton() {
           aria-label={t("myApprovals")}
           onClick={() => {
             setOpen(true);
+            setShown(PAGE);
             void load();
           }}
           className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:bg-primary-light hover:text-primary"
@@ -70,8 +81,8 @@ export function MyApprovalsButton() {
           ) : !items.length ? (
             <p className="text-sm text-muted-foreground">{t("myApprovalsEmpty")}</p>
           ) : (
-            <ul className="grid max-h-[60vh] gap-2 overflow-y-auto">
-              {items.map((x) => (
+            <ul className="grid max-h-[60vh] gap-2 overflow-y-auto" onScroll={more}>
+              {sorted.slice(0, shown).map((x) => (
                 <li key={`${x.route}:${x.record_id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-slate-800">
@@ -101,6 +112,9 @@ export function MyApprovalsButton() {
                   </div>
                 </li>
               ))}
+              <li className="py-1 text-center text-[11px] text-muted-foreground">
+                {t("shownOf", { shown: Math.min(shown, sorted.length), total: sorted.length })}
+              </li>
             </ul>
           )}
         </Modal>
