@@ -25,6 +25,7 @@ import { pickupBlocked, usePickupLocations } from "./Settings/PickupLocations";
 import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord, pickupBody } from "./cardOpsShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { CardControls, RevealDialog } from "./cardInstanceExtras";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
@@ -97,9 +98,7 @@ export function Cards() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <CreditCard size={22} className="text-primary" /> {t("cardsTitle")}
-          </h1>
+          <PageTitle icon={CreditCard}>{t("cardsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("cardsSubtitle")}</p>
         </div>
       </div>

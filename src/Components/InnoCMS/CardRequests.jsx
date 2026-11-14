@@ -21,6 +21,7 @@ import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../
 import { pickupBlocked, usePickupLocations } from "./Settings/PickupLocations";
 import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord, pickupBody } from "./cardOpsShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
@@ -73,9 +74,7 @@ export function CardRequests() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Inbox size={22} className="text-primary" /> {t("requestsTitle")}
-          </h1>
+          <PageTitle icon={Inbox}>{t("requestsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("requestsSubtitle")}</p>
         </div>
         <div className="flex gap-2">

@@ -11,6 +11,7 @@ import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { DepositProductView } from "./DepositProductView";
 import { DepositProductWizard } from "./DepositProductWizard";
 import { ProductStatus, useTermDepositTypeName } from "./productShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // TERM DEPOSITS > Deposit Products (menu 180): the term-deposit setup of
 // each TERM_DEPOSIT account product. All / Pending tabs, a view with the
@@ -78,9 +79,7 @@ export function DepositProducts() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <PiggyBank size={22} className="text-primary" /> {t("productsTitle")}
-          </h1>
+          <PageTitle icon={PiggyBank}>{t("productsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle", { type })}</p>
         </div>
       </div>

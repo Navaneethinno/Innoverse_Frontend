@@ -28,6 +28,7 @@ import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { useLatest } from "@/Hooks/useLatest";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const ROW_TONES = { APPROVED: "bg-emerald-50 text-emerald-800", IN_REVIEW: "bg-amber-50 text-amber-800", REJECTED: "bg-red-50 text-red-700", FAILED: "bg-red-50 text-red-700", PENDING: "bg-muted text-muted-foreground" };
 const BATCH_TONES = { DONE: "bg-emerald-50 text-emerald-800", PROCESSING: "bg-sky-50 text-sky-800", REJECTED: "bg-red-50 text-red-700", PENDING: "bg-amber-50 text-amber-800" };
@@ -162,9 +163,7 @@ export function BulkRegistration() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Users size={22} className="text-primary" /> {t("title")}
-          </h1>
+          <PageTitle icon={Users}>{t("title")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">

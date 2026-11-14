@@ -7,6 +7,7 @@ import { OpDialog, first, useL } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { notifications } from "@/Utils/Lib/notifications";
 import { gl, preclosureApi, useGoldOptions } from "@/Components/InnoCBS/Gold/goldShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 export function GoldPreclosure() {
   const L = useL();
@@ -22,7 +23,7 @@ export function GoldPreclosure() {
       .catch((e) => notifications.error(e.message));
   return (
     <div className="pt-1 pb-6">
-      <h1 className="text-2xl font-black">{L("Repayment & Pre-closure")}</h1>
+      <PageTitle>{L("Repayment & Pre-closure")}</PageTitle>
       <p className="mt-1 mb-4 text-sm text-muted-foreground">{L("Quote what closes a gold loan today, then settle it.")}</p>
       <Section title={L("Facility")} className="mb-4">
         <div className="flex flex-wrap items-end gap-2">

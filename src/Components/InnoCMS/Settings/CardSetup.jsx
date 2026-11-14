@@ -21,6 +21,7 @@ import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
+import { PageTitle } from "@/Components/Common/PageTitle";
 // The CARDS setup screens (BINs, Card Number Layout, Card Products, Issuance
 // Groups) are one
 // maker-checker pattern: All / Pending list, a view with what is in effect
@@ -77,9 +78,7 @@ export function CardSetupPage({ kind }) {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Icon size={22} className="text-primary" /> {t(kind.title)}
-          </h1>
+          <PageTitle icon={Icon}>{t(kind.title)}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t(kind.subtitle)}</p>
         </div>
       </div>

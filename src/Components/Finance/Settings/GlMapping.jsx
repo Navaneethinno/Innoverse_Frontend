@@ -392,7 +392,7 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
       <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToMapping")}
       </BackButton>
-      <PageTitle>{t(setup ? "editMapping" : "setUpMapping")}</PageTitle>
+      <PageTitle own>{t(setup ? "editMapping" : "setUpMapping")}</PageTitle>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">{t("editMappingHint")}</p>
       <Section title={t("fallbackGl")} className="mb-4">
         <FilterSelect value={fallback} onChange={setFallback} options={[{ value: "", label: t("noFallback") }, ...glOptions]} />

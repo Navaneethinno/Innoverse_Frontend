@@ -35,6 +35,7 @@ import { FilterGroup } from "./FilterBuilder";
 import { MyReports, SaveTemplateDialog } from "./Templates";
 import { RunResults, optionLabelsOf, runExporter } from "./RunResults";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const aggKey = (a) => (a.field ? `${a.fn}:${a.field}` : a.fn);
 
@@ -200,9 +201,7 @@ export function ReportBuilder() {
     <div className="pb-8 pt-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Blocks size={22} className="text-primary" /> {t("title_builder")}
-          </h1>
+          <PageTitle icon={Blocks}>{t("title_builder")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle_builder")}</p>
         </div>
         <div className="flex flex-wrap gap-2">

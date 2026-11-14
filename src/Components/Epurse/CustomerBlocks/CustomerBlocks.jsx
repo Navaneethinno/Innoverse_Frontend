@@ -291,7 +291,7 @@ function Dormant() {
   };
   return (
     <>
-      <PageTitle>{t("dormantTitle")}</PageTitle>
+      <PageTitle own>{t("dormantTitle")}</PageTitle>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">{t("dormantSubtitle")}</p>
       <PagedTable
         paged={paged}

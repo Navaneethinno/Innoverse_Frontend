@@ -19,6 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cardsHandedTo } from "@/Utils/Lib/flourish";
 import { Problems } from "../InnoCBS/Deposits/depositShared";
 import { CardFace, CardNumber, CardPill, HolderPicker, Labelled, WithCard } from "./cardOpsShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const VAULT = "VAULT";
 
@@ -82,9 +83,7 @@ export function CardStock() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Package size={22} className="text-primary" /> {t("stockTitle")}
-          </h1>
+          <PageTitle icon={Package}>{t("stockTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("stockSubtitle")}</p>
         </div>
         <div className="flex gap-2">

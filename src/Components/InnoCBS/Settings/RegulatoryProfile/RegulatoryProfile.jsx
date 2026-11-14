@@ -14,6 +14,7 @@ import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labe
 import { Field, MiniTable, RowsEditor, useInstitutionScope, Tabs } from "../../Loans/loanShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { ApprovalLimits } from "./ApprovalLimits";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const BOOLS = ["regulatory_reporting_enabled", "credit_bureau_check_required", "standing_instruction_recovery_enabled"];
 
@@ -110,9 +111,7 @@ export function RegulatoryProfile() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Scale size={22} className="text-primary" /> {t("profileTitle")}
-          </h1>
+          <PageTitle icon={Scale}>{t("profileTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("profileSubtitle")}</p>
         </div>
         {data && !form && (

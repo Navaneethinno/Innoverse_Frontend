@@ -22,6 +22,7 @@ import { cn } from "@/Utils/Lib/utils";
 
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", merchant_pay_from: "", segment_code: "", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
@@ -77,9 +78,7 @@ export function FeeSchedules() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Receipt size={22} className="text-primary" /> {t("title")}
-          </h1>
+          <PageTitle icon={Receipt}>{t("title")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>

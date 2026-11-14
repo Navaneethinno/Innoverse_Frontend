@@ -43,6 +43,7 @@ import { PortfolioQuality } from "./PortfolioQuality";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
 import { DeceasedBanner, DeceasedDialog, PayoutDialog, RecoveryAfterDeath, Repricing, Tranches } from "./FacilityExtras";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const SOURCES = ["WALLET", "CASH"];
 // A repayment can also be taken at an open teller till.
@@ -213,9 +214,7 @@ export function LoanFacilities() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Landmark size={22} className="text-primary" /> {t("facilitiesTitle")}
-          </h1>
+          <PageTitle icon={Landmark}>{t("facilitiesTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("facilitiesSubtitle")}</p>
         </div>
       </div>

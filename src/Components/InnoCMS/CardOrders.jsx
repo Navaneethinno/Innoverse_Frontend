@@ -26,6 +26,7 @@ import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from ".
 import { MiniTable } from "../InnoCBS/Loans/loanShared";
 import { CardNumber, CardPill, Labelled, cardWord } from "./cardOpsShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 
 // The emboss file holds full card numbers and CVVs: it goes straight from
@@ -101,9 +102,7 @@ export function CardOrders({ receiving = false }) {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <PackageCheck size={22} className="text-primary" /> {t(titleKey)}
-          </h1>
+          <PageTitle icon={PackageCheck}>{t(titleKey)}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t(receiving ? "receiveSubtitle" : "ordersSubtitle")}</p>
         </div>
         <div className="flex gap-2">

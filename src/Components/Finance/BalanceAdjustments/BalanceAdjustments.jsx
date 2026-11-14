@@ -26,6 +26,7 @@ import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Dep
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { useLatest } from "@/Hooks/useLatest";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // EPURSE > Balance Adjustments (menu 182): credit / debit corrections of a
 // transaction that happened, found by its RRN (or opened from a dispute).
@@ -122,9 +123,7 @@ export function BalanceAdjustments() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3" data-tour="page-title">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Scale size={22} className="text-primary" /> {t("adjTitle")}
-          </h1>
+          <PageTitle icon={Scale}>{t("adjTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("adjSubtitle")}</p>
         </div>
       </div>

@@ -8,8 +8,6 @@ import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
 import { useApiMutation } from "@/Hooks/useApiMutation";
 import { institutionMenuApi } from "@/Services/Institution/institutionMenu.api";
-import { masterApi } from "@/Services/Master/master.api";
-import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { cn } from "@/Utils/Lib/cn";
@@ -20,10 +18,8 @@ import { cn } from "@/Utils/Lib/cn";
 // rejected by another user. Buttons follow the record's `actions`.
 const first = (r) => (Array.isArray(r?.data) ? r.data[0] : r?.data) ?? null;
 const idsOf = (menus) => menus.flatMap((m) => [m.id, ...idsOf(m.children ?? [])]);
-// /institution/menu/options names are English only: shown with the
-// backend's labels in the user's language (/master/menu, /master/module),
-// matched by id.
-const relabel = (menus, labels) => menus.map((m) => ({ ...m, name: labels.get(Number(m.id)) || m.name, children: relabel(m.children ?? [], labels) }));
+// Each module and menu carries `label`, its name in the user's language.
+const relabel = (menus) => menus.map((m) => ({ ...m, name: m.label || m.name, children: relabel(m.children ?? []) }));
 const sameSet = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
 
 function filterTree(menus, q) {
@@ -85,15 +81,8 @@ export function InstitutionMenus({ institutions = [] }) {
     setState({ loading: true, error: null });
     try {
       const body = { inst_profile_id: Number(instId) };
-      const [options, current, menus, modules] = await Promise.all([
-        institutionMenuApi.options(body),
-        institutionMenuApi.get(body),
-        masterApi.menuList().catch(() => []),
-        masterApi.moduleList().catch(() => []),
-      ]);
-      const menuNames = new Map(menus.map((m) => [Number(m.id ?? m.menu_id), menuLabel(m)]));
-      const moduleNames = new Map(modules.map((m) => [Number(m.module_id ?? m.id), moduleLabel(m)]));
-      setTree((Array.isArray(options?.data) ? options.data : []).map((m) => ({ ...m, name: moduleNames.get(Number(m.id)) || m.name, menus: relabel(m.menus ?? [], menuNames) })));
+      const [options, current] = await Promise.all([institutionMenuApi.options(body), institutionMenuApi.get(body)]);
+      setTree((Array.isArray(options?.data) ? options.data : []).map((m) => ({ ...m, name: m.label || m.name, menus: relabel(m.menus ?? []) })));
       apply(first(current));
       setState({ loading: false, error: null });
     } catch (error) {

@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -82,9 +83,7 @@ export function LoanProducts() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <HandCoins size={22} className="text-primary" /> {t("productsTitle")}
-          </h1>
+          <PageTitle icon={HandCoins}>{t("productsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle")}</p>
         </div>
       </div>

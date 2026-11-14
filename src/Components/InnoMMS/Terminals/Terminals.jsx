@@ -24,6 +24,7 @@ import { useLatest } from "@/Hooks/useLatest";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { CloseBatchDialog } from "../Ops/TerminalBatches";
 import { errorText } from "../Ops/opsShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // "POS terminal · PAX A920" (no make or model: just the type).
 const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
@@ -112,9 +113,7 @@ export function Terminals() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Smartphone size={22} className="text-primary" /> {t("terminalsTitle")}
-          </h1>
+          <PageTitle icon={Smartphone}>{t("terminalsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("terminalsSubtitle")}</p>
         </div>
       </div>

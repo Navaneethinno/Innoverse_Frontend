@@ -16,6 +16,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { NarrationDialog } from "../InnoCBS/Deposits/depositShared";
 import { CardPill, cardWord } from "./cardOpsShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // The PRE file holds full card numbers and CVVs: it goes from the reply
 // straight to a file on the user's machine; the server never keeps it.
@@ -114,9 +115,7 @@ export function PreFiles() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <FileStack size={22} className="text-primary" /> {t("preFilesTitle")}
-          </h1>
+          <PageTitle icon={FileStack}>{t("preFilesTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("preFilesSubtitle")}</p>
         </div>
         <div className="flex items-center gap-2">

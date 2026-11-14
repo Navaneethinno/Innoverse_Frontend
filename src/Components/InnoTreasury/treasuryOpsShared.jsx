@@ -6,6 +6,7 @@ import { Status, isPending, itemsOf } from "@/Components/InnoCBS/OpsList";
 import { calls } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { T } from "./treasuryShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 export const rateApi = calls(`${T}/rate`, ["list", "add"]);
 
@@ -60,7 +61,7 @@ export const warnCell = (v, bad) => <span className={`text-xs ${bad ? "font-bold
 
 export const pageHead = (L, title, sub) => (
   <>
-    <h1 className="text-2xl font-black">{L(title)}</h1>
+    <PageTitle>{L(title)}</PageTitle>
     <p className="mt-1 mb-3 text-sm text-muted-foreground">{L(sub)}</p>
   </>
 );

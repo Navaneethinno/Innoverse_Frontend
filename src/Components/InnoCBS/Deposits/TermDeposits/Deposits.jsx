@@ -17,6 +17,7 @@ import { dayDate, ratePct } from "../depositShared";
 import { DepositView } from "./DepositView";
 import { OpenDeposit } from "./OpenDeposit";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // The deposit table, shared by the Deposits screen and a customer's detail.
 function depositColumns(t, can, onOpen, compact) {
@@ -91,9 +92,7 @@ export function Deposits() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Landmark size={22} className="text-primary" /> {t("depositsTitle")}
-          </h1>
+          <PageTitle icon={Landmark}>{t("depositsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("depositsSubtitle")}</p>
         </div>
       </div>

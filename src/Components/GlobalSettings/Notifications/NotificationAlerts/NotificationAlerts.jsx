@@ -54,7 +54,7 @@ export function NotificationAlerts() {
         {view === "outbox" ? (
           <>
             <div className="mb-3">
-              <PageTitle>{t("outbox")}</PageTitle>
+              <PageTitle own>{t("outbox")}</PageTitle>
               <p className="mt-1 text-sm text-muted-foreground">{t("outboxSubtitle")}</p>
             </div>
             <NotificationOutbox alertId={alertId} onAlertChange={(id) => show("outbox", id)} />

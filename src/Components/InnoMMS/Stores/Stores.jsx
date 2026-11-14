@@ -17,6 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog } from "../../InnoCBS/Deposits/depositShared";
 import { MiniTable } from "../../InnoCBS/Loans/loanShared";
 import { MmsStatus, mmsDate, partyRef } from "../mmsShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 
 // MMS › Stores (menu 208): merchants add stores in their portal; the bank
@@ -26,9 +27,7 @@ export function Stores() {
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Store size={22} className="text-primary" /> {t("storesTitle")}
-        </h1>
+        <PageTitle icon={Store}>{t("storesTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("storesSubtitle")}</p>
       </div>
       <StoreList />

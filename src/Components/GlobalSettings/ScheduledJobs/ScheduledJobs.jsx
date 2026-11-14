@@ -17,6 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { dayDate, inputClass } from "../../InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // GLOBAL SETTINGS > Scheduled Jobs (menu 183): the platform's daily jobs
 // (deposit interest at 00:30, maturity at 00:45 by default), for every
@@ -68,9 +69,7 @@ export function ScheduledJobs() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Clock3 size={22} className="text-primary" /> {t("jobsTitle")}
-          </h1>
+          <PageTitle icon={Clock3}>{t("jobsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("jobsSubtitle")}</p>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>

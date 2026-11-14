@@ -21,6 +21,7 @@ import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
 
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
@@ -163,9 +164,7 @@ export function ExtProviders() {
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Smartphone size={22} className="text-primary" /> {t("title")}
-          </h1>
+          <PageTitle icon={Smartphone}>{t("title")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>

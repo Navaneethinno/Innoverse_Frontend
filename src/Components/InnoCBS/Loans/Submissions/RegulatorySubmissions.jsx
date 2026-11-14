@@ -18,6 +18,7 @@ import { Facts, Section, dayDate, ratePct } from "../../Deposits/depositShared";
 import { FormDialog } from "../loanDialogs";
 import { MiniTable, Tabs, loanLabel, useInstitutionScope } from "../loanShared";
 import { BureauFiles } from "./BureauFiles";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 const REPORT_TYPES = ["LOAN_BOOK", "CREDIT_REGISTRY"];
 const RECORD_COLUMNS = [
@@ -190,9 +191,7 @@ export function RegulatorySubmissions() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <FileBarChart size={22} className="text-primary" /> {t("submissionsTitle")}
-          </h1>
+          <PageTitle icon={FileBarChart}>{t("submissionsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("submissionsSubtitle")}</p>
         </div>
       </div>

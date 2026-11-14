@@ -16,6 +16,7 @@ import { ExportButtons, glassCard } from "../Shared/reportShared";
 import { allComplete, isGroup, newGroup, strip, withRequired } from "./builderShared";
 import { FilterGroup } from "./FilterBuilder";
 import { RunResults, optionLabelsOf, runExporter } from "./RunResults";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // REPORTS > Saved Reports (menu 212): every saved report the user may open
 // (their own and those shared with them). Opening one runs it; a filter
@@ -50,9 +51,7 @@ export function SavedReports() {
   return (
     <div className="pb-8 pt-4">
       <div className="mb-4">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <FolderOpen size={22} className="text-primary" /> {t("title_saved")}
-        </h1>
+        <PageTitle icon={FolderOpen}>{t("title_saved")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle_saved")}</p>
       </div>
       <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("title_saved")} emptyTitle={t(list.toolbar.search ? "noSavedMatch" : "noSavedShared")} />

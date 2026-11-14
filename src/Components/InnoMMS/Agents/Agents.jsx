@@ -20,6 +20,7 @@ import { Field, MiniTable, Tabs } from "../../InnoCBS/Loans/loanShared";
 import { MerchantStores } from "../Stores/Stores";
 import { MmsStatus, RoleBadge, pageOf, partyKey, partyRef } from "../mmsShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // The list tabs: party type and tier filters, then the checker's queue.
 // The agents (tier and status from the list's own filters), and the role
@@ -34,9 +35,7 @@ export function Agents() {
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Network size={22} className="text-primary" /> {t("agentsTitle")}
-        </h1>
+        <PageTitle icon={Network}>{t("agentsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("agentsSubtitle")}</p>
       </div>
       <Tabs

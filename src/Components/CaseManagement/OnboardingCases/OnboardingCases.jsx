@@ -14,6 +14,7 @@ import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, 
 import { CaseView } from "./CaseView";
 import { CaseSettings } from "./CaseSettings";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // What differs between the case queues (Onboarding Cases, AML Cases).
 // Optional: `columns(t)` added after the subject, `HeaderAction` beside the
@@ -169,9 +170,7 @@ export function CaseQueue({ config }) {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Briefcase size={22} className="text-primary" /> {t(config.titleKey)}
-          </h1>
+          <PageTitle icon={Briefcase}>{t(config.titleKey)}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t(config.subtitleKey)}</p>
         </div>
         <div className="flex gap-2">

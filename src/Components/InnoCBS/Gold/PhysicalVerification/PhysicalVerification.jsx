@@ -5,6 +5,7 @@ import { labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { RowsInput, cell, dateCell, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { OpsList, Status } from "@/Components/InnoCBS/OpsList";
 import { exceptionApi, lockerApi, useActive, useGoldOptions, verificationApi } from "@/Components/InnoCBS/Gold/goldShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // ---------- Physical verification ----------
 
@@ -15,7 +16,7 @@ export function PhysicalVerification() {
   const [tab, setTab] = useState("verifications");
   return (
     <div className="pt-1">
-      <h1 className="text-2xl font-black">{L("physicalVerification")}</h1>
+      <PageTitle>{L("physicalVerification")}</PageTitle>
       <p className="mt-1 mb-3 text-sm text-muted-foreground">{L("Count the packets in a locker; missing, unexpected or broken packets become custody exceptions.")}</p>
       <SegmentedSwitch className="mb-3" value={tab} onChange={setTab} options={[{ value: "verifications", label: L("Verifications") }, { value: "exceptions", label: L("Custody exceptions") }]} />
       {tab === "verifications" ? (

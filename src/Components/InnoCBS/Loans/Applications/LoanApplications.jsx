@@ -24,6 +24,7 @@ import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanD
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
 import { CoBorrowers, Documents, ForwardDialog, ForwardHistory, useParts } from "./ApplicationParts";
+import { PageTitle } from "@/Components/Common/PageTitle";
 
 // LOANS > Loan Applications (menu 186): staff apply for a borrower, record
 // the offer's acceptance, credit checks and collateral, and approve. An
@@ -133,9 +134,7 @@ export function LoanApplications() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <FileSignature size={22} className="text-primary" /> {t("applicationsTitle")}
-          </h1>
+          <PageTitle icon={FileSignature}>{t("applicationsTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("applicationsSubtitle")}</p>
         </div>
       </div>

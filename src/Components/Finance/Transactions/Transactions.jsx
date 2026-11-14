@@ -29,6 +29,7 @@ import { NewRequest } from "./NewRequest";
 import { PlanCard, ReceiptDialog, TotalCell, typeLabel, useTxnStatusNames } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
+import { PageTitle } from "@/Components/Common/PageTitle";
 const clean = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => String(v ?? "").trim() !== "").map(([k, v]) => [k, String(v).trim()]));
 
 // EPURSE > Transactions (menu 189): the journal of every money movement
@@ -57,9 +58,7 @@ export function Transactions() {
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <ArrowLeftRight size={22} className="text-primary" /> {t("title")}
-          </h1>
+          <PageTitle icon={ArrowLeftRight}>{t("title")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
@@ -249,7 +248,8 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             {t("openRequest", { ref: x.source.reference })}
           </Button>
         )}
-        {x.source && x.source.module !== "TXN_REQUEST" && <p className="text-xs text-muted-foreground">{t("openSourceIn", { ref: x.source.reference ?? x.source.id, menu: x.source.menu_label ?? x.source.menu_name ?? x.source.module })}</p>}
+        {/* A source with no screen (menu_id 0, e.g. DEPOSIT_CHARGE) names none. */}
+        {x.source && x.source.module !== "TXN_REQUEST" && Number(x.source.menu_id) > 0 && <p className="text-xs text-muted-foreground">{t("openSourceIn", { ref: x.source.reference ?? x.source.id, menu: x.source.menu_label || x.source.menu_name || x.source.module })}</p>}
 
         <Section title={t("legs")}>
           <MiniTable
