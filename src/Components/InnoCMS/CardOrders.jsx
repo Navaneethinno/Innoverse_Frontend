@@ -13,6 +13,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { useScrollPages } from "@/Hooks/useScrollPages";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useServerList } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
@@ -403,7 +404,9 @@ function OrderView({ id, onBack }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
   const [order, setOrder] = useState(null);
-  const [cards, setCards] = useState([]);
+  // The order's cards, a page at a time as the list is scrolled.
+  const cardPages = useScrollPages(cardsApi.list, { card_order_id: id }, { enabled: Boolean(order?.card_count) });
+  const cards = cardPages.items ?? [];
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -411,10 +414,12 @@ function OrderView({ id, onBack }) {
     try {
       const o = rowsOf(await cardOrdersApi.get({ id }))[0] ?? null;
       setOrder(o);
-      setCards(o?.card_count ? (listPage(await cardsApi.list({ card_order_id: id, page: 1, limit: 500 })).items) : []);
+      if (o?.card_count) await cardPages.reload();
     } catch (error) {
       notifications.error(error.message);
     }
+    // cardPages.reload follows the order id; listing it would reload in a loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
   useEffect(() => {
     void reload();
@@ -443,7 +448,11 @@ function OrderView({ id, onBack }) {
   }
 
   const a = order.actions ?? {};
-  const ask = (key) => () => setDialog(key);
+  // Recording a receipt ticks among every card, so the rest load first.
+  const ask = (key) => async () => {
+    if (key === "receive") await cardPages.all().catch((e) => notifications.error(e.message));
+    setDialog(key);
+  };
   const buttons = [
     a.cancel && can("Add") && { key: "cancel", label: t("withdrawOrder"), icon: Ban, run: ask("cancel") },
     a.deauth && can("Authorize") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: ask("deauth") },
@@ -513,7 +522,8 @@ function OrderView({ id, onBack }) {
         </Section>
       </div>
 
-      <Section title={t("orderCards", { count: cards.length })}>
+      <Section title={t("orderCards", { count: cardPages.total || cards.length })}>
+        <div className="max-h-[28rem] overflow-y-auto" onScroll={cardPages.onScroll}>
         <MiniTable
           rows={cards}
           empty={t("noCardsYet")}
@@ -525,6 +535,7 @@ function OrderView({ id, onBack }) {
             { key: "ops_status", label: t("opsStatus"), render: (c) => <CardPill prefix="ops" code={c.ops_status} /> },
           ]}
         />
+        </div>
       </Section>
 
       {narrated && <NarrationDialog title={narrated[0]} hint={narrated[1]} confirmLabel={narrated[2]} variant={narrated[3]} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(() => narrated[4](narration ? { narration } : {}))} />}

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useScrollPages } from "@/Hooks/useScrollPages";
 import { useTranslation } from "react-i18next";
 import { LockKeyhole, Unlock } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -27,21 +28,13 @@ const REASONS = ["COURT_ORDER", "OTHER"];
 export function AccountLiens({ account, onChanged }) {
   const { t } = useTranslation("accounts");
   const can = usePagePermission();
-  const [liens, setLiens] = useState(null);
+  // A page at a time as the list is scrolled, in the server's order (active first).
+  const lienPages = useScrollPages(accountLiensApi.list, { acct_id: account.id }, { sort: null });
+  const liens = lienPages.items;
   const [dialog, setDialog] = useState(null);
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("COURT_ORDER");
-  const load = useCallback(
-    () =>
-      accountLiensApi
-        .list({ acct_id: account.id, limit: 200 })
-        .then((r) => setLiens(Array.isArray(r?.data) ? r.data : []))
-        .catch((e) => (setLiens([]), notifications.error(e.message))),
-    [account.id],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const load = useCallback(() => lienPages.reload().catch((e) => notifications.error(e.message)), [lienPages]);
   const held = Number(account.lien_total ?? 0);
   const free = account.free_balance;
   const run = async (verb, body) => {
@@ -77,6 +70,7 @@ export function AccountLiens({ account, onChanged }) {
           ]}
         />
       )}
+      <div className="max-h-96 overflow-y-auto" onScroll={lienPages.onScroll}>
       <MiniTable
         rows={liens ?? []}
         empty={liens ? t("noLiens") : "…"}
@@ -151,6 +145,7 @@ export function AccountLiens({ account, onChanged }) {
           },
         ]}
       />
+      </div>
       {dialog?.kind === "add" && (
         <NarrationDialog
           title={t("placeLien")}
