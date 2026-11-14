@@ -54,9 +54,12 @@ const KYC = API_ENDPOINTS.USER_MANAGEMENT.KYC;
 const PASSWORD_POLICY = API_ENDPOINTS.USER_MANAGEMENT.PASSWORD_POLICY;
 
 function userPayload(payload = {}) {
-  const { user_name, user_pwd, inst_id, password_policy_id, ...rest } = payload;
+  const { user_name, user_pwd, inst_id, password_policy_id, user_fname, user_lname, ...rest } = payload;
   return {
     ...rest,
+    // The server stores and returns the names as first_name / last_name.
+    ...(payload.first_name == null && user_fname != null ? { first_name: user_fname } : {}),
+    ...(payload.last_name == null && user_lname != null ? { last_name: user_lname } : {}),
     ...(payload.username == null && user_name != null ? { username: user_name } : {}),
     ...(payload.password_hash == null && user_pwd != null ? { password_hash: user_pwd } : {}),
     ...(payload.inst_profile_id == null && inst_id != null ? { inst_profile_id: inst_id } : {}),

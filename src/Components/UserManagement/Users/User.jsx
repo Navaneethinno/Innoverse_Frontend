@@ -117,6 +117,19 @@ export function User() {
     setShowForm(true);
     const id = Number(userId(user));
     if (!Number.isInteger(id)) return;
+    // The user's saved details (names, email, mobile...) come from
+    // /config/user/get; the list row carries only a few of them.
+    try {
+      const response = await usersApi.get({ user_id: id });
+      const data = response?.data?.data ?? response?.data;
+      const record = (Array.isArray(data) ? data[0] : data) ?? {};
+      setForm((current) => ({
+        ...current,
+        ...Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(record, key) || current[key]])),
+      }));
+    } catch (error) {
+      notifications.error(error instanceof Error ? error.message : "Failed to load the user");
+    }
     try {
       const response = await usersApi.getKyc({ user_id: id });
       // data is a list ([kyc]); its first row is the user's KYC.
@@ -192,6 +205,14 @@ export function User() {
           inst_id: institutionId,
           profile_id: profileId,
           pwd_policy: numericId(form.password_policy_id) ?? undefined,
+          // The user's own details go with the edit too.
+          user_fname: form.user_fname,
+          user_lname: form.user_lname,
+          employee_id: form.employee_id,
+          email: form.email,
+          mobile: form.mobile,
+          gender: form.gender,
+          address: form.address,
           is_draft: draft,
           expected_updated_time: editing.updated_time,
         });
