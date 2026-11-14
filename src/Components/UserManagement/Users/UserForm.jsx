@@ -149,9 +149,11 @@ export function UserForm({
   const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
   const policyRequirements = checkPasswordRequirements("", selectedPolicy);
   const [genders, setGenders] = useState([]);
+  // Genders come from the backend (/master/gender), for the dropdown and the view.
   useEffect(() => {
-    if (readOnly) masterApi.genderList().then(setGenders).catch(() => setGenders([]));
-  }, [readOnly]);
+    masterApi.genderList().then(setGenders).catch(() => setGenders([]));
+  }, []);
+  const genderCode = (g) => g.code ?? g.gender_code ?? g.id;
 
   if (readOnly) {
     const nameOf = (key, value) => {
@@ -216,6 +218,18 @@ export function UserForm({
                         : option.profile_name ?? option.name ?? id;
                     return { value: id, label };
                   }),
+                ]}
+              />
+            ) : key === "gender" ? (
+              <FilterSelect
+                className="w-full"
+                value={form.gender}
+                onChange={(next) => setForm({ ...form, gender: next })}
+                options={[
+                  { value: "", label: t("selectGender") },
+                  ...genders.map((g) => ({ value: String(genderCode(g)), label: g.name ?? g.gender_name ?? String(genderCode(g)) })),
+                  // A saved value the list no longer has still shows.
+                  ...(form.gender && !genders.some((g) => String(genderCode(g)) === String(form.gender)) ? [{ value: String(form.gender), label: String(form.gender) }] : []),
                 ]}
               />
             ) : (

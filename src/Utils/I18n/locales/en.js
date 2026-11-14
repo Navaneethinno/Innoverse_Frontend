@@ -506,6 +506,7 @@ export const users = {
   noPoliciesAvailable: "No policies available",
   noSpecificRequirements: "No specific requirements",
   selectInstitution: "Select institution",
+  selectGender: "Select gender",
   selectProfile: "Select profile",
   showPassword: "Show password",
   hidePassword: "Hide password",

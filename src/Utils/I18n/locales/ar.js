@@ -3246,6 +3246,7 @@ export const users = {
   noPoliciesAvailable: "لا توجد سياسات متاحة",
   noSpecificRequirements: "لا توجد متطلبات محددة",
   selectInstitution: "اختر المؤسسة",
+  selectGender: "اختر الجنس",
   selectProfile: "اختر ملف الصلاحيات",
   showPassword: "إظهار كلمة المرور",
   hidePassword: "إخفاء كلمة المرور",
