@@ -57,3 +57,39 @@ export function apiLanguageHeader() {
   }
   return lang ? { "x-api-lang": lang } : {};
 }
+
+// Set at sign-in when the portal switches to a language other than the one
+// the sign-in call was made in: the menu labels it returned are in the old
+// language. The sidebar fetches them again and then clears the mark.
+const STALE_KEY = "menuLabelsStale";
+export function markStaleMenuLabels() {
+  try {
+    window.sessionStorage.setItem(STALE_KEY, "1");
+  } catch {
+    // no storage: the labels follow at the next language change
+  }
+}
+export function staleMenuLabels() {
+  try {
+    return window.sessionStorage.getItem(STALE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+// Cleared only once the labels came back, so a reload before then retries.
+export function clearStaleMenuLabels() {
+  try {
+    window.sessionStorage.removeItem(STALE_KEY);
+  } catch {
+    // nothing stored
+  }
+}
+
+// The language a call is sent in right now (null = none, the server's default).
+export function sentApiLanguage() {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}

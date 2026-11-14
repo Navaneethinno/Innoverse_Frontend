@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { masterApi } from "@/Services/Master/master.api";
 import { setMasterModules, setMenuArray } from "@/Redux/MenuSlice";
 import store from "@/Redux/Store";
-import { onApiLanguageChange } from "@/Utils/Lib/apiLanguage";
+import { onApiLanguageChange, staleMenuLabels, clearStaleMenuLabels } from "@/Utils/Lib/apiLanguage";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 
@@ -46,8 +46,7 @@ export function useMasterModules() {
   // language fetches them again (the menus keep their names and grants).
   useEffect(() => {
     if (!token) return undefined;
-    return onApiLanguageChange(async () => {
-      void fetchModules();
+    const refreshLabels = async () => {
       try {
         const labels = new Map((await masterApi.menuList()).map((m) => [Number(m.id ?? m.menu_id), m]));
         const menus = store.getState().menu.menuArray ?? [];
@@ -59,9 +58,17 @@ export function useMasterModules() {
             }),
           ),
         );
+        clearStaleMenuLabels();
       } catch {
         // The labels stay in the previous language until the next sign-in.
       }
+    };
+    // Sign-in switched the language after the menus came back in another
+    // one (useAuth sets the mark): fetch their labels again, once.
+    if (staleMenuLabels()) void refreshLabels();
+    return onApiLanguageChange(() => {
+      void fetchModules();
+      void refreshLabels();
     });
   }, [token, fetchModules, dispatch]);
 

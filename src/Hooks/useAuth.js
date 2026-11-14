@@ -8,7 +8,7 @@ import { clearAuthSession, persistAuthSession } from "@/Services/api/authStorage
 import { clearToken, setSession } from "@/Redux/AuthToken";
 import { setMenuArray, clearMenuState } from "@/Redux/MenuSlice";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
-import { setApiLanguage } from "@/Utils/Lib/apiLanguage";
+import { markStaleMenuLabels, sentApiLanguage, setApiLanguage } from "@/Utils/Lib/apiLanguage";
 import { i18n } from "@/Utils/I18n/i18n";
 export function useAuth(selector) {
   const dispatch = useDispatch();
@@ -18,6 +18,8 @@ export function useAuth(selector) {
   // asked a code. A reply asking one returns { mfa } instead of a session.
   const login = async ({ institutionCode, username, password, code }) => {
     try {
+      // The language the sign-in call goes out in (its menu labels come in it).
+      const sentIn = sentApiLanguage();
       const response = await loginRequest(institutionCode, username, password, code);
       if (response.mfa) return { success: false, mfa: response.mfa, message: response.message };
       // The institution code signed in with, kept on the user (the reply
@@ -38,6 +40,7 @@ export function useAuth(selector) {
       // while the institution offers it, else the institution's default.
       const use = response.language?.use;
       if (use) {
+        if (use !== sentIn) markStaleMenuLabels();
         setApiLanguage(use);
         void i18n.changeLanguage(use);
       }
