@@ -1,10 +1,11 @@
 import { jsonRequest } from "@/Services/api/jsonRequest";
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { reloadingExpiry } from "@/Services/Expiry/expiry.api";
 
 const ENDPOINTS = API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE;
 
 
-export const institutionModuleApi = {
+export const institutionModuleApi = reloadingExpiry({
   add: (payload) => jsonRequest(ENDPOINTS.ADD, payload),
   submit: (payload) => jsonRequest(ENDPOINTS.SUBMIT, payload),
   edit: (payload) => jsonRequest(ENDPOINTS.EDIT, payload),
@@ -18,4 +19,4 @@ export const institutionModuleApi = {
   getActive: (payload = { view: "dropdown" }) => jsonRequest(ENDPOINTS.GET_ACTIVE, payload),
   audit: (payload) => jsonRequest(ENDPOINTS.AUDIT, payload),
   pending: (payload) => jsonRequest(ENDPOINTS.PENDING, payload),
-};
+});

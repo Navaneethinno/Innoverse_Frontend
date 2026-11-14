@@ -8,6 +8,7 @@ import { ArrowLeft, Check, Clock, History, Send, X } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Switch } from "@/Components/UI/switch";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { caseSettingsApi } from "@/Services/CaseManagement/onboardingCases.api";
@@ -39,6 +40,8 @@ const toForm = (s) => ({
   review_sla_hours: s?.review_sla_hours ?? 48,
   info_request_due_days: s?.info_request_due_days ?? 30,
   notify_customer: s?.notify_customer !== false,
+  // What happens to an onboarding when no AML or risk assesses it.
+  unassessed_outcome: s?.unassessed_outcome ?? "REVIEW",
   templates: s?.templates ?? {},
 });
 
@@ -101,7 +104,7 @@ export function CaseSettings({ onBack }) {
   const propose = () => {
     const now = toForm(data.settings);
     const body = { narration: narration.trim() };
-    for (const key of ["auto_approve_enabled", "review_sla_hours", "info_request_due_days", "notify_customer"]) {
+    for (const key of ["auto_approve_enabled", "review_sla_hours", "info_request_due_days", "notify_customer", "unassessed_outcome"]) {
       const value = key.endsWith("hours") || key.endsWith("days") ? Number(form[key]) : form[key];
       if (value !== now[key]) body[key] = value;
     }
@@ -112,6 +115,10 @@ export function CaseSettings({ onBack }) {
 
   const setPart = (part, value) => setForm((f) => ({ ...f, templates: { ...f.templates, [event]: { ...(f.templates?.[event] ?? {}), [part]: value } } }));
   const ownPending = pending && String(pending.proposed_by?.id) === String(me?.id);
+  // Used only where nothing assesses: AML and both risks present = never used.
+  const assessed = data?.assessed ?? {};
+  const allAssessed = Boolean(assessed.aml && assessed.customer_risk && assessed.merchant_risk);
+  const outcomeShown = pending?.settings?.unassessed_outcome ?? form?.unassessed_outcome;
 
   return (
     <div className="pb-8 pt-4">
@@ -145,6 +152,23 @@ export function CaseSettings({ onBack }) {
             <div className="grid gap-4 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2">
               <Toggle label={t("autoApprove")} hint={t("autoApproveHint")} checked={form.auto_approve_enabled} disabled={!editable} onChange={(v) => setForm({ ...form, auto_approve_enabled: v })} />
               <Toggle label={t("notifyCustomer")} hint={t("notifyCustomerHint")} checked={form.notify_customer} disabled={!editable} onChange={(v) => setForm({ ...form, notify_customer: v })} />
+              <div className={cn(labelClass, "sm:col-span-2")}>
+                {t("unassessedOutcome")}
+                <FilterSelect
+                  className="mt-1.5"
+                  value={outcomeShown}
+                  disabled={!editable || allAssessed}
+                  disabledReason={allAssessed ? t("unassessedNotUsed") : pending ? t("unassessedPending") : t("common:blockedNoRight", { defaultValue: "Your role cannot change this." })}
+                  onChange={(v) => setForm({ ...form, unassessed_outcome: v })}
+                  options={[
+                    { value: "APPROVE", label: t("unassessed_APPROVE") },
+                    { value: "REVIEW", label: t("unassessed_REVIEW") },
+                  ]}
+                />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                  {allAssessed ? t("unassessedNotUsed") : pending?.settings?.unassessed_outcome ? t("unassessedPending") : t("unassessedHint")}
+                </span>
+              </div>
               <label className={labelClass}>
                 {t("reviewSlaHours")}
                 <input type="number" min={1} max={8760} disabled={!editable} value={form.review_sla_hours} onChange={(e) => setForm({ ...form, review_sla_hours: e.target.value })} className={inputClass} />
@@ -237,9 +261,9 @@ function Toggle({ label, hint, checked, disabled, onChange }) {
 // What a pending change would change.
 function SettingsDiff({ from, to }) {
   const { t } = useTranslation("cases");
-  const rows = ["auto_approve_enabled", "review_sla_hours", "info_request_due_days", "notify_customer"].filter((k) => to && String(from?.[k]) !== String(to[k]));
+  const rows = ["auto_approve_enabled", "review_sla_hours", "info_request_due_days", "notify_customer", "unassessed_outcome"].filter((k) => to && k in to && String(from?.[k]) !== String(to[k]));
   const templatesChanged = to && JSON.stringify(cleanTemplates(from?.templates)) !== JSON.stringify(cleanTemplates(to.templates));
-  const show = (v) => (typeof v === "boolean" ? t(v ? "on" : "off") : String(v));
+  const show = (v) => (typeof v === "boolean" ? t(v ? "on" : "off") : ["APPROVE", "REVIEW"].includes(v) ? t(`unassessed_${v}`) : String(v ?? "—"));
   return (
     <ul className="mt-2 grid gap-1 text-xs text-amber-900">
       {rows.map((k) => (

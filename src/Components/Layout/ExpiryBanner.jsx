@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, CalendarClock, X } from "lucide-react";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { expiryNoticesApi } from "@/Services/Expiry/expiry.api";
+import { EXPIRY_RELOAD, expiryNoticesApi } from "@/Services/Expiry/expiry.api";
 import { recordOf } from "@/Services/Loans/loans.api";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -51,6 +51,10 @@ export function ExpiryBanner() {
   );
   useEffect(() => {
     void read();
+    // A module or licence save: read again at once.
+    const again = () => void read();
+    window.addEventListener(EXPIRY_RELOAD, again);
+    return () => window.removeEventListener(EXPIRY_RELOAD, again);
   }, [read]);
   useVisiblePoll(read, EVERY);
 

@@ -9,6 +9,8 @@ import {
   persistAuthSession,
   readAuthUser,
 } from "@/Services/api/authStorage";
+import { sentApiLanguage, setApiLanguage } from "@/Utils/Lib/apiLanguage";
+import { i18n } from "@/Utils/I18n/i18n";
 import { withInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 
 // Silent session renewal. Every request helper calls authFetch instead of
@@ -33,6 +35,14 @@ async function renew() {
     // The refresh carries the institution's current formats: replace them.
     const user = base && response.formats ? { ...base, formats: response.formats } : base;
     persistAuthSession(user, response.access_token, response.refresh_token);
+    // The language stays the user's own mid-session, unless the institution
+    // stopped offering it: then the reply's `use`.
+    const supported = response.language?.supported;
+    const current = sentApiLanguage();
+    if (Array.isArray(supported) && supported.length && current && !supported.includes(current) && response.language?.use) {
+      setApiLanguage(response.language.use);
+      void i18n.changeLanguage(response.language.use);
+    }
     store.dispatch(
       setSession({ token: response.access_token, refreshToken: response.refresh_token, user }),
     );

@@ -3148,6 +3148,14 @@ export const formBuilder = {
 };
 
 export const cases = {
+  unassessedOutcome: "When nothing assesses an onboarding",
+  unassessed_APPROVE: "Approve everyone",
+  unassessed_REVIEW: "Send everyone to review",
+  unassessedNotUsed: "Not used: AML and risk assess onboardings.",
+  unassessedPending: "A change to this waits for approval.",
+  unassessedHint: "Used for customers or merchants that no AML or risk assessment covers.",
+  setting_unassessed_outcome: "When nothing assesses an onboarding",
+  reason_NOT_ASSESSED: "Not assessed: no AML or risk for this institution.",
   reviewAmlMatches: "Review {{count}} open AML matches in Screenings",
   disputesTitle: "Disputes",
   noDisputesHint: "A dispute opens when a customer questions a transaction, or when you raise one with its RRN.",

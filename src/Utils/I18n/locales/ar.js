@@ -1982,6 +1982,14 @@ export const mms = {
 };
 
 export const cases = {
+  unassessedOutcome: "عندما لا يقيّم أي شيء طلب التسجيل",
+  unassessed_APPROVE: "الموافقة على الجميع",
+  unassessed_REVIEW: "إرسال الجميع للمراجعة",
+  unassessedNotUsed: "غير مستخدم: مكافحة غسل الأموال والمخاطر تقيّمان التسجيلات.",
+  unassessedPending: "تغيير على هذا بانتظار الموافقة.",
+  unassessedHint: "يُستخدم للعملاء أو التجار الذين لا يغطيهم أي تقييم لمكافحة غسل الأموال أو المخاطر.",
+  setting_unassessed_outcome: "عندما لا يقيّم أي شيء طلب التسجيل",
+  reason_NOT_ASSESSED: "غير مقيَّم: لا توجد مكافحة غسل أموال أو مخاطر لهذه المؤسسة.",
   reviewAmlMatches: "مراجعة {{count}} من مطابقات مكافحة غسل الأموال المفتوحة في الفحوصات",
   settings: "الإعدادات",
   tab_OVERDUE: "متأخرة",

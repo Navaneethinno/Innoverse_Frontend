@@ -26,3 +26,23 @@ export const expiringDocumentsApi = {
 // The signed-in user's own notices (modules, licence, password) and the
 // institution's document counts; any signed-in user, no menu needed.
 export const expiryNoticesApi = () => request(API_ENDPOINTS.EXPIRY_NOTICES, {});
+
+// A module subscription or licence save changes the expiry register at
+// once: the banner reads /expiry/notices again on this event.
+export const EXPIRY_RELOAD = "expiry:reload";
+export const reloadExpiryNotices = () => window.dispatchEvent(new Event(EXPIRY_RELOAD));
+// Wraps an API's write calls so each success reloads the banner.
+const WRITES = ["add", "submit", "auth", "deauth", "edit", "delete", "deleteAuth", "deactivate", "reactivate"];
+export const reloadingExpiry = (api) =>
+  Object.fromEntries(
+    Object.entries(api).map(([name, call]) => [
+      name,
+      WRITES.includes(name)
+        ? async (...args) => {
+            const result = await call(...args);
+            reloadExpiryNotices();
+            return result;
+          }
+        : call,
+    ]),
+  );

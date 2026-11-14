@@ -3061,6 +3061,14 @@ export const formBuilder = {
 };
 
 export const cases = {
+  unassessedOutcome: "Quando nada avalia uma integração",
+  unassessed_APPROVE: "Aprovar todos",
+  unassessed_REVIEW: "Enviar todos para revisão",
+  unassessedNotUsed: "Não usado: o AML e o risco avaliam as integrações.",
+  unassessedPending: "Uma alteração a isto aguarda aprovação.",
+  unassessedHint: "Usado para clientes ou comerciantes que nenhuma avaliação de AML ou risco cobre.",
+  setting_unassessed_outcome: "Quando nada avalia uma integração",
+  reason_NOT_ASSESSED: "Não avaliado: sem AML nem risco para esta instituição.",
   reviewAmlMatches: "Rever {{count}} correspondências AML abertas em Triagens",
   settings: "Configurações",
   tab_OVERDUE: "Atrasados",
