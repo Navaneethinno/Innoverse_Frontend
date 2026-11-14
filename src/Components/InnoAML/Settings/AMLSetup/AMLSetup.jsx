@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { amlSetupApi } from "@/Services/InnoAML/aml.api";
+import { NotSetUpNotice } from "@/Components/Common/NotSetUpNotice";
 import { LifecycleList } from "@/Components/Epurse/Settings/OnboardingConfiguration/LifecycleList";
 import { ViewItem } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { LevelBar, LevelChip } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
@@ -36,6 +37,7 @@ export function AMLSetup() {
 
   return (
     <>
+      <NotSetUpNotice feature="aml" />
       <LifecycleList
         title={t("aml:setupTitle")}
         subtitle={t("aml:setupSubtitle")}

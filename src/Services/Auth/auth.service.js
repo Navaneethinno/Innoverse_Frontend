@@ -58,6 +58,9 @@ function parseSessionResponse(payload, { flat = false } = {}) {
           // The institution's date and number formats (number_format: WESTERN,
           // INDIAN, EUROPEAN or SPACE; Utils/Lib/numberFormat.js).
           ...(data?.formats ? { formats: data.formats } : {}),
+          // What the institution has (units, onboarding_review, aml, risks,
+          // not_set_up); replaced on every refresh.
+          ...(data?.features ? { features: data.features } : {}),
           ...(sessionInfo?.user_id ? { session_user_id: sessionInfo.user_id } : {}),
           ...(data?.inactivity_timeout != null ? { inactivity_timeout: data.inactivity_timeout } : {}),
         }
@@ -65,6 +68,7 @@ function parseSessionResponse(payload, { flat = false } = {}) {
     branding,
     // The institution's date and number formats (login and refresh).
     formats: data?.formats ?? null,
+    features: data?.features ?? null,
     // Which language to open the portal in: { use, default, last_chosen,
     // supported } (login only).
     language: data?.language ?? null,

@@ -4,6 +4,8 @@ import cbsText from "./cbsText.pt";
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  notSetUpAml: "Ainda não configurado. As integrações não são triadas até isto estar configurado.",
+  notSetUpRisk: "Ainda não configurado. As integrações não são pontuadas até isto estar configurado.",
   shownOf: "A mostrar {{shown}} de {{total}}",
   "alreadyStarted": "Já foi iniciado. Aguarde a conclusão.",
   orDropHere: "ou largue-o aqui",
@@ -3061,6 +3063,12 @@ export const formBuilder = {
 };
 
 export const cases = {
+  noReviewOutcome: "Quando uma integração pede revisão",
+  noReviewOutcomeHint: "Não há fila de revisão (sem Casos de Integração), por isso isto decide. Uma que não pode ser aprovada é rejeitada na mesma.",
+  unassessed_REJECT: "Rejeitar",
+  setting_no_review_outcome: "Quando uma integração pede revisão",
+  reason_NO_REVIEW: "Sem fila de revisão: decidido pela definição da instituição.",
+  onboardingDecision: "Decisão de integração",
   unassessedOutcome: "Quando nada avalia uma integração",
   unassessed_APPROVE: "Aprovar todos",
   unassessed_REVIEW: "Enviar todos para revisão",

@@ -4,6 +4,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { outcomesForCode } from "./onboardingOutcome";
 import { useAuth } from "@/Hooks/useAuth";
+import { useFeatures } from "@/Hooks/useFeatures";
 import { riskActionApi } from "@/Services/Epurse/risk.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import {
@@ -20,6 +21,10 @@ import {
 export function RiskActionForm({ editing, onClose, onSaved }) {
   const { t } = useTranslation(["risk", "common"]);
   const myInstitution = useAuth((state) => state.user?.inst_profile_id);
+  // No Onboarding Cases: no review queue, so only APPROVE and REJECT are
+  // offered (a REVIEW already stored still shows).
+  const { onboarding_review: canReview } = useFeatures();
+  const outcomes = (code) => outcomesForCode(code).filter((o) => canReview || o !== "REVIEW" || editing?.onboarding_outcome === "REVIEW");
   const [form, setForm] = useState(() => ({
     inst_profile_id: editing?.inst_profile_id ?? myInstitution ?? "",
     code: editing?.code ?? "",
@@ -100,11 +105,11 @@ export function RiskActionForm({ editing, onClose, onSaved }) {
           {t("risk:onboardingOutcome")}
           <FilterSelect
             className="mt-1.5"
-            value={outcomesForCode(form.code).includes(form.onboarding_outcome) ? form.onboarding_outcome : ""}
+            value={outcomes(form.code).includes(form.onboarding_outcome) ? form.onboarding_outcome : ""}
             onChange={(v) => setForm({ ...form, onboarding_outcome: v })}
             options={[
               { value: "", label: editing ? t("risk:outcomeKeep") : t("risk:outcomeDefault") },
-              ...outcomesForCode(form.code).map((o) => ({ value: o, label: t(`risk:outcome_${o}`) })),
+              ...outcomes(form.code).map((o) => ({ value: o, label: t(`risk:outcome_${o}`) })),
             ]}
           />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("risk:onboardingOutcomeHint")}</span>

@@ -1982,6 +1982,12 @@ export const mms = {
 };
 
 export const cases = {
+  noReviewOutcome: "عندما يتطلب التسجيل مراجعة",
+  noReviewOutcomeHint: "لا توجد قائمة مراجعة (لا توجد حالات تسجيل)، لذا يقرر هذا. ويُرفض ما لا يمكن الموافقة عليه في كل الأحوال.",
+  unassessed_REJECT: "رفض",
+  setting_no_review_outcome: "عندما يتطلب التسجيل مراجعة",
+  reason_NO_REVIEW: "لا توجد قائمة مراجعة: قرّره إعداد المؤسسة.",
+  onboardingDecision: "قرار التسجيل",
   unassessedOutcome: "عندما لا يقيّم أي شيء طلب التسجيل",
   unassessed_APPROVE: "الموافقة على الجميع",
   unassessed_REVIEW: "إرسال الجميع للمراجعة",
@@ -2737,6 +2743,8 @@ export const myProfile = {
 };
 
 export const common = {
+  notSetUpAml: "لم يُعدّ بعد. لا يتم فحص التسجيلات حتى يتم إعداد هذا.",
+  notSetUpRisk: "لم يُعدّ بعد. لا يتم تقييم التسجيلات حتى يتم إعداد هذا.",
   shownOf: "عرض {{shown}} من {{total}}",
   "alreadyStarted": "بدأت العملية بالفعل. انتظر حتى تكتمل.",
   orDropHere: "أو أفلته هنا",

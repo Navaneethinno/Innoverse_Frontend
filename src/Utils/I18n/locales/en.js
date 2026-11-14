@@ -4,6 +4,8 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  notSetUpAml: "Not set up yet. Onboardings are not screened until this is set up.",
+  notSetUpRisk: "Not set up yet. Onboardings are not scored until this is set up.",
   shownOf: "Showing {{shown}} of {{total}}",
   "alreadyStarted": "Already started. Wait for it to finish.",
   // Why a button is blocked, for the hover hint.
@@ -3148,6 +3150,12 @@ export const formBuilder = {
 };
 
 export const cases = {
+  noReviewOutcome: "When an onboarding calls for a review",
+  noReviewOutcomeHint: "There is no review queue (no Onboarding Cases), so this decides it. One that cannot be approved at all is rejected anyway.",
+  unassessed_REJECT: "Reject",
+  setting_no_review_outcome: "When an onboarding calls for a review",
+  reason_NO_REVIEW: "No review queue: decided by the institution's setting.",
+  onboardingDecision: "Onboarding decision",
   unassessedOutcome: "When nothing assesses an onboarding",
   unassessed_APPROVE: "Approve everyone",
   unassessed_REVIEW: "Send everyone to review",

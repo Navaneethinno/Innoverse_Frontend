@@ -9,6 +9,7 @@ import { LevelBar, LevelChip, RISK_KINDS, customerTypeLabel } from "./riskShared
 import { useRiskOptions } from "./useRiskOptions";
 import { RiskSetupForm } from "./RiskSetupForm";
 import { TestScorePanel } from "./TestScorePanel";
+import { NotSetUpNotice } from "@/Components/Common/NotSetUpNotice";
 
 // EPURSE > Risk Assessment > Individual Risk (menu 97) / Corporate Risk (98):
 // one risk setup per customer type of an institution.
@@ -42,6 +43,7 @@ export function RiskSetupList({ kind }) {
 
   return (
     <>
+      <NotSetUpNotice feature="risk" />
       <LifecycleList
         title={t(`risk:${titleKey}`)}
         subtitle={t(`risk:${subtitleKey}`)}

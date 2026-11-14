@@ -33,7 +33,9 @@ async function renew() {
       ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope, branch: response.user.branch ?? stored?.branch ?? null }
       : stored;
     // The refresh carries the institution's current formats: replace them.
-    const user = base && response.formats ? { ...base, formats: response.formats } : base;
+    // ...and its current features (Admin_33): replace them too.
+    const withFormats = base && response.formats ? { ...base, formats: response.formats } : base;
+    const user = withFormats && response.features ? { ...withFormats, features: response.features } : withFormats;
     persistAuthSession(user, response.access_token, response.refresh_token);
     // The language stays the user's own mid-session, unless the institution
     // stopped offering it: then the reply's `use`.

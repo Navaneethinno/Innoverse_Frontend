@@ -22,6 +22,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useDropdownRows } from "@/Hooks/Master/masterHooks";
 import { corpMasterApis, corpOnboardingDefinitionApi, masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { OnboardingDecisionPanel } from "@/Components/CaseManagement/OnboardingCases/OnboardingDecisionPanel";
 import { useOnboardingMasters } from "./onboardingHooks";
 import { useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
@@ -343,6 +344,7 @@ export function OnboardingConfigurationPage({ kind = "individual" }) {
           {t(`onboarding:${x.subtitle}`)}
         </p>
       </div>
+      <OnboardingDecisionPanel can={can} />
       <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.id} title={t(`onboarding:${x.list}`)} emptyTitle={t(`onboarding:${x.empty}`)} />
 
       <Modal
