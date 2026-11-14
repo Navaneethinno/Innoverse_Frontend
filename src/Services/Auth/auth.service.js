@@ -65,6 +65,9 @@ function parseSessionResponse(payload, { flat = false } = {}) {
     branding,
     // The institution's date and number formats (login and refresh).
     formats: data?.formats ?? null,
+    // Which language to open the portal in: { use, default, last_chosen,
+    // supported } (login only).
+    language: data?.language ?? null,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
     // Kept separate from Master reference data per Phase 24C spec.

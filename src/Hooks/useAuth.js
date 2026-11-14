@@ -8,6 +8,8 @@ import { clearAuthSession, persistAuthSession } from "@/Services/api/authStorage
 import { clearToken, setSession } from "@/Redux/AuthToken";
 import { setMenuArray, clearMenuState } from "@/Redux/MenuSlice";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
+import { setApiLanguage } from "@/Utils/Lib/apiLanguage";
+import { i18n } from "@/Utils/I18n/i18n";
 export function useAuth(selector) {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.token);
@@ -32,6 +34,13 @@ export function useAuth(selector) {
       // The authenticated user's permission/navigation dataset, persisted
       // separately from Master reference data (see Redux/MenuSlice.js).
       dispatch(setMenuArray(response.menu_array));
+      // The backend says which language to open in: the user's last choice
+      // while the institution offers it, else the institution's default.
+      const use = response.language?.use;
+      if (use) {
+        setApiLanguage(use);
+        void i18n.changeLanguage(use);
+      }
       // The institution's branding from the login response (theme.css's
       // fixed palette when there is none). The code lets the login page
       // show this institution's background next time.

@@ -44,7 +44,16 @@ export function onApiLanguageChange(handler) {
 // single central HTTP client to patch once) — this is the one shared piece
 // each of them spreads in, so a future language addition needs no service
 // file changes.
+// The language in use goes on every call, English included: a signed-in
+// call saves it as the user's choice. Nothing is sent until a language is
+// set (by the login reply's `language.use` or the dropdown), so the server
+// answers in the institution's default.
 export function apiLanguageHeader() {
-  const lang = getApiLanguage();
-  return lang && lang !== DEFAULT_API_LANGUAGE ? { "x-api-lang": lang } : {};
+  let lang;
+  try {
+    lang = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return {};
+  }
+  return lang ? { "x-api-lang": lang } : {};
 }

@@ -93,7 +93,9 @@ void i18n
       // that could drift out of sync.
       order: ["localStorage", "navigator", "htmlTag"],
       lookupLocalStorage: "apiLang",
-      caches: ["localStorage"],
+      // Not cached: only a pick or the login reply saves a language, so a
+      // browser language is never sent as the user's choice.
+      caches: [],
     },
   });
 
