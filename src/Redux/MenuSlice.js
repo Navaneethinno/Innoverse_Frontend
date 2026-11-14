@@ -14,6 +14,9 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   menuArray: [],
   masterModules: [],
+  // /config/setup/state: each menu's LOCKED / TODO / DONE, its needs and
+  // parts, and the setup guides (flows). null until loaded.
+  setup: null,
 };
 
 const menuSlice = createSlice({
@@ -26,12 +29,16 @@ const menuSlice = createSlice({
     setMasterModules: (state, action) => {
       state.masterModules = Array.isArray(action.payload) ? action.payload : [];
     },
+    setSetupState: (state, action) => {
+      state.setup = action.payload ?? null;
+    },
     clearMenuState: (state) => {
+      state.setup = null;
       state.menuArray = [];
       state.masterModules = [];
     },
   },
 });
 
-export const { setMenuArray, setMasterModules, clearMenuState } = menuSlice.actions;
+export const { setMenuArray, setMasterModules, setSetupState, clearMenuState } = menuSlice.actions;
 export default menuSlice.reducer;

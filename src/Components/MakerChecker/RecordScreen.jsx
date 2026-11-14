@@ -22,6 +22,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useTargetQuery } from "@/Components/Layout/Menu/goTo";
 import { cn } from "@/Utils/Lib/utils";
 
 // One maker-checker record screen over the common contract (Admin 18):
@@ -68,8 +69,10 @@ export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
   const [view, setView] = useState("records");
-  const [openId, setOpenId] = useState(null);
-  const [editing, setEditing] = useState(null);
+  // Opened by goTo: ?record= opens it, ?action=add the add form.
+  const target = useTargetQuery();
+  const [openId, setOpenId] = useState(() => (target.record ? Number(target.record) || target.record : null));
+  const [editing, setEditing] = useState(() => (target.action === "add" && can("Add") ? { record: null } : null));
   const [decision, setDecision] = useState(null);
   const [busy, setBusy] = useState(false);
   const records = useServerList({ api: api.listPath, call: api.list, enabled: !openId && view === "records" });

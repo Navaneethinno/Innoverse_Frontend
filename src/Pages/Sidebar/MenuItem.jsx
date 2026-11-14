@@ -1,5 +1,7 @@
 import { createElement, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useSetup, needText } from "@/Hooks/useSetup";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
@@ -37,6 +39,14 @@ const childMotion = { initial: { opacity: 0, x: -6 }, animate: { opacity: 1, x: 
 // the comment on the children block below for why that happens on a rail
 // collapse/expand). Recurses through the same getChildMenuItems lookup used
 // everywhere else in this file.
+// Every leaf under a group (for its lock: shown only when all are locked).
+function leavesOf(menuItems, parentId) {
+  return getChildMenuItems(menuItems, parentId).flatMap((child) => {
+    const below = leavesOf(menuItems, child.menu_id);
+    return below.length ? below : [child];
+  });
+}
+
 function subtreeContainsId(menuItems, parentId, targetId) {
   if (targetId == null) return false;
   return getChildMenuItems(menuItems, parentId).some(
@@ -56,6 +66,8 @@ export function MenuItem({
   depth = 0,
 }) {
   const badge = useMenuBadge(item?.menu_name);
+  const { t } = useTranslation("setup");
+  const setup = useSetup();
   // Tri-state, not a plain boolean: `null` means "no explicit click yet,
   // derive it" (auto-open for the active branch); `true`/`false` means the
   // user explicitly clicked this row open or shut, which always wins —
@@ -78,6 +90,19 @@ export function MenuItem({
   const derivedExpanded = containsActive || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
   const isExpanded = manualOverride ?? derivedExpanded;
   const isActiveLeaf = !hasChildren && activeMenuId === item?.menu_id;
+  // The setup state (Admin_33 B4): a lock (still clickable), a to-do dot,
+  // "Next" on the module's next guide step. A group locks only when every
+  // item under it is locked.
+  const setupMenu = setup.menuOf(item?.menu_id);
+  const locked = hasChildren
+    ? (() => {
+        const leaves = leavesOf(menuItems, item?.menu_id);
+        return leaves.length > 0 && leaves.every((l) => setup.stateOf(l.menu_id) === "LOCKED");
+      })()
+    : setupMenu?.state === "LOCKED";
+  const todo = !hasChildren && setupMenu?.state === "TODO";
+  const isNext = todo && setup.isNext(item?.menu_id, item?.module_id);
+  const lockTip = !hasChildren && locked ? t("needs", { list: (setupMenu.needs ?? []).filter((n) => n.required).map(needText).join(", ") }) : null;
 
   const handleClick = () => {
     if (hasChildren) {
@@ -108,7 +133,7 @@ export function MenuItem({
 
   return (
     <div className="flex flex-col gap-1">
-      <UiTooltip label={menuLabel(item)}>
+      <UiTooltip label={lockTip ? `${menuLabel(item)} · ${lockTip}` : menuLabel(item)}>
       <button
         type="button"
         onClick={handleClick}
@@ -134,7 +159,10 @@ export function MenuItem({
             strokeWidth: 1.8,
             className: "shrink-0",
           })}
-          {!isCollapsed && <span className="truncate">{menuLabel(item)}</span>}
+          {!isCollapsed && <span className={cn("truncate", locked && !isHighlighted && "opacity-60")}>{menuLabel(item)}</span>}
+          {!isCollapsed && locked && <Lock size={10} className="shrink-0 opacity-60" aria-label={t("locked")} />}
+          {!isCollapsed && todo && !isNext && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" aria-label={t("todo")} />}
+          {!isCollapsed && isNext && <span className="shrink-0 rounded-full bg-[var(--primary)] px-1.5 text-[9px] font-bold leading-4 text-primary-foreground">{t("nextTag")}</span>}
         </span>
         {badge > 0 &&
           (isCollapsed ? (

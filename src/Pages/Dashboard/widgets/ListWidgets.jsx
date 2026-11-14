@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { Activity, ArrowRight, Blocks, Globe, Radio, Shield, Smartphone, UserCog, Zap } from "lucide-react";
+import { Activity, ArrowRight, Blocks, Globe, Lock, Radio, Shield, Smartphone, UserCog, Zap } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
-import { menuPathForItem, moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
+import { moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { useWidgetData } from "../layout/dashboardData";
 import { sourceLabel } from "./ChartWidgets";
 import { WidgetBody, WidgetCard } from "./WidgetCard";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useGoTo } from "@/Components/Layout/Menu/goTo";
+import { useSetup } from "@/Hooks/useSetup";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 export function RequestBreakdownWidget() {
@@ -136,13 +138,12 @@ export function PortalChannelsWidget() {
 export function QuickActionsWidget() {
   const { t } = useTranslation("dashboard");
   const menus = useSelector((state) => state.menu.menuArray);
-  const navigate = useNavigate();
   const { data, loading, failed } = useWidgetData("quickActions");
   const active = (menus ?? []).filter((m) => m?.status === 1);
-  const pathOf = (a) => {
-    const menu = active.find((m) => Number(m.menu_id) === Number(a.menu_id) && m.module_name === a.module_name);
-    return menu ? menuPathForItem(menu, active) : null;
-  };
+  // Opened through goTo; a locked one shows its lock (Admin_33 B8).
+  const goTo = useGoTo();
+  const setup = useSetup();
+  const pathOf = (a) => active.some((m) => Number(m.menu_id) === Number(a.menu_id) && m.module_name === a.module_name);
   const items = (data?.items ?? []).filter(pathOf);
   return (
     <WidgetCard title={t("quickActions")} icon={Zap}>
@@ -152,12 +153,13 @@ export function QuickActionsWidget() {
             <button
               key={`${a.module_name}:${a.menu_id}`}
               type="button"
-              onClick={() => navigate(pathOf(a), { state: { menuClick: Date.now() } })}
+              onClick={() => goTo({ menu_id: a.menu_id, module_name: a.module_name })}
               className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-bold transition-colors hover:bg-[var(--primary-light)]"
               style={{ color: "var(--primary-ink, var(--primary))", borderColor: "var(--primary-light)" }}
             >
               <span className="min-w-0">
                 {a.menu_label ?? a.menu_name}
+                {setup.stateOf(a.menu_id) === "LOCKED" && <Lock size={11} className="ml-1 inline text-muted-foreground" />}
                 {a.module_label && <span className="block text-[10px] font-medium text-muted-foreground">{a.module_label}</span>}
               </span>
               <ArrowRight size={13} className="shrink-0" />

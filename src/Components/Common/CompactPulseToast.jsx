@@ -66,7 +66,7 @@ export function ToastProvider({ children }) {
     // the entrance animation (React key change forces remount).
     setToast(null);
     requestAnimationFrame(() => {
-      setToast({ id, message, variant });
+      setToast({ id, message, variant, action: options.action });
       timerRef.current = setTimeout(() => setToast(null), duration);
     });
   }, []);
@@ -100,6 +100,18 @@ export function ToastProvider({ children }) {
                 </svg>
               </span>
               <ToastBody message={toast.message} />
+              {toast.action && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.action.onClick?.();
+                    dismiss();
+                  }}
+                  className="shrink-0 rounded-lg bg-white/15 px-2 py-1 text-xs font-bold text-white hover:bg-white/25"
+                >
+                  {toast.action.label}
+                </button>
+              )}
               <button type="button" className="cpt-close" onClick={dismiss} aria-label={t("dismiss")}>
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 6 6 18M6 6l12 12" />

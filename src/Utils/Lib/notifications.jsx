@@ -9,8 +9,9 @@ import { translateToast } from "@/Utils/I18n/toastMessages";
 // translateToast only rewrites toast text the frontend itself wrote (form
 // checks, timeouts...). A backend `message` is already translated through
 // x-api-lang and passes through unchanged. See toastMessages.js.
-function show(type, message) {
-  showPulseToast(translateToast(message), { variant: type === "error" ? "error" : "success" });
+// options.action: { label, onClick } shows a button on the toast.
+function show(type, message, options = {}) {
+  showPulseToast(translateToast(message), { ...options, variant: type === "error" ? "error" : "success" });
 }
 
 export const notifications = {

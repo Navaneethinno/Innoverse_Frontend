@@ -921,6 +921,8 @@ export const API_ENDPOINTS = {
   },
   APPROVAL: "/config/approval",
   EXPIRY_NOTICES: "/config/expiry/notices",
+  // Each menu's setup state (LOCKED / TODO / DONE) and the setup guides.
+  SETUP_STATE: "/config/setup/state",
   LIST_OPTIONS: "/config/list/options",
   RECON: "/config/recon",
   ACCOUNT: {

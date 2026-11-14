@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ListChecks } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { menuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
+import { targetPath } from "@/Components/Layout/Menu/goTo";
 import { Modal } from "@/Components/Common/Modal";
 import { Button } from "@/Components/Common/Button";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
@@ -31,11 +31,9 @@ export function MyApprovalsButton() {
   const menus = useSelector((state) => state.menu.menuArray);
   const navigate = useNavigate();
   // The item's page, found in the sidebar's menus as the sidebar builds it.
-  const pageOf = (x) => {
-    const active = (menus ?? []).filter((m) => m?.status === 1);
-    const menu = active.find((m) => Number(m.menu_id) === Number(x.menu_id) && (!x.module_name || m.module_name === x.module_name)) ?? active.find((m) => Number(m.menu_id) === Number(x.menu_id));
-    return menu ? menuPathForItem(menu, active) : null;
-  };
+  // The item's record, opened as goTo opens a target (?record=), ready to
+  // authorise; the state's recordId stays for screens that still read it.
+  const pageOf = (x) => targetPath(menus, { menu_id: x.menu_id, record_id: x.record_id, module_name: x.module_name });
   // page 1 starts over (the pages shift once a record is approved).
   const load = (page = 1) => {
     setPaging((p) => ({ ...p, busy: true }));
@@ -110,7 +108,7 @@ export function MyApprovalsButton() {
                         size="sm"
                         onClick={() => {
                           setOpen(false);
-                          navigate(pageOf(x), { state: { menuClick: Date.now() } });
+                          navigate(pageOf(x), { state: { menuClick: Date.now(), recordId: x.record_id } });
                         }}
                       >
                         {t("open")}

@@ -9,6 +9,9 @@ import { dashboardApi } from "@/Services/Dashboard/dashboard.api";
 import { getModuleIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { cn } from "@/Utils/Lib/utils";
 import { WidgetBody, WidgetCard, glass } from "../widgets/WidgetCard";
+import { useSelector } from "react-redux";
+import { useSetup } from "@/Hooks/useSetup";
+import { SetupFlowCard } from "@/Components/Common/SetupFlow";
 
 const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4, var(--muted-foreground))", "var(--chart-5, var(--primary))"];
 const tooltipStyle = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 };
@@ -33,6 +36,9 @@ export function ModuleDashboard({ moduleName }) {
   const { t, i18n } = useTranslation("dashboard");
   const [state, setState] = useState({ data: null, loading: true, error: null });
   const lang = i18n.language;
+  const { flows } = useSetup();
+  const menus = useSelector((st) => st.menu.menuArray);
+  const moduleId = (menus ?? []).find((m) => m.module_name === moduleName)?.module_id;
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
@@ -64,6 +70,7 @@ export function ModuleDashboard({ moduleName }) {
   const total = data?.breakdown?.total ?? items.reduce((n, x) => n + (x.count ?? 0), 0);
   const recent = data?.recent ?? [];
   const noDashboard = error?.code === "config.dashboard_module_unknown";
+  const setupFlows = flows.filter((f) => !f.complete && Number(f.module_id) === Number(moduleId));
 
   return (
     <div className="pb-8 pt-4">
@@ -85,6 +92,14 @@ export function ModuleDashboard({ moduleName }) {
           </Button>
         )}
       </motion.div>
+      {/* The module's setup guides that are not complete (Admin_33 B8). */}
+      {setupFlows.length > 0 && (
+        <div className="mb-6 grid gap-3">
+          {setupFlows.map((f) => (
+            <SetupFlowCard key={f.key} flow={f} />
+          ))}
+        </div>
+      )}
 
       {noDashboard ? (
         <p className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">{t("noModuleDashboard")}</p>

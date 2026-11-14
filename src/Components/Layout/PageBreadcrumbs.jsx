@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { useGoTo } from "@/Components/Layout/Menu/goTo";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Each crumb links to a real registered route via getPathForCrumb
@@ -29,12 +30,25 @@ export function PageBreadcrumbs() {
   const { t } = useTranslation("routes");
   const crumbKeys = getRouteMetadata(pathname)?.breadcrumb ?? ["crumbDashboard"];
   const menus = useSelector((state) => state.menu.menuArray);
+  const goTo = useGoTo();
   // A sidebar menu page (/<module>/<menu path>): its module and menu chain,
   // as the backend names them. The module opens its dashboard.
   const menuCrumbs = useMemo(() => {
     const active = (menus ?? []).filter((m) => m?.status === 1);
     const menu = findMenuByPath(active, pathname);
-    return menu ? { dashboard: moduleDashboardPath(menu.module_name), names: [moduleLabel(menu), ...menuChain(menu, active).map(menuLabel)].filter(Boolean) } : null;
+    if (!menu) return null;
+    // Each group level opens the first page under it (Admin_33 B8).
+    const firstLeaf = (group) => {
+      const kids = active.filter((m) => String(m.parent_menu_id) === String(group.menu_id) && m.module_name === group.module_name);
+      if (!kids.length) return group;
+      return firstLeaf(kids.sort((a, b) => Number(a.priority ?? 0) - Number(b.priority ?? 0))[0]);
+    };
+    const chain = menuChain(menu, active);
+    return {
+      dashboard: moduleDashboardPath(menu.module_name),
+      names: [moduleLabel(menu), ...chain.map(menuLabel)].filter(Boolean),
+      targets: [null, ...chain.map((m, i) => (i < chain.length - 1 ? firstLeaf(m) : null))],
+    };
   }, [menus, pathname]);
 
   if (menuCrumbs) {
@@ -45,6 +59,10 @@ export function PageBreadcrumbs() {
             {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />}
             {index === 0 ? (
               <button type="button" onClick={() => navigate(menuCrumbs.dashboard)} className="truncate font-medium text-muted-foreground transition-colors hover:text-primary hover:underline">
+                {name}
+              </button>
+            ) : menuCrumbs.targets[index] ? (
+              <button type="button" onClick={() => goTo({ menu_id: menuCrumbs.targets[index].menu_id, module_name: menuCrumbs.targets[index].module_name })} className="truncate font-medium text-muted-foreground transition-colors hover:text-primary hover:underline">
                 {name}
               </button>
             ) : (

@@ -20,6 +20,14 @@ import { GuideProvider } from "@/Components/Guide/GuideProvider";
 import { BackToTop } from "./BackToTop";
 import { KeyCustodyProvider, KeysLockedBanner } from "@/Components/KeyCustody/KeyCustodyProvider";
 import { ExpiryBanner } from "./ExpiryBanner";
+import { SetupStateLoader } from "@/Hooks/useSetup";
+import { useGoTo } from "@/Components/Layout/Menu/goTo";
+
+// The setup store's loader, with goTo for its "now available" toast.
+function SetupLoader() {
+  const goTo = useGoTo();
+  return <SetupStateLoader goTo={goTo} />;
+}
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { useScreenViews } from "@/Hooks/useScreenViews";
 function Layout() {
@@ -56,6 +64,7 @@ function Layout() {
             <main className="contents">
               <KeysLockedBanner />
               <ExpiryBanner />
+              <SetupLoader />
               <PageBreadcrumbs />
               {/* A new Institution filter reloads the page's lists. */}
               <PageAccessGate key={institution} />

@@ -6,6 +6,8 @@ import { ArrowRight, Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap
 import { useGuide } from "./GuideProvider";
 import { DASHBOARD_TOPIC, FULL, TOPICS, availableSteps, isDashboardPath, topicByKey } from "./guideTopics";
 import { readsWindow } from "./pageControls";
+import { useSetup } from "@/Hooks/useSetup";
+import { SetupFlowChecklist } from "@/Components/Common/SetupFlow";
 
 // "Guide" in the top bar: opens the panel of this page's topic tours, a
 // resume row and the getting-started checklist. A pulsing dot marks a page
@@ -64,6 +66,7 @@ function GuidePanel() {
   const resume = progress.resume?.path === pathname && topicByKey(progress.resume.topic) ? progress.resume : null;
 
   const visited = modules.filter((m) => progress.modules[m.segment]).length;
+  const setupFlows = useSetup().flows.filter((f) => !f.complete);
   const checklist = [
     { key: "checkFirstTour", done: Object.keys(progress.done).some((k) => k.startsWith("any:")) },
     { key: "checkPractice", done: progress.practiced, topic: "find" },
@@ -211,6 +214,15 @@ function GuidePanel() {
           </ul>
           <p className="mt-2 text-[10px] text-muted-foreground">{t("savedHere")}</p>
         </div>
+
+        {/* The institution's setup guides (server's flows), not complete ones. */}
+        {setupFlows.length > 0 && (
+          <div className="mt-3 grid gap-2">
+            {setupFlows.map((f) => (
+              <SetupFlowChecklist key={f.key} flow={f} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 border-t px-4 py-2 text-[10px] text-muted-foreground">

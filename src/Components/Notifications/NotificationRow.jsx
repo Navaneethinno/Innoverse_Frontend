@@ -2,17 +2,17 @@ import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { menuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
+import { targetPath } from "@/Components/Layout/Menu/goTo";
 
-// Finds a message's screen in the sidebar's menus, as the sidebar builds it.
+// A message's target (menu_id, record_id), opened as goTo opens any target:
+// its menu's route with ?record=. The state's recordId stays for screens
+// that still read it.
 export function useNotificationTarget() {
   const menus = useSelector((state) => state.menu.menuArray);
   const navigate = useNavigate();
   const pageOf = (x) => {
     if (!x.menu_id) return null;
-    const active = (menus ?? []).filter((m) => m?.status === 1);
-    const menu = active.find((m) => Number(m.menu_id) === Number(x.menu_id));
-    return menu ? menuPathForItem(menu, active) : null;
+    return targetPath(menus, { menu_id: x.menu_id, record_id: x.record_id, module_name: x.module_name });
   };
   const go = (x, to) => navigate(to, { state: { menuClick: Date.now(), recordId: x.record_id ?? undefined } });
   return { pageOf, go };

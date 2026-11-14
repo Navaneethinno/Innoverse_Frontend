@@ -16,6 +16,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useAuth } from "@/Hooks/useAuth";
+import { useTargetQuery } from "@/Components/Layout/Menu/goTo";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 
 
@@ -77,6 +78,14 @@ export function LifecycleList({
     if (reloadKey) load();
   }, [reloadKey, load]);
   useLiveChannel(api.listPath, () => load());
+  // Opened by goTo with ?record=: view that row once the list has it.
+  const target = useTargetQuery();
+  const [opened, setOpened] = useState(false);
+  const targetRow = !opened && target.record ? (list.rows ?? []).find((r) => String(r.id) === String(target.record)) : null;
+  if (targetRow) {
+    setOpened(true);
+    setView(targetRow);
+  }
 
 
   const run = async () => {

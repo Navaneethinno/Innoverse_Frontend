@@ -109,12 +109,36 @@ async function locationBlocked(response, init) {
   }, 3000);
 }
 
+// Setup state (Admin_33): a successful write may unlock or finish a menu,
+// so the setup store reloads ("setup:changed"); an add refused with
+// setup.locked reloads it too and tells the page ("setup:locked").
+// setup.last_in_use needs nothing here: the caller shows its message.
+const WRITE = /\/(add|edit|delete|delete_auth|auth|deauth|submit|deactivate|reactivate|release|cancel)$/;
+async function watchSetup(url, init, response) {
+  if (!bearer(init) || String(init?.method ?? "GET").toUpperCase() !== "POST") return;
+  const path = String(url).split("?")[0];
+  if (response.ok && WRITE.test(path)) {
+    window.dispatchEvent(new CustomEvent("setup:changed", { detail: { path } }));
+    return;
+  }
+  if (response.status !== 409) return;
+  const body = await response
+    .clone()
+    .json()
+    .catch(() => null);
+  if (body?.error_code === "setup.locked") {
+    window.dispatchEvent(new CustomEvent("setup:changed", { detail: { path } }));
+    window.dispatchEvent(new CustomEvent("setup:locked", { detail: { path, message: body.remark ?? body.message } }));
+  }
+}
+
 export async function authFetch(url, given = {}) {
   // A list request carries the top bar's Institution filter.
   const init = withInstitutionFilter(url, given);
   const response = await cachedFetch(url, init, () => fetch(url, init));
   await mustChangePassword(response);
   await locationBlocked(response, init);
+  await watchSetup(url, init, response);
   if (response.status !== 401 || !bearer(init) || !getRefreshToken()) return response;
   if (!(await refreshSession())) return response;
   return fetch(url, {
