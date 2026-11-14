@@ -249,7 +249,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             {t("openRequest", { ref: x.source.reference })}
           </Button>
         )}
-        {x.source && x.source.module !== "TXN_REQUEST" && <p className="text-xs text-muted-foreground">{t("openSourceIn", { ref: x.source.reference ?? x.source.id, menu: x.source.menu_name ?? x.source.module })}</p>}
+        {x.source && x.source.module !== "TXN_REQUEST" && <p className="text-xs text-muted-foreground">{t("openSourceIn", { ref: x.source.reference ?? x.source.id, menu: x.source.menu_label ?? x.source.menu_name ?? x.source.module })}</p>}
 
         <Section title={t("legs")}>
           <MiniTable

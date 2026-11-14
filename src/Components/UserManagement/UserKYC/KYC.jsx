@@ -226,7 +226,8 @@ function KycForm({
                   { value: "", label: gendersLoading ? "Loading genders..." : "Select gender" },
                   ...genders.map((gender) => {
                     const value = gender?.code;
-                    const label = gender?.name ?? value;
+                    // `label` is the name in the user's language; the code is sent.
+                    const label = gender?.label ?? gender?.name ?? value;
                     return { value, label };
                   }),
                 ]}

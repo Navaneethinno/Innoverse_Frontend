@@ -1413,6 +1413,8 @@ export const onboarding = {
 };
 
 export const statusLabels = {
+  "Proposed": "Proposto",
+  "Applied directly": "Aplicado diretamente",
   "Pending Review": "Revisão Pendente",
   "Open": "Aberto",
   "In Review": "Em Revisão",

@@ -4138,6 +4138,8 @@ export const onboarding = {
 };
 
 export const statusLabels = {
+  "Proposed": "مقترح",
+  "Applied directly": "طُبّق مباشرة",
   Sent: "مُرسل",
   Failed: "فشل",
   Draft: "مسودة",

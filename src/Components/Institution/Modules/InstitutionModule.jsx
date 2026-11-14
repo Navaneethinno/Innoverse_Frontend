@@ -26,6 +26,7 @@ import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
+import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { InstitutionMenus } from "@/Components/Institution/Modules/InstitutionMenus";
 
 const displayValue = (value) => value ?? "—";
@@ -38,12 +39,12 @@ function ModuleActions({ row, onRefresh, onEdit }) {
       api={institutionModuleApi}
       what={tr("Institution Module")}
       facts={[
-        [tr("Module"), displayValue(row.module_name ?? row.module_id)],
+        [tr("Module"), displayValue(moduleLabel(row) ?? row.module_id)],
         ...(canChooseInstitution() ? [[tr("Institution"), row.inst_profile_name ?? row.inst_profile_id]] : []),
         [tr("Effective from"), displayValue(row.effective_from)],
         [tr("Effective to"), displayValue(row.effective_to)],
       ]}
-      auditTitle={row.module_name ?? `#${row.module_id}`}
+      auditTitle={moduleLabel(row) ?? `#${row.module_id}`}
       auditFields={[["module_name", tr("Module")], ["inst_profile_name", tr("Institution")], ["effective_from", tr("Effective from")], ["effective_to", tr("Effective to")]]}
       onEdit={onEdit}
       onRefresh={onRefresh}
@@ -68,7 +69,7 @@ export function InstitutionModule() {
       label: tr("Module"),
       render: (row) => (
         <span className="font-semibold text-foreground">
-          {displayValue(row.module_name ?? row.module_id)}
+          {displayValue(moduleLabel(row) ?? row.module_id)}
         </span>
       ),
     },
@@ -301,7 +302,7 @@ function ModuleForm({
                 { value: "", label: tr("Select module") },
                 ...masterModules.map((item) => ({
                   value: item.module_id ?? item.id,
-                  label: item.module_name ?? item.name,
+                  label: moduleLabel(item) ?? item.name,
                 })),
               ]}
             />
@@ -359,7 +360,7 @@ function ModuleForm({
                       .filter((item) => !moduleRows.some((other, j) => j !== index && String(other.module_id) === String(item.module_id ?? item.id)))
                       .map((item) => ({
                         value: item.module_id ?? item.id,
-                        label: item.module_name ?? item.name,
+                        label: moduleLabel(item) ?? item.name,
                       })),
                   ]}
                 />

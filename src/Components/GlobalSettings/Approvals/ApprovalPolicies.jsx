@@ -461,7 +461,7 @@ export function ApprovalPolicies() {
 
   const columns = [
     { key: "name", label: t("name"), align: "left", render: (r) => <span className="font-semibold text-slate-800">{r.name}</span> },
-    { key: "menu_name", label: t("menu"), align: "left", render: (r) => (r.menu_id ? r.menu_name ?? `#${r.menu_id}` : <span className="font-semibold text-primary">{t("institutionDefault")}</span>) },
+    { key: "menu_name", label: t("menu"), align: "left", render: (r) => (r.menu_id ? r.menu_label ?? r.menu_name ?? `#${r.menu_id}` : <span className="font-semibold text-primary">{t("institutionDefault")}</span>) },
     { key: "action", label: t("action"), render: (r) => actionLabel(t, r.action) },
     { key: "steps", label: t("levels"), sortable: false, render: (r) => <span className="text-xs">{t("levelsCount", { count: (r.pending?.steps ?? r.steps ?? []).length })}</span> },
     { key: "version", label: t("version"), render: (r) => r.version ?? "—" },

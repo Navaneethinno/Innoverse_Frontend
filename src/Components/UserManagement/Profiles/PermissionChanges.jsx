@@ -6,7 +6,7 @@ import { Minus, Plus } from "lucide-react";
 const byMenu = (items) => {
   const groups = new Map();
   for (const p of items ?? []) {
-    const name = p.menu_name ?? String(p.menu_id);
+    const name = p.menu_label ?? p.menu_name ?? String(p.menu_id);
     groups.set(name, [...(groups.get(name) ?? []), p.action_name ?? String(p.action_id)]);
   }
   return [...groups.entries()];

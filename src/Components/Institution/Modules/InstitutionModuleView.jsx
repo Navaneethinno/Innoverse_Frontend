@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useInstitutionModulesQuery } from "@/Hooks/Institution/institutionModuleHooks";
 import { useTranslation } from "react-i18next";
+import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const fields = [
@@ -58,7 +59,7 @@ export function InstitutionModuleView() {
       </button>
       <div>
         <h1 className="text-xl font-black tracking-tight text-foreground">
-          {row.module_name ?? `Module #${row.module_id}`}
+          {moduleLabel(row) ?? `Module #${row.module_id}`}
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">
           {t("institutions:viewInstitutionModuleAssignmentDetails")}
@@ -83,7 +84,7 @@ export function InstitutionModuleView() {
                 {t(labelKey)}
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                {row[key] ?? row[key === "module_name" ? "module_id" : key] ?? "—"}
+                {(key === "module_name" ? moduleLabel(row) : row[key]) ?? row[key === "module_name" ? "module_id" : key] ?? "—"}
               </p>
             </div>
           ))}

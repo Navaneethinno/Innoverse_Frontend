@@ -165,7 +165,7 @@ export function UserForm({
       }
       if (key === "gender") {
         const match = genders.find((g) => [g.code, g.gender_code, g.id, g.name, g.gender_name].some((x) => String(x ?? "").toUpperCase() === String(value).toUpperCase()));
-        return match?.name ?? match?.gender_name ?? value;
+        return match?.label ?? match?.name ?? match?.gender_name ?? value;
       }
       return value;
     };
@@ -227,7 +227,7 @@ export function UserForm({
                 onChange={(next) => setForm({ ...form, gender: next })}
                 options={[
                   { value: "", label: t("selectGender") },
-                  ...genders.map((g) => ({ value: String(genderCode(g)), label: g.name ?? g.gender_name ?? String(genderCode(g)) })),
+                  ...genders.map((g) => ({ value: String(genderCode(g)), label: g.label ?? g.name ?? g.gender_name ?? String(genderCode(g)) })),
                   // A saved value the list no longer has still shows.
                   ...(form.gender && !genders.some((g) => String(genderCode(g)) === String(form.gender)) ? [{ value: String(form.gender), label: String(form.gender) }] : []),
                 ]}

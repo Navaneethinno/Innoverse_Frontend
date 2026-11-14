@@ -20,7 +20,8 @@ const masterList = (path) => request(path, { page: 1, limit: 1000 }).then(rowsOf
 const PLATFORM = {
   country: () => masterApi.countryList(),
   currency: () => masterApi.currencyList(),
-  gender: () => masterApi.genderList(),
+  // Shown in the user's language (`label`), beside the English `name`.
+  gender: () => masterApi.genderList().then((rows) => rows.map((r) => ({ ...r, name: r.label ?? r.name }))),
   party_type: () => masterApi.partyTypeList(),
   ownership: () => masterApi.ownershipList(),
   residency_type: () => masterApi.residencyTypeList(),
