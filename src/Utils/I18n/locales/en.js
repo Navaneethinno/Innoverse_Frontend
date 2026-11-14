@@ -495,6 +495,9 @@ export const profiles = {
 };
 
 export const users = {
+  noDetailsYet: "No details yet: no name, email or mobile has been saved for this user.",
+  noDetailsRight: "You need the User KYC Add right to add details.",
+  addDetails: "Add details",
   addUser: "Add user",
   editUser: "Edit user",
   viewUser: "View user",

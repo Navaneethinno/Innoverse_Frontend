@@ -28,7 +28,8 @@ import {
   useUserUpdateMutation,
 } from "@/Hooks/UserManagement/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { useHasKycAction } from "@/Hooks/UserManagement/kycHooks";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
@@ -49,6 +50,15 @@ import { useLatest } from "@/Hooks/useLatest";
 // client-side by auth_status — a best-effort match limited to what's on the
 // current page (documented in the report as a follow-up once/if the
 // backend exposes a real pending filter).
+// A user's details (names, email, mobile...) are a separate record, the
+// User KYC (/config/user/kyc/...), with its own approval; /config/user/add
+// and /edit take only the login fields.
+const DETAIL_KEYS = ["user_fname", "user_lname", "employee_id", "email", "mobile", "gender", "address"];
+const firstRow = (r) => {
+  const data = r?.data?.data ?? r?.data;
+  return (Array.isArray(data) ? data[0] : data) ?? null;
+};
+
 const numericId = (value) => {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -80,6 +90,13 @@ export function User() {
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [audit, setAudit] = useState(null);
+  // The user's details record: undefined = loading, null = none yet.
+  const [kycRecord, setKycRecord] = useState(undefined);
+  // Add: the user exists but its details failed, so a retry adds only those.
+  const [createdUserId, setCreatedUserId] = useState(null);
+  // A checker approving the user also approves its waiting details.
+  const [kycWaiting, setKycWaiting] = useState(false);
+  const canAddDetails = useHasKycAction("Add");
   const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, call: usersApi.list, select: (r) => mapUserListResponse(r).users, reloadOn: "users:data-changed" });
   const lookupsQuery = useUserLookupsQuery();
   const defaultPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
@@ -104,51 +121,49 @@ export function User() {
     ["auth", "deauth"].includes(action?.type),
   );
 
+  const kycFor = ["auth", "deauth"].includes(action?.type) ? numericId(userId(action.user)) : null;
+  useEffect(() => {
+    setKycWaiting(false);
+    if (!kycFor) return;
+    let live = true;
+    usersApi
+      .kycPending({ user_id: kycFor })
+      .then((r) => {
+        const row = firstRow(r);
+        if (live) setKycWaiting(Boolean(row && row.pending_action && row.pending_action !== "NONE"));
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [kycFor]);
+
   const openCreate = () => {
     setEditing(null);
     setViewingOnly(false);
+    setCreatedUserId(null);
     setForm({ ...EMPTY_FORM, password_policy_id: defaultPolicy?.id ?? "" });
     setShowForm(true);
   };
   const openEdit = async (user, { readOnly = false } = {}) => {
     setEditing(user);
     setViewingOnly(readOnly);
+    setKycRecord(undefined);
     setForm(Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(user, key)])));
     setShowForm(true);
     const id = Number(userId(user));
     if (!Number.isInteger(id)) return;
-    // The user's saved details (names, email, mobile...) come from
-    // /config/user/get; the list row carries only a few of them.
     try {
-      const response = await usersApi.get({ user_id: id });
-      const data = response?.data?.data ?? response?.data;
-      const record = (Array.isArray(data) ? data[0] : data) ?? {};
-      setForm((current) => ({
-        ...current,
-        ...Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(record, key) || current[key]])),
-      }));
+      // data is a list ([kyc]); empty when the user has no details yet.
+      const kyc = firstRow(await usersApi.getKyc({ user_id: id }));
+      if (kyc && typeof kyc === "object" && Object.keys(kyc).length) {
+        setKycRecord(kyc);
+        setForm((current) => ({ ...current, ...Object.fromEntries(DETAIL_KEYS.map((key) => [key, fieldValue(kyc, key) || current[key]])) }));
+      } else setKycRecord(null);
     } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Failed to load the user");
-    }
-    try {
-      const response = await usersApi.getKyc({ user_id: id });
-      // data is a list ([kyc]); its first row is the user's KYC.
-      const data = response?.data?.data ?? response?.data;
-      const kyc = (Array.isArray(data) ? data[0] : data) ?? {};
-      if (kyc && typeof kyc === "object") {
-        setForm((current) => ({
-          ...current,
-          ...Object.fromEntries(
-            Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(kyc, key) || current[key]]),
-          ),
-        }));
-      }
-    } catch (error) {
-      // A user with no KYC yet (404) is normal: the form stays as it is.
+      setKycRecord(null);
       if (error?.status === 404) return;
-      notifications.error(
-        error instanceof Error ? error.message : "Failed to load user KYC details",
-      );
+      notifications.error(error instanceof Error ? error.message : "Failed to load user KYC details");
     }
   };
 
@@ -190,46 +205,113 @@ export function User() {
         return;
       }
     }
-    try {
-      // A bank / fintech user has no picker: its own institution.
-      const institutionId = numericId(form.inst_id) || (canChooseInstitution ? null : numericId(ownInstitution));
-      const profileId = numericId(form.profile_id);
-      if (!institutionId || !profileId) {
-        notifications.error("Please select a valid institution and profile");
+    // A bank / fintech user has no picker: its own institution.
+    const institutionId = numericId(form.inst_id) || (canChooseInstitution ? null : numericId(ownInstitution));
+    const profileId = numericId(form.profile_id);
+    if (!institutionId || !profileId) {
+      notifications.error("Please select a valid institution and profile");
+      return;
+    }
+    const detailsBody = (id) => ({
+      user_id: id,
+      user_fname: form.user_fname,
+      user_lname: form.user_lname,
+      user_mname: null,
+      email: form.email,
+      mobile: form.mobile,
+      gender: form.gender,
+      employee_id: form.employee_id,
+      address: form.address,
+      alternate_email: null,
+      alternate_mob: null,
+      narration: "",
+      is_draft: draft,
+    });
+    const detailsMissing = !String(form.user_fname ?? "").trim() || !String(form.user_lname ?? "").trim() || !form.gender;
+    // The details: added, or edited with the record's updated_time. A
+    // failure keeps the form open with the server's message.
+    const saveDetails = async (id, existing) => {
+      try {
+        const result = existing
+          ? await usersApi.kycEdit({ ...detailsBody(id), expected_updated_time: existing.updated_time })
+          : await usersApi.kycAdd(detailsBody(id));
+        notifications.success(apiMessage(result, "User details sent for approval"));
+        window.dispatchEvent(new Event("users:data-changed"));
+        return true;
+      } catch (error) {
+        notifications.error(error instanceof Error ? error.message : "Failed to save the user's details");
+        return false;
+      }
+    };
+
+    if (!editing) {
+      if (detailsMissing) {
+        notifications.error("First name, last name and gender are required");
         return;
       }
-      if (editing)
+      let id = createdUserId;
+      if (!id) {
+        try {
+          const result = await createMutation.mutateAsync({
+            user_name: form.user_name,
+            user_pwd: form.user_pwd,
+            inst_id: institutionId,
+            profile_id: profileId,
+            password_policy_id: numericId(form.password_policy_id),
+            is_draft: draft,
+          });
+          id = numericId(firstRow(result)?.id ?? firstRow(result)?.user_id);
+        } catch {
+          return; // the mutation already showed why
+        }
+        if (!id) {
+          notifications.error("The user was added, but its id did not come back: add the details from View.");
+          setShowForm(false);
+          return;
+        }
+        setCreatedUserId(id);
+      }
+      if (!(await saveDetails(id, null))) return;
+      setCreatedUserId(null);
+      setShowForm(false);
+      return;
+    }
+
+    const id = numericId(userId(editing));
+    const same = (a, b) => String(a ?? "") === String(b ?? "");
+    const loginChanged =
+      !same(form.user_name, fieldValue(editing, "user_name")) ||
+      !same(profileId, fieldValue(editing, "profile_id")) ||
+      !same(form.password_policy_id, fieldValue(editing, "password_policy_id")) ||
+      (canChooseInstitution && !same(institutionId, fieldValue(editing, "inst_id")));
+    const detailsChanged = kycRecord
+      ? DETAIL_KEYS.some((key) => !same(form[key], fieldValue(kycRecord, key)))
+      : DETAIL_KEYS.some((key) => String(form[key] ?? "").trim());
+    if (!loginChanged && !detailsChanged) {
+      notifications.error("Nothing has changed");
+      return;
+    }
+    if (detailsChanged && detailsMissing) {
+      notifications.error("First name, last name and gender are required");
+      return;
+    }
+    if (loginChanged) {
+      try {
         await updateMutation.mutateAsync({
-          user_id: numericId(userId(editing)),
+          user_id: id,
           user_name: form.user_name,
           inst_id: institutionId,
           profile_id: profileId,
           pwd_policy: numericId(form.password_policy_id) ?? undefined,
-          // The user's own details go with the edit too.
-          user_fname: form.user_fname,
-          user_lname: form.user_lname,
-          employee_id: form.employee_id,
-          email: form.email,
-          mobile: form.mobile,
-          gender: form.gender,
-          address: form.address,
           is_draft: draft,
           expected_updated_time: editing.updated_time,
         });
-      else {
-        const { password_policy_id, ...userPayload } = form;
-        await createMutation.mutateAsync({
-          ...userPayload,
-          inst_id: institutionId,
-          profile_id: profileId,
-          password_policy_id: numericId(password_policy_id),
-          is_draft: draft,
-        });
+      } catch {
+        return;
       }
-      setShowForm(false);
-    } catch {
-      // Mutation hooks already show the API error toast.
     }
+    if (detailsChanged && !(await saveDetails(id, kycRecord))) return;
+    setShowForm(false);
   };
   const runAction = async () => {
     if (!action) return;
@@ -244,6 +326,15 @@ export function User() {
       if (action.type === "auth") await authMutation.mutateAsync(payload);
       if (action.type === "deauth")
         await deauthMutation.mutateAsync({ ...payload, narration: narration });
+      // The user's waiting details go the same way as the user.
+      if (kycWaiting && ["auth", "deauth"].includes(action.type)) {
+        try {
+          const call = action.type === "auth" ? usersApi.kycAuth : usersApi.kycDeauth;
+          notifications.success(apiMessage(await call({ user_id: id, narration }), "User details done"));
+        } catch (error) {
+          notifications.error(error instanceof Error ? error.message : "The user's details could not be approved");
+        }
+      }
       if (action.type === "delete")
         await deleteMutation.mutateAsync({ ...payload, narration });
       if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync(payload);
@@ -405,6 +496,8 @@ export function User() {
             onClose={() => setShowForm(false)}
             editing={editing}
             viewingOnly={viewingOnly}
+            noDetails={kycRecord === null}
+            onAddDetails={canAddDetails ? () => setViewingOnly(false) : null}
             form={form}
             setForm={setForm}
             onSubmit={submit}
@@ -428,6 +521,11 @@ export function User() {
         onConfirm={() => void runAction()}
       >
         {["auth", "deauth"].includes(action?.type) && <PendingChangesDiff {...pendingInfo} />}
+        {kycWaiting && (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs font-semibold text-amber-900">
+            {action?.type === "auth" ? tr("The user's details are waiting too: they are approved with the user.") : tr("The user's details are waiting too: they are rejected with the user.")}
+          </p>
+        )}
         <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {tr("Narration")}{["deauth", "delete"].includes(action?.type) ? " *" : ""}
           <textarea

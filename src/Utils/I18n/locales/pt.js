@@ -491,6 +491,9 @@ export const profiles = {
 };
 
 export const users = {
+  noDetailsYet: "Ainda sem detalhes: não foi guardado nome, email ou telemóvel para este utilizador.",
+  noDetailsRight: "Precisa do direito Adicionar em KYC de utilizadores para adicionar detalhes.",
+  addDetails: "Adicionar detalhes",
   addUser: "Adicionar usuário",
   editUser: "Editar usuário",
   viewUser: "Ver usuário",
@@ -9335,6 +9338,8 @@ export const masters = {
 };
 
 export const labels = {
+  "The user's details are waiting too: they are approved with the user.": "Os detalhes do utilizador também aguardam: são aprovados com o utilizador.",
+  "The user's details are waiting too: they are rejected with the user.": "Os detalhes do utilizador também aguardam: são rejeitados com o utilizador.",
   "The account products customers and merchants hold, and their settings.": "Os produtos de conta que clientes e comerciantes detêm, e as suas definições.",
   "Which ownership types (individual, corporate...) each product is open to.": "Os tipos de titularidade (individual, empresa...) a que cada produto está aberto.",
   "Which kinds of party (customer, merchant, agent...) each product is open to.": "Os tipos de parte (cliente, comerciante, agente...) a que cada produto está aberto.",

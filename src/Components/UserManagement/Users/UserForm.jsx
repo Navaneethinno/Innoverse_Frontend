@@ -10,6 +10,8 @@ import { cn } from "@/Utils/Lib/cn";
 import { checkPasswordRequirements } from "@/Utils/Lib/password-policy";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
 
+const DETAILS = new Set(["user_fname", "user_lname", "employee_id", "email", "mobile", "gender", "address"]);
+
 export const EMPTY_FORM = {
   user_name: "",
   user_fname: "",
@@ -43,7 +45,7 @@ const fields = [
 ];
 
 // What the API refuses to save without (user add and the user's KYC).
-const REQUIRED_KEYS = new Set(["user_name", "user_pwd", "profile_id", "user_fname", "user_lname"]);
+const REQUIRED_KEYS = new Set(["user_name", "user_pwd", "profile_id", "user_fname", "user_lname", "gender"]);
 
 const FIELD_LABEL_KEYS = {
   user_name: "fieldUsername",
@@ -126,7 +128,7 @@ function PasswordPolicyField({ policies, policy, selectedId, onSelect, requireme
   );
 }
 
-export function UserForm({
+export function UserForm({ hideDetails = false,
   form,
   setForm,
   editing,
@@ -174,6 +176,8 @@ export function UserForm({
         className="sm:grid-cols-2 lg:grid-cols-2"
         rows={fields
           .filter(([key]) => key !== "user_pwd" && (canChooseInstitution || key !== "inst_id"))
+          // No details record yet: only the login facts, not a grid of "—".
+          .filter(([key]) => !hideDetails || !DETAILS.has(key))
           .map(([key, label]) => [t(FIELD_LABEL_KEYS[key], label ?? key), nameOf(key, form[key])])}
       />
     );

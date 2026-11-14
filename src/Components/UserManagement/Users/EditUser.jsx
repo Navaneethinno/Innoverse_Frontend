@@ -11,6 +11,8 @@ export function EditUser({
   onClose,
   editing,
   viewingOnly,
+  noDetails = false,
+  onAddDetails = null,
   form,
   setForm,
   onSubmit,
@@ -60,7 +62,16 @@ export function EditUser({
         )
       }
     >
+      {viewingOnly && noDetails && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <span className="font-semibold">{t("noDetailsYet")}</span>
+          <Button size="sm" disabled={!onAddDetails} disabledReason={t("noDetailsRight")} onClick={() => onAddDetails?.()}>
+            {t("addDetails")}
+          </Button>
+        </div>
+      )}
       <UserForm
+        hideDetails={viewingOnly && noDetails}
         form={form}
         setForm={setForm}
         editing={editing}

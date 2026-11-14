@@ -1,5 +1,5 @@
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ListChecks } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -16,15 +16,16 @@ import { ApprovalTimeline, approvalText } from "./approvalShared";
 import { useLatest } from "@/Hooks/useLatest";
 
 // What the signed-in user can approve now, across the admin menus, newest
-// first (/config/approval/queue). The queue comes whole (no paging on the
-// server), so the list shows PAGE items and adds more as it is scrolled. Open in the top bar; the count shows on
+// first (/config/approval/queue, paged: page, limit, sort_by). Page 1 loads
+// on sign-in and on every opening; the next page loads as the list is
+// scrolled, until the last. The button shows the total. Open in the top bar; the count shows on
 // the button.
 const PAGE = 20;
-const newestFirst = (a, b) => String(b.submitted_at ?? "").localeCompare(String(a.submitted_at ?? ""));
 
 export function MyApprovalsButton() {
   const { t } = useTranslation("common");
   const [items, setItems] = useState(null);
+  const [paging, setPaging] = useState({ page: 0, pages: 0, total: 0, busy: false });
   const [open, setOpen] = useState(false);
   const [timeline, setTimeline] = useState(null);
   const menus = useSelector((state) => state.menu.menuArray);
@@ -35,26 +36,33 @@ export function MyApprovalsButton() {
     const menu = active.find((m) => Number(m.menu_id) === Number(x.menu_id) && (!x.module_name || m.module_name === x.module_name)) ?? active.find((m) => Number(m.menu_id) === Number(x.menu_id));
     return menu ? menuPathForItem(menu, active) : null;
   };
-  const load = () =>
-    approvalApi
-      .queue({})
-      .then((r) => setItems(rowsOf(r)))
+  // page 1 starts over (the pages shift once a record is approved).
+  const load = (page = 1) => {
+    setPaging((p) => ({ ...p, busy: true }));
+    return approvalApi
+      .queue({ page, limit: PAGE, sort_by: "desc" })
+      .then((r) => {
+        const rows = rowsOf(r);
+        const pg = r?.pagination ?? r?.data?.pagination ?? {};
+        setItems((cur) => (page === 1 ? rows : [...(cur ?? []), ...rows]));
+        setPaging({ page: Number(pg.currentPage) || page, pages: Number(pg.totalPages) || page, total: Number(pg.totalRecords ?? rows.length) || 0, busy: false });
+      })
       .catch((e) => {
-        setItems([]);
+        if (page === 1) setItems([]);
+        setPaging((p) => ({ ...p, busy: false }));
         if (open) notifications.error(e.message);
       });
+  };
   const latest = useLatest({ load });
   useEffect(() => {
     const { load } = latest.current;
     void load();
     // Loaded once at sign-in and again on every opening.
   }, [latest]);
-  const count = items?.length ?? 0;
-  const sorted = useMemo(() => [...(items ?? [])].sort(newestFirst), [items]);
-  const [shown, setShown] = useState(PAGE);
+  const count = paging.total;
   const more = (e) => {
     const el = e.currentTarget;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80) setShown((n) => (n < sorted.length ? n + PAGE : n));
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80 && !paging.busy && paging.page < paging.pages) void load(paging.page + 1);
   };
   return (
     <>
@@ -65,8 +73,7 @@ export function MyApprovalsButton() {
           aria-label={t("myApprovals")}
           onClick={() => {
             setOpen(true);
-            setShown(PAGE);
-            void load();
+            void load(1);
           }}
           className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:bg-primary-light hover:text-primary"
         >
@@ -82,7 +89,7 @@ export function MyApprovalsButton() {
             <p className="text-sm text-muted-foreground">{t("myApprovalsEmpty")}</p>
           ) : (
             <ul className="grid max-h-[60vh] gap-2 overflow-y-auto" onScroll={more}>
-              {sorted.slice(0, shown).map((x) => (
+              {items.map((x) => (
                 <li key={`${x.route}:${x.record_id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-slate-800">
@@ -113,7 +120,7 @@ export function MyApprovalsButton() {
                 </li>
               ))}
               <li className="py-1 text-center text-[11px] text-muted-foreground">
-                {t("shownOf", { shown: Math.min(shown, sorted.length), total: sorted.length })}
+                {paging.busy ? t("loading") : t("shownOf", { shown: items.length, total: paging.total })}
               </li>
             </ul>
           )}

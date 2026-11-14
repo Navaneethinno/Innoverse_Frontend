@@ -3235,6 +3235,9 @@ export const profiles = {
 };
 
 export const users = {
+  noDetailsYet: "لا توجد تفاصيل بعد: لم يُحفظ اسم أو بريد أو هاتف لهذا المستخدم.",
+  noDetailsRight: "تحتاج صلاحية الإضافة في KYC المستخدم لإضافة التفاصيل.",
+  addDetails: "إضافة التفاصيل",
   addUser: "إضافة مستخدم",
   editUser: "تعديل المستخدم",
   viewUser: "عرض المستخدم",
@@ -9316,6 +9319,8 @@ export const masters = {
 };
 
 export const labels = {
+  "The user's details are waiting too: they are approved with the user.": "تفاصيل المستخدم بانتظار الموافقة أيضاً: تتم الموافقة عليها مع المستخدم.",
+  "The user's details are waiting too: they are rejected with the user.": "تفاصيل المستخدم بانتظار الموافقة أيضاً: تُرفض مع المستخدم.",
   "The account products customers and merchants hold, and their settings.": "منتجات الحسابات التي يحملها العملاء والتجار، وإعداداتها.",
   "Which ownership types (individual, corporate...) each product is open to.": "أنواع الملكية (فرد، شركة...) التي يتاح لها كل منتج.",
   "Which kinds of party (customer, merchant, agent...) each product is open to.": "أنواع الأطراف (عميل، تاجر، وكيل...) التي يتاح لها كل منتج.",
