@@ -217,7 +217,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                     className="mt-1.5"
                     value={productId}
                     onChange={setProductId}
-                    addAction={{ label: t("addAccountProduct"), onClick: () => openMenu("accountproduct") }}
+                    addAction={{ label: t("addAccountProduct"), onClick: () => openMenu("accountproduct", {}, { action: "add" }) }}
                     options={[{ value: "", label: options.available_products?.length ? t("chooseProduct", { type }) : t("noProductsAvailable") }, ...(options.available_products ?? []).map((p) => ({ value: String(p.id ?? p.acct_product_id), label: `${p.product_name} · ${p.product_code} (${p.currency_code})` }))]}
                   />
                 </label>

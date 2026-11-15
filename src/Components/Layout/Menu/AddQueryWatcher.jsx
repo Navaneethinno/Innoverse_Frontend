@@ -5,17 +5,23 @@ import { ownAddQuery } from "./goTo";
 // ?action=add on every screen with an Add button (Admin_34 B4, Admin_35 §3),
 // once for all: the Add button is the one with a plus in the page's add
 // area (data-tour="add", from ListView / StatusFilterTabs or the button
-// itself).
+// itself), or else the page's one plus button.
 //   - The page opens with action=add: that button is clicked.
 //   - The button is clicked: action=add is written.
 //   - The form closes (its dialog goes, or the list with the button comes
 //     back): action is removed.
 // A screen that handles it itself (useAddQuery) is left alone; a locked
 // menu has no Add button, so nothing opens.
-const addButton = () =>
-  [...document.querySelectorAll('[data-tour="add"] button, button[data-tour="add"]')].find(
-    (b) => b.querySelector("svg.lucide-plus") && !b.disabled && !b.closest('[role="dialog"]'),
-  ) ?? null;
+const usable = (b) => b.querySelector("svg.lucide-plus") && !b.disabled && !b.closest('[role="dialog"]');
+// A page with no add area: its one plus button outside forms, tables and
+// dialogs (two or more: none, never a guess).
+const addButton = () => {
+  const marked = [...document.querySelectorAll('[data-tour="add"] button, button[data-tour="add"]')].find(usable);
+  if (marked) return marked;
+  const main = document.querySelector("main") ?? document.body;
+  const loose = [...main.querySelectorAll("button")].filter((b) => usable(b) && !b.closest("form, table, aside, nav, header"));
+  return loose.length === 1 ? loose[0] : null;
+};
 const dialogOpen = () => Boolean(document.querySelector('[role="dialog"]'));
 
 export function AddQueryWatcher() {

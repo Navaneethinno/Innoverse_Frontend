@@ -386,13 +386,13 @@ export function OnboardingConfigurationPage({ kind = "individual" }) {
           {corporate ? (
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:companyType")} <span className="text-red-500">*</span>
-              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...typeOptions]} />
+              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype", {}, { action: "add" }) }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...typeOptions]} />
             </label>
           ) : (
             <>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:subType")}
-            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...typeOptions]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype", {}, { action: "add" }) }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...typeOptions]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
@@ -410,7 +410,7 @@ export function OnboardingConfigurationPage({ kind = "individual" }) {
           {!corporate && (
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:kycScheme")}
-            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes", {}, { action: "add" }) }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
           </label>
           )}

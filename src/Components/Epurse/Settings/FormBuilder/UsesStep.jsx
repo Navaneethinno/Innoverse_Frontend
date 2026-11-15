@@ -244,7 +244,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   const emails = ofType(["EMAIL"]);
   const comparable = ofType(COMPARABLE);
   const addFieldFirst = (type) => (
-    <LinkButton onClick={() => openMenu("formfields")} className="text-left font-semibold">
+    <LinkButton onClick={() => openMenu("formfields", {}, { action: "add" })} className="text-left font-semibold">
       {t("addTypeFieldFirst", { type })}
     </LinkButton>
   );

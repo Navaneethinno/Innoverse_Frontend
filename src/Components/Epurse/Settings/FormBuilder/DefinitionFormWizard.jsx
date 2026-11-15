@@ -593,7 +593,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                     className="mt-1.5"
                     disabled={readOnly}
                     disabledReason={readOnlyReason}
-                    addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes") }}
+                    addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes", {}, { action: "add" }) }}
                     value={basics.kyc_group_id}
                     onChange={(v) => setBasic("kyc_group_id", v)}
                     options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]}
@@ -649,7 +649,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                     change({ sections: [...form.sections, { section_key: key, required: true }] });
                     setPickSection("");
                   }}
-                  addAction={{ label: t("formBuilder:newSectionInLibrary"), onClick: () => openMenu("formsections") }}
+                  addAction={{ label: t("formBuilder:newSectionInLibrary"), onClick: () => openMenu("formsections", {}, { action: "add" }) }}
                   options={[
                     { value: "", label: t("formBuilder:addSectionFromLibrary") },
                     ...sectionLibrary.rows.filter((s) => !placedSections.has(s.key)).map((s) => ({ value: s.key, label: `${s.name} (${s.key})`, searchText: `${s.name} ${s.key} ${s.heading}` })),

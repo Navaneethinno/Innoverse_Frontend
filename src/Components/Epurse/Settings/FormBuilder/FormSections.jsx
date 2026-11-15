@@ -271,7 +271,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
                     setPlacements([...form.fields, { field_key: key }]);
                     setPicking("");
                   }}
-                  addAction={{ label: t("formBuilder:newFieldInLibrary"), onClick: () => openMenu("formfields") }}
+                  addAction={{ label: t("formBuilder:newFieldInLibrary"), onClick: () => openMenu("formfields", {}, { action: "add" }) }}
                   options={[
                     { value: "", label: t("formBuilder:addFieldFromLibrary") },
                     ...library.filter((f) => !placed.has(f.key)).map((f) => ({ value: f.key, label: `${f.name} (${f.key}) · ${typeName(f.field_type)}`, searchText: `${f.name} ${f.key} ${f.label}` })),
