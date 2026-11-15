@@ -1036,3 +1036,8 @@ textarea:disabled {
 .text-\[var\(--success\)\] {
   color: var(--success-ink, var(--success));
 }
+
+/* A page's description under its title: kept to a readable line length. */
+.page-title + p {
+  max-width: 78ch;
+}

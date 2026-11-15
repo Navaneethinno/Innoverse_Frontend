@@ -49,7 +49,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
   const { t } = useTranslation("common");
   return (
     <thead>
-      <tr className="border-b-2 border-border">
+      <tr className="border-b-2 border-border bg-card">
         {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label={t("selectAllRowsOnPage")} checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
         {columns.map((col) => (
           <th
@@ -402,7 +402,8 @@ export function DataTable({
   };
   const modalRows = isServer ? loadedPages.flatMap((p) => loaded[p]) : sortedRows;
 
-  const viewAllButton = (
+  // Nothing to view all of: no button (it would open an empty list).
+  const viewAllButton = !isLoading && totalRecords === 0 ? null : (
     <button
       type="button"
       data-tour="view-all"

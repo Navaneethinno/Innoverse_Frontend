@@ -15,7 +15,7 @@ export function PageTitle({ icon, className, own = false, children }) {
   const glyph = icon ?? getMenuIcon(menu?.menu_name ?? "");
   const title = (!own && menu && menuLabel(menu)) || children;
   return (
-    <h1 className={cn("flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800", className)}>
+    <h1 className={cn("page-title flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800", className)}>
       {createElement(glyph, { size: 22, className: "shrink-0 text-primary" })} <span className="min-w-0">{title}</span>
     </h1>
   );

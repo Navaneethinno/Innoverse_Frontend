@@ -1,4 +1,5 @@
 import { ArrowRight, Lock } from "lucide-react";
+import { cn } from "@/Utils/Lib/utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { useGoTo, useMenuLabelOf } from "@/Components/Layout/Menu/goTo";
@@ -26,8 +27,11 @@ function NeedRow({ need, quiet }) {
   const fix = need.fix ?? {};
   const fixLabel = placeLabel(fix);
   return (
-    <li className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 ${quiet ? "border-border bg-card" : "border-amber-200 bg-amber-50/60"}`}>
-      <span className={`text-sm ${quiet ? "text-muted-foreground" : "font-semibold text-slate-800"}`}>{needText(need)}</span>
+    <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+      <span className={`flex items-center gap-2 text-sm ${quiet ? "text-muted-foreground" : "font-semibold text-slate-800"}`}>
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${quiet ? "bg-slate-300" : "bg-amber-500"}`} />
+        {needText(need)}
+      </span>
       {fix.external ? (
         <span className="text-xs text-muted-foreground">{t("providerSetsUp")}</span>
       ) : fix.available === false ? (
@@ -91,8 +95,8 @@ export function SetupLocked({ label, needs = [], path = [] }) {
           )}
         </div>
       )}
-      <p className="mb-3 mt-1 text-sm text-muted-foreground">{t("itNeeds")}</p>
-      <ul className="grid gap-2">
+      <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("itNeeds").replace(/:\s*$/, "")}</p>
+      <ul className="divide-y divide-border rounded-xl border border-border">
         {required.map((n, i) => (
           <NeedRow key={`r${i}`} need={n} />
         ))}
@@ -100,7 +104,7 @@ export function SetupLocked({ label, needs = [], path = [] }) {
       {recommended.length > 0 && (
         <>
           <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("recommendedFirst")}</p>
-          <ul className="grid gap-2">
+          <ul className="divide-y divide-border rounded-xl border border-border">
             {recommended.map((n, i) => (
               <NeedRow key={`o${i}`} need={n} quiet />
             ))}
@@ -112,14 +116,14 @@ export function SetupLocked({ label, needs = [], path = [] }) {
 }
 
 // A TODO menu with recommended needs: a slim line above the list.
-export function SetupRecommended({ needs = [] }) {
+export function SetupRecommended({ needs = [], className = "mb-3" }) {
   const { t } = useTranslation("setup");
   const goTo = useGoTo();
   const labelOf = useMenuLabelOf();
   const recommended = needs.filter((n) => !n.required);
   if (!recommended.length) return null;
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs text-sky-900", className)}>
       <span className="font-bold">{t("recommendedFirst")}:</span>
       {recommended.map((n, i) => {
         const label = labelOf(n.fix?.menu_id);
@@ -141,14 +145,14 @@ export function SetupRecommended({ needs = [] }) {
 // After the first save on a menu: its guide's next step that can be done
 // now (menus[].next), the same step as the sidebar tag and the dashboard
 // card. Nothing when there is none.
-export function SetupNext({ next }) {
+export function SetupNext({ next, className = "mb-3" }) {
   const { t } = useTranslation("setup");
   const goTo = useGoTo();
   const placeLabel = usePlaceLabel();
   const label = next && !next.external ? placeLabel(next) : null;
   if (!label) return null;
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+    <div className={cn("flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-900", className)}>
       <span className="font-bold">{t("next")}:</span>
       <button type="button" className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 font-bold hover:bg-emerald-100" onClick={() => goTo({ menu_id: next.menu_id, part: next.part })}>
         {label} <ArrowRight size={12} />

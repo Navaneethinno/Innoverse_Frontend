@@ -252,7 +252,7 @@ export function RowsEditor({
         </div>
       ))}
       {!rows.length && (
-        <p className="py-3 text-center text-xs text-muted-foreground">{t("noRows")}</p>
+        <EmptyNote className="py-6">{t("noRows")}</EmptyNote>
       )}
       {!disabled && canAdd && (
         <Button

@@ -26,7 +26,7 @@ const pageFor = (routes, slug) => (slug ? (matchRoutes(routes, `/${slug}`) ?? ma
 // state's part keys; the older ?view= still opens) so a link, a refresh or
 // Back reopens the same tab. A tab the setup state locks shows a lock and,
 // when open, the shared explainer instead of its page.
-function MenuViews({ views, routes, menu }) {
+function MenuViews({ views, routes, menu, hints = null }) {
   const { t } = useTranslation("common");
   const setup = useSetup();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -44,8 +44,10 @@ function MenuViews({ views, routes, menu }) {
   };
   return (
     <div>
+      {/* The tabs and the setup hints share one row, so the page's own
+          title stays near the top. */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <SegmentedSwitch
-        className="mb-3"
         options={views.map((v) => ({
           value: v.key,
           label:
@@ -60,14 +62,18 @@ function MenuViews({ views, routes, menu }) {
         value={view.key}
         onChange={choose}
       />
+        {(hints || part?.state === "TODO") && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {hints}
+            {part?.state === "TODO" && <SetupRecommended needs={part.needs} className="" />}
+          </div>
+        )}
+      </div>
       <div key={view.key} className="segmented-view-enter">
         {part?.state === "LOCKED" ? (
           <SetupLocked label={`${menuLabel(menu)} › ${t(`view_${view.key}`)}`} needs={part.needs} path={part.path ?? []} />
         ) : (
-          <>
-            {part?.state === "TODO" && <SetupRecommended needs={part.needs} />}
-            {element ?? <RouteError />}
-          </>
+          (element ?? <RouteError />)
         )}
       </div>
     </div>
@@ -129,11 +135,22 @@ export function MenuPage({ routes }) {
           // The setup state (Admin_33 B5): a locked menu shows why, not its list.
           const sm = setup.menuOf(menu.menu_id);
           if (sm?.state === "LOCKED") return <SetupLocked label={menuLabel(menu)} needs={sm.needs} path={sm.path ?? []} />;
+          const recommended = sm?.state === "TODO" ? <SetupRecommended needs={sm.needs} className={page.views ? "" : undefined} /> : null;
+          const next = saved && sm?.next ? <SetupNext next={sm.next} className={page.views ? "" : undefined} /> : null;
+          if (page.views && !page.soon)
+            return (
+              <MenuViews
+                views={page.views}
+                routes={routes}
+                menu={menu}
+                hints={recommended || next ? <>{recommended}{next}</> : null}
+              />
+            );
           return (
             <>
-              {sm?.state === "TODO" && <SetupRecommended needs={sm.needs} />}
-              {saved && sm?.next && <SetupNext next={sm.next} />}
-              {page.soon ? <ComingSoon /> : page.views ? <MenuViews views={page.views} routes={routes} menu={menu} /> : element}
+              {recommended}
+              {next}
+              {page.soon ? <ComingSoon /> : element}
             </>
           );
         })()}
