@@ -62,7 +62,7 @@ function MenuViews({ views, routes, menu }) {
       />
       <div key={view.key} className="segmented-view-enter">
         {part?.state === "LOCKED" ? (
-          <SetupLocked label={`${menuLabel(menu)} › ${t(`view_${view.key}`)}`} needs={part.needs} />
+          <SetupLocked label={`${menuLabel(menu)} › ${t(`view_${view.key}`)}`} needs={part.needs} path={part.path ?? []} />
         ) : (
           <>
             {part?.state === "TODO" && <SetupRecommended needs={part.needs} />}
@@ -128,11 +128,11 @@ export function MenuPage({ routes }) {
         {(() => {
           // The setup state (Admin_33 B5): a locked menu shows why, not its list.
           const sm = setup.menuOf(menu.menu_id);
-          if (sm?.state === "LOCKED") return <SetupLocked label={menuLabel(menu)} needs={sm.needs} />;
+          if (sm?.state === "LOCKED") return <SetupLocked label={menuLabel(menu)} needs={sm.needs} path={sm.path ?? []} />;
           return (
             <>
               {sm?.state === "TODO" && <SetupRecommended needs={sm.needs} />}
-              {saved && sm?.leads_to?.length > 0 && <SetupNext leadsTo={sm.leads_to} stateOf={(id) => setup.stateOf(id)} />}
+              {saved && sm?.next && <SetupNext next={sm.next} />}
               {page.soon ? <ComingSoon /> : page.views ? <MenuViews views={page.views} routes={routes} menu={menu} /> : element}
             </>
           );

@@ -18,6 +18,7 @@ import { FieldOptionsEditor, inputClass } from "./FieldOptionsEditor";
 import { TranslationFields, TranslationsModal, cleanTranslations, useTranslationLanguages } from "./Translations";
 import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./formBuilderHooks";
 
+import { useAddQuery } from "@/Components/Layout/Menu/goTo";
 import { Button } from "@/Components/Common/Button";
 const EMPTY = { key: "", name: "", field_type: "TEXT", label: "", hint: "", help_text: "", required: false, read_only: false, default_value: "", options: {} };
 
@@ -254,6 +255,8 @@ export function FormFields() {
   const [translating, setTranslating] = useState(false);
 
   const list = useServerList({ api: formFieldApi.listPath, call: formFieldApi.list });
+  // ?action=add opens the add form; it stays in the URL while the form is open.
+  useAddQuery(editing && !editing.record, () => can("Add") && setEditing({ record: null }));
 
   const load = list.reload;
 

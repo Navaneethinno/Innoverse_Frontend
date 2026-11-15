@@ -67,7 +67,8 @@ export function ToastProvider({ children }) {
     setToast(null);
     requestAnimationFrame(() => {
       setToast({ id, message, variant, action: options.action });
-      timerRef.current = setTimeout(() => setToast(null), duration);
+      // sticky: stays until dismissed (a toast that carries an action).
+      if (!options.sticky) timerRef.current = setTimeout(() => setToast(null), duration);
     });
   }, []);
 

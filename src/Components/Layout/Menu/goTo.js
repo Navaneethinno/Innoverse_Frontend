@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { i18n } from "@/Utils/I18n/i18n";
@@ -86,4 +86,30 @@ export function useTargetQuery() {
     [setParams],
   );
   return { ...target, clear };
+}
+
+// ?action=add on a page with an add form (Admin_34 B4): opened on load,
+// written while the form is open, removed when it closes. `adding`: the
+// form is open for a new record; `startAdd`: opens it (the page checks its
+// own Add right).
+export function useAddQuery(adding, startAdd) {
+  const [params, setParams] = useSearchParams();
+  const [asked] = useState(() => params.get("action") === "add");
+  const [start] = useState(() => startAdd);
+  useEffect(() => {
+    if (asked) start();
+  }, [asked, start]);
+  useEffect(() => {
+    setParams(
+      (p) => {
+        const has = p.get("action") === "add";
+        if (Boolean(adding) === has) return p;
+        const q = new URLSearchParams(p);
+        if (adding) q.set("action", "add");
+        else q.delete("action");
+        return q;
+      },
+      { replace: true },
+    );
+  }, [adding, setParams]);
 }

@@ -1,3 +1,4 @@
+import { i18n } from "@/Utils/I18n/i18n";
 // "Response messages — what to show the user" (2026-09), app-wide rule:
 //   - `message`            — the outcome, in the caller's language: ALWAYS the
 //                            headline/toast.
@@ -34,6 +35,20 @@ function getApiFieldProblems(payload) {
   return Array.isArray(list) ? list.filter((p) => p && typeof p === "object" && p.field) : [];
 }
 
+// setup.last_in_use (Admin_33 B6, Admin_34 B9): the last record other set-up
+// menus still depend on. The menus that use it, when the reply names them
+// ("Used by: Onboarding Configuration"). The field is not fixed in the spec:
+// used_by or dependents, as names or { menu_label / menu_name }.
+function usedBy(payload) {
+  if (payload?.error_code !== "setup.last_in_use") return [];
+  const first = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
+  const list = payload.used_by ?? payload.dependents ?? first?.used_by ?? first?.dependents ?? [];
+  const names = (Array.isArray(list) ? list : [list])
+    .map((x) => (typeof x === "string" ? x : x?.menu_label ?? x?.label ?? x?.menu_name ?? x?.name))
+    .filter(Boolean);
+  return names.length ? [i18n.t("setup:usedBy", { list: names.join(", ") })] : [];
+}
+
 export function getApiErrorMessage(payload, fallback) {
   const readable = (value) => {
     if (typeof value === "string" && value.trim()) return value;
@@ -53,7 +68,7 @@ export function getApiErrorMessage(payload, fallback) {
     return null;
   };
   const headline = readable(payload) || fallback;
-  const problems = getApiProblems(payload);
+  const problems = [...getApiProblems(payload), ...usedBy(payload)];
   return problems.length ? [headline, ...problems.map((p) => PROBLEM_BULLET + p)].join("\n") : headline;
 }
 // Our own text for a status, used only when the reply has no JSON message

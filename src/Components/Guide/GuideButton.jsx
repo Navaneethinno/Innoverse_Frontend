@@ -7,7 +7,9 @@ import { useGuide } from "./GuideProvider";
 import { DASHBOARD_TOPIC, FULL, TOPICS, availableSteps, isDashboardPath, topicByKey } from "./guideTopics";
 import { readsWindow } from "./pageControls";
 import { useSetup } from "@/Hooks/useSetup";
-import { SetupFlowChecklist } from "@/Components/Common/SetupFlow";
+import { SetupFlowGroups } from "@/Components/Common/SetupFlow";
+import { useSelector } from "react-redux";
+import { findMenuByPath, findModuleByDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 
 // "Guide" in the top bar: opens the panel of this page's topic tours, a
 // resume row and the getting-started checklist. A pulsing dot marks a page
@@ -67,6 +69,9 @@ function GuidePanel() {
 
   const visited = modules.filter((m) => progress.modules[m.segment]).length;
   const setupFlows = useSetup().flows.filter((f) => !f.complete);
+  const menus = useSelector((st) => st.menu.menuArray);
+  const activeMenus = (menus ?? []).filter((m) => m?.status === 1);
+  const currentModule = findMenuByPath(activeMenus, pathname)?.module_name ?? findModuleByDashboardPath(activeMenus, pathname) ?? null;
   const checklist = [
     { key: "checkFirstTour", done: Object.keys(progress.done).some((k) => k.startsWith("any:")) },
     { key: "checkPractice", done: progress.practiced, topic: "find" },
@@ -93,7 +98,7 @@ function GuidePanel() {
         </label>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto p-2">
+      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden p-2">
         {words.length > 0 && (
           <div className="mb-2 grid gap-0.5">
             {!foundTopics.length && !foundPages.length && <p className="px-3 py-3 text-xs text-muted-foreground">{t("noResults")}</p>}
@@ -143,8 +148,8 @@ function GuidePanel() {
               const Icon = topic.icon;
               const done = progress.done[`${pathname}:${topic.key}`];
               return (
-                <li key={topic.key}>
-                  <button type="button" onClick={() => start(topic.key)} className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-muted">
+                <li key={topic.key} className="min-w-0">
+                  <button type="button" onClick={() => start(topic.key)} className="group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-muted">
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${done ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" : "bg-primary-light text-primary"}`}>
                       {done ? <Check size={15} /> : <Icon size={15} />}
                     </span>
@@ -217,10 +222,8 @@ function GuidePanel() {
 
         {/* The institution's setup guides (server's flows), not complete ones. */}
         {setupFlows.length > 0 && (
-          <div className="mt-3 grid gap-2">
-            {setupFlows.map((f) => (
-              <SetupFlowChecklist key={f.key} flow={f} />
-            ))}
+          <div className="mt-3">
+            <SetupFlowGroups flows={setupFlows} currentModule={currentModule} />
           </div>
         )}
       </div>

@@ -100,8 +100,9 @@ export const filterSidebarMenus = (menuItems, searchValue) => {
 
   const filterItem = (item) => {
     const children = sortByPriority(childrenByParent.get(getMenuId(item)) || []);
-    // The label as shown, and the English name.
-    const isMatch = [item?.menu_label, item?.menu_name].some((name) => normalizeMenuSearch(name).includes(query));
+    // The label as shown, the English name, and its module's names
+    // ("merchant" finds the whole Merchant Management module).
+    const isMatch = [item?.menu_label, item?.menu_name, item?.module_label, item?.module_name].some((name) => normalizeMenuSearch(name).includes(query));
 
     if (isMatch) {
       const branchItems = [item];

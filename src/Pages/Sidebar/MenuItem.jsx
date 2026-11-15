@@ -100,9 +100,15 @@ export function MenuItem({
         return leaves.length > 0 && leaves.every((l) => setup.stateOf(l.menu_id) === "LOCKED");
       })()
     : setupMenu?.state === "LOCKED";
-  const todo = !hasChildren && setupMenu?.state === "TODO";
-  const isNext = todo && setup.isNext(item?.menu_id, item?.module_id);
-  const lockTip = !hasChildren && locked ? t("needs", { list: (setupMenu.needs ?? []).filter((n) => n.required).map(needText).join(", ") }) : null;
+  // A step the service provider does gets no dot and no tag (Admin_34 B12).
+  const isTodo = (m) => setup.stateOf(m.menu_id) === "TODO" && !setup.menuOf(m.menu_id)?.external;
+  const groupLeaves = hasChildren ? leavesOf(menuItems, item?.menu_id) : [];
+  const todo = hasChildren ? groupLeaves.some(isTodo) : isTodo(item);
+  // A collapsed group shows the dot / "Next" of what it holds.
+  const isNext = hasChildren ? !isExpanded && groupLeaves.some((l) => setup.isNext(l.menu_id, l.module_id)) : todo && setup.isNext(item?.menu_id, item?.module_id);
+  const showDot = todo && !isNext && (!hasChildren || !isExpanded);
+  const requiredNeeds = (setupMenu?.needs ?? []).filter((n) => n.required).map(needText).join(", ");
+  const lockTip = !hasChildren && locked ? (requiredNeeds ? t("needs", { list: requiredNeeds }) : t("locked")) : null;
 
   const handleClick = () => {
     if (hasChildren) {
@@ -136,6 +142,7 @@ export function MenuItem({
       <UiTooltip label={lockTip ? `${menuLabel(item)} · ${lockTip}` : menuLabel(item)}>
       <button
         type="button"
+        title={lockTip ? `${menuLabel(item)} · ${lockTip}` : undefined}
         onClick={handleClick}
         className={cn(
           "relative flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-[color,background-color,transform] duration-200",
@@ -161,7 +168,7 @@ export function MenuItem({
           })}
           {!isCollapsed && <span className={cn("truncate", locked && !isHighlighted && "opacity-60")}>{menuLabel(item)}</span>}
           {!isCollapsed && locked && <Lock size={10} className="shrink-0 opacity-60" aria-label={t("locked")} />}
-          {!isCollapsed && todo && !isNext && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" aria-label={t("todo")} />}
+          {!isCollapsed && showDot && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" aria-label={t("todo")} />}
           {!isCollapsed && isNext && <span className="shrink-0 rounded-full bg-[var(--primary)] px-1.5 text-[9px] font-bold leading-4 text-primary-foreground">{t("nextTag")}</span>}
         </span>
         {badge > 0 &&

@@ -21,6 +21,7 @@ import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./form
 import { FieldPreview } from "./FieldPreview";
 
 import { Button } from "@/Components/Common/Button";
+import { useAddQuery } from "@/Components/Layout/Menu/goTo";
 import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 const EMPTY = { key: "", name: "", heading: "", subheading: "", multi_row: false, max_rows: "", fields: [] };
 const OVERRIDES = ["label", "hint", "help_text", "default_value"];
@@ -308,6 +309,8 @@ export function FormSections() {
   const [deleteBusy, setDeleteBusy] = useState(false);
 
   const list = useServerList({ api: formSectionApi.listPath, call: formSectionApi.list });
+  // ?action=add opens the add form; it stays in the URL while the form is open.
+  useAddQuery(editing && !editing.record, () => can("Add") && setEditing({ record: null }));
 
   const load = list.reload;
 

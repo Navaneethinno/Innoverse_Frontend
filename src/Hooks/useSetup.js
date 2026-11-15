@@ -27,8 +27,17 @@ export function useSetup() {
       menuOf,
       partOf,
       stateOf: (menuId, part) => (part ? partOf(menuId, part)?.state : menuOf(menuId)?.state) ?? null,
-      // The flow step that is next in a module, if this menu is it.
-      isNext: (menuId, moduleId) => (setup?.flows ?? []).some((f) => Number(f.module_id) === Number(moduleId) && f.next && Number(f.next.menu_id) === Number(menuId)),
+      // The one step tagged "Next" in a module (Admin_34 B8): the next of
+      // the first guide of that module (server order) that is not
+      // complete, unless the service provider does it.
+      nextOf: (moduleId) => {
+        const flow = (setup?.flows ?? []).find((f) => Number(f.module_id) === Number(moduleId) && !f.complete);
+        return flow?.next && !flow.next.external ? flow.next : null;
+      },
+      isNext: (menuId, moduleId) => {
+        const flow = (setup?.flows ?? []).find((f) => Number(f.module_id) === Number(moduleId) && !f.complete);
+        return Boolean(flow?.next && !flow.next.external && Number(flow.next.menu_id) === Number(menuId));
+      },
     };
   }, [setup]);
 }
@@ -59,7 +68,7 @@ export function SetupStateLoader({ goTo }) {
           if (old.get(Number(m.menu_id)) === "LOCKED" && m.state !== "LOCKED") {
             const menu = (menus ?? []).find((x) => Number(x.menu_id) === Number(m.menu_id));
             const label = menu ? menuLabel(menu) : `#${m.menu_id}`;
-            notifications.success(i18n.t("setup:nowAvailable", { label }), { action: { label: i18n.t("setup:open"), onClick: () => goTo({ menu_id: m.menu_id }) }, duration: 8000 });
+            notifications.success(i18n.t("setup:nowAvailable", { label }), { action: { label: i18n.t("setup:open"), onClick: () => goTo({ menu_id: m.menu_id }) }, sticky: true });
             break;
           }
         }

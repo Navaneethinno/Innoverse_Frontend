@@ -118,8 +118,17 @@ export function CaseSettings({ onBack }) {
   const setPart = (part, value) => setForm((f) => ({ ...f, templates: { ...f.templates, [event]: { ...(f.templates?.[event] ?? {}), [part]: value } } }));
   const ownPending = pending && String(pending.proposed_by?.id) === String(me?.id);
   // Used only where nothing assesses: AML and both risks present = never used.
+  // Admin_34 B10: a check counts only when it is set up (not in not_set_up).
+  // The field decides a side where neither AML nor that side's risk counts.
   const assessed = data?.assessed ?? {};
-  const allAssessed = Boolean(assessed.aml && assessed.customer_risk && assessed.merchant_risk);
+  const notSetUp = data?.not_set_up ?? [];
+  const counts = (k) => Boolean(assessed[k]) && !notSetUp.includes(k);
+  const usedFor = (risk) => !counts("aml") && !counts(risk);
+  const rawUsedFor = (risk) => !assessed.aml && !assessed[risk];
+  const fieldUsed = usedFor("customer_risk") || usedFor("merchant_risk");
+  const allAssessed = !fieldUsed;
+  // Used only because AML / risk are not set up yet.
+  const usedForNow = fieldUsed && !(rawUsedFor("customer_risk") || rawUsedFor("merchant_risk"));
   const outcomeShown = pending?.settings?.unassessed_outcome ?? form?.unassessed_outcome;
   // With a review queue: unassessed_outcome; without: no_review_outcome only.
   const reviewAvailable = data?.review_available !== false;
@@ -173,7 +182,7 @@ export function CaseSettings({ onBack }) {
                   ]}
                 />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
-                  {allAssessed ? t("unassessedNotUsed") : pending?.settings?.unassessed_outcome ? t("unassessedPending") : t("unassessedHint")}
+                  {allAssessed ? t("unassessedNotUsed") : pending?.settings?.unassessed_outcome ? t("unassessedPending") : usedForNow ? t("unassessedUsedNow") : t("unassessedHint")}
                 </span>
               </div>}
               <label className={labelClass}>

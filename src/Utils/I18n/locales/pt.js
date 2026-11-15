@@ -816,6 +816,15 @@ export const forgotPassword = {
 };
 
 export const setup = {
+  whereToBegin: "Por onde começar",
+  startAt: "Começar em {{label}}",
+  providerSetsUp: "O seu fornecedor de serviço configura isto. Contacte-o.",
+  byProvider: "Configurado pelo seu fornecedor de serviço",
+  usedBy: "Usado por: {{list}}",
+  setupTitle: "Configuração",
+  waitingOnProvider: "A aguardar o seu fornecedor de serviço",
+  showAll: "Mostrar todos ({{count}})",
+  showLess: "Mostrar menos",
   notReady: "{{label}} ainda não está pronto",
   itNeeds: "Precisa de:",
   recommendedFirst: "Recomendado primeiro",
@@ -3127,6 +3136,7 @@ export const formBuilder = {
 };
 
 export const cases = {
+  unassessedUsedNow: "Usado agora: o AML e o risco ainda não estão configurados.",
   noReviewOutcome: "Quando uma integração pede revisão",
   noReviewOutcomeHint: "Não há fila de revisão (sem Casos de Integração), por isso isto decide. Uma que não pode ser aprovada é rejeitada na mesma.",
   unassessed_REJECT: "Rejeitar",

@@ -11,7 +11,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { WidgetBody, WidgetCard, glass } from "../widgets/WidgetCard";
 import { useSelector } from "react-redux";
 import { useSetup } from "@/Hooks/useSetup";
-import { SetupFlowCard } from "@/Components/Common/SetupFlow";
+import { SetupGuidesCard } from "@/Components/Common/SetupFlow";
 
 const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4, var(--muted-foreground))", "var(--chart-5, var(--primary))"];
 const tooltipStyle = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 };
@@ -94,10 +94,8 @@ export function ModuleDashboard({ moduleName }) {
       </motion.div>
       {/* The module's setup guides that are not complete (Admin_33 B8). */}
       {setupFlows.length > 0 && (
-        <div className="mb-6 grid gap-3">
-          {setupFlows.map((f) => (
-            <SetupFlowCard key={f.key} flow={f} />
-          ))}
+        <div className="mb-6">
+          <SetupGuidesCard flows={setupFlows} />
         </div>
       )}
 

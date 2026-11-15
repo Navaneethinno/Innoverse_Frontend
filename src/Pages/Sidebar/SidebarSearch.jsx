@@ -6,6 +6,11 @@ import { useGoTo, useMenuLabelOf } from "@/Components/Layout/Menu/goTo";
 import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 import { menuPage } from "@/Components/Layout/Menu/menuRouteMap";
 import { useSetup, needText } from "@/Hooks/useSetup";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
+import { findMenuByPath, findModuleByDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
+
+// The module on screen (a menu page or a module dashboard), outside a menu.
+const currentModuleFromPath = (active) => findMenuByPath(active, window.location.pathname)?.module_name ?? findModuleByDashboardPath(active, window.location.pathname) ?? null;
 
 const norm = (s) => String(s ?? "").toLowerCase();
 
@@ -34,7 +39,7 @@ export const SidebarSearch = forwardRef(function SidebarSearch({ value, onChange
     const out = [];
     for (const m of leaves) {
       const label = menuLabel(m);
-      if (norm(label).includes(q) || norm(m.menu_name).includes(q)) out.push({ target: { menu_id: m.menu_id, module_name: m.module_name }, label, module: m.module_label || m.module_name, menuId: m.menu_id });
+      if (norm(label).includes(q) || norm(m.menu_name).includes(q) || norm(m.module_label).includes(q) || norm(m.module_name).includes(q)) out.push({ target: { menu_id: m.menu_id, module_name: m.module_name }, label, module: m.module_label || m.module_name, menuId: m.menu_id });
       for (const v of menuPage(m).views ?? []) {
         const partLabel = t(`setup:part_${v.key}`, { defaultValue: t(`common:view_${v.key}`, { defaultValue: v.key }) });
         const full = `${label} › ${partLabel}`;
@@ -45,13 +50,16 @@ export const SidebarSearch = forwardRef(function SidebarSearch({ value, onChange
     return out.slice(0, 12);
   }, [q, leaves, t]);
 
-  // Empty box: the next step of each setup guide.
+  // Empty box: the next step of each setup guide, the current module's
+  // first; each row names its module and guide.
+  const currentModule = useMenuContext()?.module ?? currentModuleFromPath(active);
   const nextSteps = useMemo(
     () =>
-      setup.flows
-        .filter((f) => !f.complete && f.next)
-        .map((f) => ({ target: { menu_id: f.next.menu_id, part: f.next.part }, label: [labelOf(f.next.menu_id), f.next.part ? f.next.title : null].filter(Boolean).join(" › ") || f.next.title, module: f.title, menuId: f.next.menu_id, part: f.next.part })),
-    [setup.flows, labelOf],
+      [...setup.flows]
+        .filter((f) => !f.complete && f.next && !f.next.external)
+        .sort((a, b) => Number(b.module_name === currentModule) - Number(a.module_name === currentModule))
+        .map((f) => ({ target: { menu_id: f.next.menu_id, part: f.next.part, module_name: f.module_name }, label: [labelOf(f.next.menu_id), f.next.part ? f.next.title : null].filter(Boolean).join(" › ") || f.next.title, module: [f.module_label || f.module_name, f.title].filter(Boolean).join(" · "), menuId: f.next.menu_id, part: f.next.part })),
+    [setup.flows, labelOf, currentModule],
   );
 
   const lockOf = (r) => {
@@ -99,7 +107,7 @@ export const SidebarSearch = forwardRef(function SidebarSearch({ value, onChange
             const lock = lockOf(r);
             return (
               <li key={`${r.menuId}:${r.part ?? ""}:${i}`}>
-                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => open(r)} className="flex w-full items-start justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] hover:bg-muted">
+                <button type="button" title={lock ? `${r.label} · ${lock}` : r.label} onMouseDown={(e) => e.preventDefault()} onClick={() => open(r)} className="flex w-full items-start justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] hover:bg-muted">
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-slate-700">{r.label}</span>
                     <span className="block truncate text-[10px] text-muted-foreground">

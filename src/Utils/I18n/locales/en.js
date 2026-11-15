@@ -935,6 +935,15 @@ export const forgotPassword = {
 };
 
 export const setup = {
+  whereToBegin: "Where to begin",
+  startAt: "Start at {{label}}",
+  providerSetsUp: "Your service provider sets this up. Contact them.",
+  byProvider: "Set up by your service provider",
+  usedBy: "Used by: {{list}}",
+  setupTitle: "Setup",
+  waitingOnProvider: "Waiting on your service provider",
+  showAll: "Show all ({{count}})",
+  showLess: "Show less",
   notReady: "{{label}} is not ready yet",
   itNeeds: "It needs:",
   recommendedFirst: "Recommended first",
@@ -3214,6 +3223,7 @@ export const formBuilder = {
 };
 
 export const cases = {
+  unassessedUsedNow: "Used now: AML and risk are not set up yet.",
   noReviewOutcome: "When an onboarding calls for a review",
   noReviewOutcomeHint: "There is no review queue (no Onboarding Cases), so this decides it. One that cannot be approved at all is rejected anyway.",
   unassessed_REJECT: "Reject",

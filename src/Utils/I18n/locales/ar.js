@@ -1982,6 +1982,7 @@ export const mms = {
 };
 
 export const cases = {
+  unassessedUsedNow: "مستخدم الآن: لم يتم إعداد مكافحة غسل الأموال والمخاطر بعد.",
   noReviewOutcome: "عندما يتطلب التسجيل مراجعة",
   noReviewOutcomeHint: "لا توجد قائمة مراجعة (لا توجد حالات تسجيل)، لذا يقرر هذا. ويُرفض ما لا يمكن الموافقة عليه في كل الأحوال.",
   unassessed_REJECT: "رفض",
@@ -3574,6 +3575,15 @@ export const forgotPassword = {
 };
 
 export const setup = {
+  whereToBegin: "من أين تبدأ",
+  startAt: "ابدأ من {{label}}",
+  providerSetsUp: "يتولى مزوّد الخدمة إعداد هذا. تواصل معه.",
+  byProvider: "يُعدّه مزوّد الخدمة",
+  usedBy: "مستخدم في: {{list}}",
+  setupTitle: "الإعداد",
+  waitingOnProvider: "بانتظار مزوّد الخدمة",
+  showAll: "عرض الكل ({{count}})",
+  showLess: "عرض أقل",
   notReady: "{{label}} غير جاهز بعد",
   itNeeds: "يحتاج إلى:",
   recommendedFirst: "يُنصح به أولاً",

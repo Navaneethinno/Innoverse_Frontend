@@ -1,6 +1,6 @@
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
@@ -67,13 +67,22 @@ export function CaseQueue({ config }) {
   const location = useLocation();
   // A link to one case (…/amlcases/95) opens it.
   const { id: routeId } = useParams();
-  const [openId, setOpenId] = useState(() => location.state?.caseId ?? (Number(routeId) || null));
+  // ?part=settings opens Settings (so it can be linked to); ?record= a case.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [openId, setOpenId] = useState(() => location.state?.caseId ?? (Number(routeId) || Number(searchParams.get("record")) || null));
   const [openedFor, setOpenedFor] = useState(location.state?.menuClick);
   if (location.state?.caseId && location.state.menuClick !== openedFor) {
     setOpenedFor(location.state.menuClick);
     setOpenId(location.state.caseId);
   }
-  const [settings, setSettings] = useState(false);
+  const settings = searchParams.get("part") === "settings";
+  const setSettings = (on) =>
+    setSearchParams((p) => {
+      const q = new URLSearchParams(p);
+      if (on) q.set("part", "settings");
+      else q.delete("part");
+      return q;
+    });
 
   const list = useServerList({ api: api.listPath, call: api.list });
   const load = list.reload;
