@@ -66,7 +66,7 @@ export function ToastProvider({ children }) {
     // the entrance animation (React key change forces remount).
     setToast(null);
     requestAnimationFrame(() => {
-      setToast({ id, message, variant, action: options.action });
+      setToast({ id, message, variant, actions: options.actions ?? (options.action ? [options.action] : []) });
       // sticky: stays until dismissed (a toast that carries an action).
       if (!options.sticky) timerRef.current = setTimeout(() => setToast(null), duration);
     });
@@ -101,17 +101,22 @@ export function ToastProvider({ children }) {
                 </svg>
               </span>
               <ToastBody message={toast.message} />
-              {toast.action && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    toast.action.onClick?.();
-                    dismiss();
-                  }}
-                  className="shrink-0 rounded-lg bg-white/15 px-2 py-1 text-xs font-bold text-white hover:bg-white/25"
-                >
-                  {toast.action.label}
-                </button>
+              {toast.actions.length > 0 && (
+                <span className="flex shrink-0 flex-col gap-1">
+                  {toast.actions.map((action, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        action.onClick?.();
+                        dismiss();
+                      }}
+                      className="rounded-lg bg-white/15 px-2 py-1 text-xs font-bold text-white hover:bg-white/25"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </span>
               )}
               <button type="button" className="cpt-close" onClick={dismiss} aria-label={t("dismiss")}>
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

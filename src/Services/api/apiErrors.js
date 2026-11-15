@@ -1,4 +1,8 @@
 import { i18n } from "@/Utils/I18n/i18n";
+import store from "@/Redux/Store";
+import { placeLabelIn } from "@/Components/Layout/Menu/goTo";
+
+const needText = (need) => i18n.t(`setup:need_${need.code}`, { defaultValue: need.text ?? need.code });
 // "Response messages — what to show the user" (2026-09), app-wide rule:
 //   - `message`            — the outcome, in the caller's language: ALWAYS the
 //                            headline/toast.
@@ -35,18 +39,28 @@ function getApiFieldProblems(payload) {
   return Array.isArray(list) ? list.filter((p) => p && typeof p === "object" && p.field) : [];
 }
 
-// setup.last_in_use (Admin_33 B6, Admin_34 B9): the last record other set-up
-// menus still depend on. The menus that use it, when the reply names them
-// ("Used by: Onboarding Configuration"). The field is not fixed in the spec:
-// used_by or dependents, as names or { menu_label / menu_name }.
+// setup.last_in_use (Admin_33 B6, Admin_35 §1): data[0].dependents are the
+// places that still need this record ({menu_id, part?, available}), named
+// from the user's menu tree like the locked page; data[0].needs say what
+// would be left unmet. "Used by: Form Builder › Sections. It must keep at
+// least one form field: add another before removing this one."
+// The places are kept for a moment so the error toast can link to them.
+let inUse = null;
+export const recentInUseLinks = (message) =>
+  inUse && Date.now() - inUse.at < 10000 && String(message).includes(inUse.text) ? inUse.links : [];
+
 function usedBy(payload) {
   if (payload?.error_code !== "setup.last_in_use") return [];
   const first = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
-  const list = payload.used_by ?? payload.dependents ?? first?.used_by ?? first?.dependents ?? [];
-  const names = (Array.isArray(list) ? list : [list])
-    .map((x) => (typeof x === "string" ? x : x?.menu_label ?? x?.label ?? x?.menu_name ?? x?.name))
-    .filter(Boolean);
-  return names.length ? [i18n.t("setup:usedBy", { list: names.join(", ") })] : [];
+  const menus = store.getState().menu?.menuArray;
+  const links = (first?.dependents ?? [])
+    .map((d) => ({ target: { menu_id: d.menu_id, part: d.part }, label: placeLabelIn(menus, d) }))
+    .filter((l) => l.label);
+  const lines = [];
+  if (links.length) lines.push(i18n.t("setup:usedBy", { list: links.map((l) => l.label).join(", ") }));
+  for (const n of (first?.needs ?? []).filter((x) => x.required !== false)) lines.push(i18n.t("setup:keepNeed", { need: needText(n) }));
+  if (lines.length) inUse = { text: lines[0], links, at: Date.now() };
+  return lines;
 }
 
 export function getApiErrorMessage(payload, fallback) {

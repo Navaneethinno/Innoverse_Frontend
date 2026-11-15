@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { matchRoutes, useLocation, useSearchParams } from "react-router-dom";
 import { ComingSoon } from "@/Components/Common/ComingSoon";
 import { RouteError } from "@/Components/Common/RouteError";
+import { AddQueryWatcher } from "@/Components/Layout/Menu/AddQueryWatcher";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { setApiScope } from "@/Utils/Lib/apiScope";
 import { pageElement } from "@/Router/routeSupport";
@@ -131,6 +132,7 @@ export function MenuPage({ routes }) {
   return (
     <MenuContext.Provider value={context}>
       <div key={`${menu.menu_id}:${mount}`} className="contents">
+        <AddQueryWatcher />
         {(() => {
           // The setup state (Admin_33 B5): a locked menu shows why, not its list.
           const sm = setup.menuOf(menu.menu_id);

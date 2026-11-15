@@ -36,6 +36,22 @@ export function targetPath(menus, target, currentModule) {
   return menu ? `${menuPathForItem(menu, active)}${targetQuery(target)}` : null;
 }
 
+// The app's goTo for code outside React (a toast's link), set by the layout.
+let globalGoTo = null;
+export const setGlobalGoTo = (fn) => {
+  globalGoTo = fn;
+};
+export const openTarget = (target) => globalGoTo?.(target);
+
+// A place's name from a menu tree: the menu's label, plus the tab's title
+// when it names a part ("Form Builder › Sections"). Null when not in the tree.
+export function placeLabelIn(menus, place) {
+  const m = (menus ?? []).find((x) => x?.status === 1 && Number(x.menu_id) === Number(place?.menu_id));
+  if (!m) return null;
+  const menu = menuLabel(m);
+  return place.part ? `${menu} › ${i18n.t(`setup:part_${place.part}`, { defaultValue: place.part })}` : menu;
+}
+
 export function useGoTo() {
   const menus = useSelector((state) => state.menu.menuArray);
   const navigate = useNavigate();
@@ -92,7 +108,16 @@ export function useTargetQuery() {
 // written while the form is open, removed when it closes. `adding`: the
 // form is open for a new record; `startAdd`: opens it (the page checks its
 // own Add right).
+let ownCount = 0;
+export const ownAddQuery = () => ownCount > 0;
+
 export function useAddQuery(adding, startAdd) {
+  useEffect(() => {
+    ownCount += 1;
+    return () => {
+      ownCount -= 1;
+    };
+  }, []);
   const [params, setParams] = useSearchParams();
   const [asked] = useState(() => params.get("action") === "add");
   const [start] = useState(() => startAdd);

@@ -9,6 +9,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
+import { setGlobalGoTo } from "@/Components/Layout/Menu/goTo";
 
 // The institution's setup state (Admin_33, /config/setup/state), kept in
 // the menu store. The server decides every state and dependency; this only
@@ -78,6 +79,12 @@ export function SetupStateLoader({ goTo }) {
       // No setup state (older server, refused): every menu stays open.
     }
   }, [token, chooser, picked, dispatch, menus, goTo]);
+
+  // Links outside React (the "used by" toast) open through the same goTo.
+  useEffect(() => {
+    setGlobalGoTo(goTo);
+    return () => setGlobalGoTo(null);
+  }, [goTo]);
 
   const latest = useLatest({ load });
   useEffect(() => {

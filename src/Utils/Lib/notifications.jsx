@@ -1,5 +1,7 @@
 import { showPulseToast } from "@/Components/Common/CompactPulseToast";
 import { translateToast } from "@/Utils/I18n/toastMessages";
+import { recentInUseLinks } from "@/Services/api/apiErrors";
+import { openTarget } from "@/Components/Layout/Menu/goTo";
 
 // CompactPulseToast only has two visual variants (a neutral dark pill with
 // either a check ring or an error ring) — no separate warning/info
@@ -11,6 +13,9 @@ import { translateToast } from "@/Utils/I18n/toastMessages";
 // x-api-lang and passes through unchanged. See toastMessages.js.
 // options.action: { label, onClick } shows a button on the toast.
 function show(type, message, options = {}) {
+  // A "last one in use" refusal: a link to each place that uses the record.
+  const links = type === "error" && !options.actions ? recentInUseLinks(message) : [];
+  if (links.length) options = { ...options, actions: links.map((l) => ({ label: l.label, onClick: () => openTarget(l.target) })), duration: 12000 };
   showPulseToast(translateToast(message), { ...options, variant: type === "error" ? "error" : "success" });
 }
 
