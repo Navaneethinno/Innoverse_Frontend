@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { monthStartDate, todayDate } from "@/Utils/Lib/dateFormat";
 import { activeAccountProducts } from "@/Services/Epurse/accounts.api";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -362,7 +363,7 @@ export function ProfitLossDetail({ body, currency }) {
         bare
         columns={[
           { key: "tran_date_time", label: t("date"), render: (e) => <span className="whitespace-nowrap text-xs">{accountDate(e.tran_date_time)}</span> },
-          { key: "rrn", label: "RRN", render: (e) => <span className="font-mono text-xs">{e.rrn} <CopyButton value={e.rrn} /></span> },
+          { key: "rrn", label: "RRN", render: (e) => <span className="font-mono text-xs">{e.rrn} <CopyButton value={e.rrn} /><TxnReference value={e.reference} /></span> },
           { key: "txn_type", label: t("type"), render: (e) => <span className="text-xs">{e.txn_type}</span> },
           { key: "description", label: t("description"), align: "left", render: (e) => <span className="line-clamp-2 block max-w-72 text-xs">{e.description}</span> },
           { key: "gl_name", label: t("gl"), align: "left", render: (e) => <span className="text-xs">{[e.gl_code, e.gl_name].filter(Boolean).join(" · ")}</span> },

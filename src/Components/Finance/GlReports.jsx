@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { monthStartDate, todayDate } from "@/Utils/Lib/dateFormat";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useMemo, useState } from "react";
@@ -151,7 +152,7 @@ function Statement({ currencies }) {
               bare
               columns={[
                 { key: "tran_date_time", label: t("when"), render: (l) => <span className="whitespace-nowrap text-xs">{accountDate(l.tran_date_time)}</span> },
-                { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-xs">{l.rrn} <CopyButton value={l.rrn} /></span> },
+                { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-xs">{l.rrn} <CopyButton value={l.rrn} /><TxnReference value={l.reference} /></span> },
                 { key: "description", label: t("description"), align: "left", render: (l) => <span className="text-xs">{l.description}{l.narration ? <span className="text-muted-foreground"> · {l.narration}</span> : ""}</span> },
                 { key: "debit", label: t("debit"), render: (l) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(l.debit) ? glAmount(l.debit, cur) : ""}</span> },
                 { key: "credit", label: t("credit"), render: (l) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(l.credit) ? glAmount(l.credit, cur) : ""}</span> },

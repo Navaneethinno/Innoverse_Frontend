@@ -20,6 +20,16 @@ export const agentsApi = {
   pending: (body) => request(`${agent}/pending`, body),
 };
 
+// MMS › Agents › Paga-Daki Mini (Admin_36 §2): small-business registrations
+// from USSD / the app. list: { status, search, page, limit } -> data[] +
+// pagination · get: { id } · approve / reactivate: { id, narration } ·
+// reject / suspend: { id, narration (required) }. The Agents menu's rights.
+const mini = API_ENDPOINTS.MERCHANT_ADMIN.MINI;
+export const miniApi = {
+  listPath: `${mini}/list`,
+  ...Object.fromEntries(["list", "get", "approve", "reject", "suspend", "reactivate"].map((n) => [n, (body) => request(`${mini}/${n}`, body)])),
+};
+
 // MMS › Stores (menu 208): merchants add stores in their portal, the bank
 // approves them. list: { status, merchant, search, page, limit } · get: { id }
 // (adds users) · approve / reject (narration required) / deactivate /

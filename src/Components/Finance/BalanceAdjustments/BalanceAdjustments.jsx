@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -419,7 +420,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
 export function TxnCard({ tx }) {
   const { t } = useTranslation(["deposits", "txn"]);
   const facts = [
-    [t("rrn"), <span className="font-mono">{tx.rrn} <CopyButton value={tx.rrn} /></span>],
+    [t("rrn"), <span className="font-mono">{tx.rrn} <CopyButton value={tx.rrn} /><TxnReference value={tx.reference} /></span>],
     [t("txn:type"), tx.txn_type_name ?? tx.txn_type],
     [t("date"), atIst(tx.posted_at)],
     [t("amount"), <b>{money(tx.amount, tx.currency_code)}</b>],

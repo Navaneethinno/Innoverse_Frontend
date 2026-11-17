@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -100,6 +101,7 @@ function Journal({ actions, onOpen }) {
             <span className="block text-[10px] text-muted-foreground">{atIst(x.tran_date_time)}</span>
           </button>
           <CopyButton value={x.rrn} className="mt-0.5" />
+          <TxnReference value={x.reference} />
         </span>
       ),
     },
@@ -182,6 +184,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black">{x.rrn} <CopyButton value={x.rrn} /></h1>
+              <TxnReference value={x.reference} className="text-xs" />
               <StatusBadge status={x.status} label={x.status_name} />
             </div>
             <p className="mt-1 text-sm font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</p>
@@ -345,6 +348,7 @@ export function PartyHistory({ party, onClose, onOpen }) {
               <span className="ml-1 font-mono">{p.rrn}</span>
             )}
             <CopyButton value={p.rrn} className="ml-1" />
+            <TxnReference value={p.reference} />
           </p>
         </div>
       ),

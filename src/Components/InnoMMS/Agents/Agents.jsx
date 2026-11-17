@@ -21,17 +21,31 @@ import { MerchantStores } from "../Stores/Stores";
 import { MmsStatus, RoleBadge, pageOf, partyKey, partyRef } from "../mmsShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { useSearchParams } from "react-router-dom";
+import { MiniRegistrations } from "./MiniRegistrations";
 
 // The list tabs: party type and tier filters, then the checker's queue.
 // The agents (tier and status from the list's own filters), and the role
 // requests waiting for a second user.
-const TABS = ["all", "pending"];
+const TABS = ["all", "pending", "mini"];
 
 // MMS › Agents (menu 207): merchants, agents and super agents. A role or
 // super agent change is a request a second user approves (Self: at once).
 export function Agents() {
   const { t } = useTranslation("mms");
-  const [tab, setTab] = useState("all");
+  // The tab is kept in ?part= so a link (goTo) or a refresh reopens it.
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.includes(params.get("part")) ? params.get("part") : "all";
+  const setTab = (next) =>
+    setParams(
+      (p) => {
+        const q = new URLSearchParams(p);
+        if (next === "all") q.delete("part");
+        else q.set("part", next);
+        return q;
+      },
+      { replace: true },
+    );
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
@@ -44,7 +58,7 @@ export function Agents() {
         onChange={setTab}
         labelOf={(k) => t(`agentsTab_${k}`)}
       />
-      {tab === "pending" ? <RoleRequests /> : <AgentList />}
+      {tab === "pending" ? <RoleRequests /> : tab === "mini" ? <MiniRegistrations /> : <AgentList />}
     </div>
   );
 }

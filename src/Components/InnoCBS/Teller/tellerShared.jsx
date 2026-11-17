@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { sharedReader } from "@/Hooks/useVisiblePoll";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -202,7 +203,7 @@ export function Movements({ session, currency }) {
           {
             key: "rrn",
             label: "RRN",
-            render: (m) => <span className="font-mono text-xs">{m.rrn} <CopyButton value={m.rrn} /></span>,
+            render: (m) => <span className="font-mono text-xs">{m.rrn} <CopyButton value={m.rrn} /><TxnReference value={m.reference} /></span>,
           },
         ]}
       />

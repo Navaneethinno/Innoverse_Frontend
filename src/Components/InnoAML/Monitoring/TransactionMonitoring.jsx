@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -461,7 +462,7 @@ export function TxnTable({ txns }) {
         },
         { key: "amount", label: t("amount"), align: "right", render: (x) => <b className="tabular-nums">{money(x.amount, x.currency)}</b> },
         { key: "acct_num", label: t("account"), render: (x) => <span className="font-mono text-xs">{x.acct_num} <CopyButton value={x.acct_num} /></span> },
-        { key: "rrn", label: "RRN", render: (x) => <span className="font-mono text-xs">{x.rrn} <CopyButton value={x.rrn} /></span> },
+        { key: "rrn", label: "RRN", render: (x) => <span className="font-mono text-xs">{x.rrn} <CopyButton value={x.rrn} /><TxnReference value={x.reference} /></span> },
       ]}
     />
   );

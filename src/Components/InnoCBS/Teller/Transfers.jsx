@@ -1,3 +1,4 @@
+import { TxnReference } from "@/Components/Common/TxnReference";
 import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
@@ -224,6 +225,7 @@ function TransferRows({ rows, empty, onChanged }) {
                   <span className="mt-0.5 block italic text-muted-foreground">{r.decision_note}</span>
                 )}
                 {r.rrn && <span className="mt-0.5 block font-mono text-[10px]">{r.rrn} <CopyButton value={r.rrn} /></span>}
+                <TxnReference value={r.reference} />
               </span>
             ),
           },

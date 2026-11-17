@@ -1126,6 +1126,7 @@ export const API_ENDPOINTS = {
   },
   MERCHANT_ADMIN: {
     AGENT: "/merchant/admin/agent",
+    MINI: "/merchant/admin/mini",
     STORE: "/merchant/admin/store",
     TERMINAL: "/merchant/admin/terminal",
     TERMINAL_BATCH: "/merchant/admin/terminal_batch",

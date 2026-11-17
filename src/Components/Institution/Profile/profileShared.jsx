@@ -60,6 +60,17 @@ const at = (values, path) => String(path).split(".").reduce((v, k) => v?.[k], va
 // show_when: {field, equals}; a dotted field points inside a group.
 const isShown = (field, values) => !field.show_when || at(values, field.show_when.field) === field.show_when.equals;
 
+// A text field's `pattern` (options): checked as it is typed; the server
+// still decides on save.
+const fitsPattern = (field, value) => {
+  if (!field.pattern || value == null || value === "") return true;
+  try {
+    return new RegExp(field.pattern).test(String(value));
+  } catch {
+    return true;
+  }
+};
+
 const labelOf = (options, value) => options?.find((o) => String(o.value) === String(value))?.label ?? value;
 
 // A value as read-only text (review cards, profile tab, summary panel).
@@ -165,13 +176,14 @@ function ProfileField({ field, value, onChange, values, error, locked = false, p
         return <Matrix field={field} value={value ?? {}} onChange={onChange} disabled={disabled} />;
       case "group":
         return (
-          // Numbers sit two to a row (tries beside lockout, idle beside
-          // longest), inputs lined up at the bottom; anything else is full width.
+          // Numbers and short codes (a text with a pattern: a prefix) sit two
+          // to a row (tries beside lockout, a code's length beside its prefix),
+          // inputs lined up at the bottom; anything else is full width.
           <div className={cn("mt-1.5 grid gap-3 rounded-xl border border-border bg-muted/30 p-3", field.fields.filter((f) => f.kind === "number").length > 1 && "items-end sm:grid-cols-2")}>
             {field.fields
               .filter((f) => isShown(f, values))
               .map((f) => (
-                <div key={f.key} className={cn("min-w-0", f.kind !== "number" && "sm:col-span-2")}>
+                <div key={f.key} className={cn("min-w-0", f.kind !== "number" && !(f.kind === "text" && f.pattern) && "sm:col-span-2")}>
                   <ProfileField
                     field={f.key === "default" && field.key === "language" ? { ...f, options: f.options.filter((o) => (value?.supported ?? []).includes(o.value)) } : f}
                     value={value?.[f.key]}
@@ -186,7 +198,8 @@ function ProfileField({ field, value, onChange, values, error, locked = false, p
       default:
         return (
           <input
-            className={cn(inputClass, "mt-1.5", field.key === "code" && "font-mono uppercase")}
+            className={cn(inputClass, "mt-1.5", field.key === "code" && "font-mono uppercase", !fitsPattern(field, value) && "border-red-400 focus:border-red-500")}
+            aria-invalid={!fitsPattern(field, value) || undefined}
             disabled={disabled}
             maxLength={field.max_length}
             value={value ?? ""}

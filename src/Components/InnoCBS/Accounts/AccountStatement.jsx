@@ -78,7 +78,7 @@ export function AccountStatement({ account, onClose }) {
       render: (l) => (
         <div className="min-w-0">
           <p className="text-xs font-semibold">{l.txn_short_desc || txnTypeLabel(t, l.txn_type)}</p>
-          <p className="text-[10px] text-muted-foreground">{txnTypeLabel(t, l.txn_type)} · {l.rrn}</p>
+          <p className="text-[10px] text-muted-foreground">{[txnTypeLabel(t, l.txn_type), l.rrn, l.reference].filter(Boolean).join(" · ")}</p>
         </div>
       ),
     },

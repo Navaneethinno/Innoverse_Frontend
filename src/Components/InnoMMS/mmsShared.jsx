@@ -20,6 +20,7 @@ const TONES = {
   BLOCKED: "bg-red-50 text-red-700",
   INACTIVE: "bg-slate-100 text-slate-600",
   CANCELLED: "bg-slate-100 text-slate-600",
+  SUSPENDED: "bg-amber-50 text-amber-800",
   RETIRED: "bg-slate-100 text-slate-600",
 };
 
