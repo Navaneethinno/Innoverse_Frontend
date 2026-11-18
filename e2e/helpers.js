@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 export const ORG = "ET";
 export const MAKER = "SuperAdmin1";
 export const CHECKER = "SuperAdmin2";
-export const API = process.env.E2E_API ?? "https://uatapi.innovitegrasuite.com";
+export const API = process.env.E2E_API ?? "https://etakuapi.innovitegrasuite.com";
 
 export async function fillLogin(page, org, user, secret) {
   await page.goto("/login");
