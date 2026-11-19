@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { createPortal } from "react-dom";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
 import { Button } from "@/Components/Common/Button";
@@ -21,6 +21,8 @@ const SIZES = {
 // Open modals, innermost last, so Esc only closes the one on top (e.g. a
 // confirm opened over a wizard).
 const openModals = [];
+// A dialog is busy when a button inside is loading or its footer spins.
+const BUSY_SELECTOR = '[aria-busy="true"]:not([role="dialog"]), [data-tour="modal-footer"] button .animate-spin';
 
 // Entrance animation matches the fade+scale already used by
 // InstitutionAuditModal/ProfileAuditModal (motion/react's initial/animate).
@@ -57,6 +59,9 @@ export function Modal({
   // after trying the alternative, is that the dialog's outer size varies
   // step to step rather than staying fixed.
   growWithContent = false,
+  // True while the dialog's request runs. Also detected on its own: any
+  // loading button inside (aria-busy) or a spinner in the footer.
+  busy = false,
 }) {
   const titleId = useId();
   // No modal in this codebase locked background scroll before — added here
@@ -107,10 +112,29 @@ export function Modal({
   // Esc closes the top-most modal (or just dismisses its Enter-to-submit
   // confirm when that’s showing). Skipped when something inside already
   // handled the key, such as an open dropdown or date picker.
-  const onCloseRef = useRef(onClose);
+  // While a request runs the dialog can't be closed or clicked: closing it
+  // mid-request let an approval go through after the user had backed out.
+  const boxRef = useRef(null);
+  const [autoBusy, setAutoBusy] = useState(false);
+  useEffect(() => {
+    if (!open) return undefined;
+    const box = boxRef.current;
+    if (!box) return undefined;
+    const check = () => setAutoBusy(Boolean(box.querySelector(BUSY_SELECTOR)));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(box, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-busy", "class"] });
+    return () => observer.disconnect();
+  }, [open]);
+  const working = busy || autoBusy;
+  const guardedClose = () => {
+    if (!working) onClose?.();
+  };
+
+  const onCloseRef = useRef(guardedClose);
   const pendingSubmitRef = useRef(pendingSubmit);
   useEffect(() => {
-    onCloseRef.current = onClose;
+    onCloseRef.current = guardedClose;
     pendingSubmitRef.current = pendingSubmit;
   });
   useEffect(() => {
@@ -158,7 +182,7 @@ export function Modal({
         "fixed inset-0 z-50 flex justify-center bg-slate-900/40 p-4 backdrop-blur-sm",
         growWithContent ? "items-start overflow-y-auto" : "items-center",
       )}
-      onClick={onClose}
+      onClick={guardedClose}
       role="presentation"
     >
       <motion.div
@@ -175,8 +199,18 @@ export function Modal({
           growWithContent ? "my-4" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
+        ref={boxRef}
         role="dialog"
         aria-modal="true"
+        aria-busy={working || undefined}
+        // Every click inside is held back while the request runs, except on
+        // the button doing the work (it is disabled anyway).
+        onClickCapture={(event) => {
+          if (working) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
         aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={handleKeyDown}
@@ -190,7 +224,9 @@ export function Modal({
           }
         }}
       >
-        <div className="h-1 shrink-0 bg-brand-gradient" />
+        <div className="relative h-1 shrink-0 overflow-hidden bg-brand-gradient">
+          {working && <span className="modal-busy-bar absolute inset-y-0 w-1/3 bg-white/70" />}
+        </div>
 
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -206,9 +242,11 @@ export function Modal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={guardedClose}
+            disabled={working}
+            title={working ? t("modalBusyClose") : undefined}
             aria-label={t("close")}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-7 w-7 disabled:cursor-not-allowed disabled:opacity-40 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X size={15} />
           </button>
@@ -217,7 +255,8 @@ export function Modal({
         <div
           data-tour="modal-body"
           className={cn(
-            "thin-scrollbar px-5 py-4",
+            "thin-scrollbar px-5 py-4 transition-opacity",
+            working && "pointer-events-none opacity-60",
             growWithContent ? "overflow-visible" : "min-h-0 flex-1 overflow-y-auto",
             bodyClassName,
           )}
@@ -232,8 +271,15 @@ export function Modal({
             className={cn(
               "flex shrink-0 items-center justify-end gap-2 border-t border-border bg-muted/80 px-5 py-3",
               !growWithContent && "sticky bottom-0",
+              working && "cursor-progress [&_button:not([aria-busy])]:opacity-50",
             )}
           >
+            {working && (
+              <span role="status" className="mr-auto flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Loader2 size={13} className="animate-spin text-[var(--primary)]" />
+                {t("modalBusy")}
+              </span>
+            )}
             {footer}
           </div>
         )}

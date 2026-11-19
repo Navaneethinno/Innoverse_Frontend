@@ -27,6 +27,7 @@ export function ConfirmDialog({
     <Modal
       open={open}
       onClose={onClose}
+      busy={pending}
       title={title}
       icon={<AlertTriangle size={15} />}
       size="sm"
@@ -41,6 +42,7 @@ export function ConfirmDialog({
           <button
             type="button"
             disabled={pending || confirmDisabled}
+            aria-busy={pending || undefined}
             onClick={onConfirm}
             className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
             style={{ background: destructive ? "var(--destructive)" : "var(--primary)" }}

@@ -194,6 +194,8 @@ export const common = {
   updatedBy: "Updated by",
   reason: "Reason",
   confirmSubmitQuestion: "Are you sure you want to submit?",
+  modalBusy: "Working… please wait, this closes when it finishes.",
+  modalBusyClose: "Can't close while the request is running",
   noMatches: "No matches",
   typeToSearch: "Type to search...",
   confirmActionQuestion: "Are you sure you want to {{action}} {{name}}?",

@@ -144,6 +144,8 @@ export const common = {
   updatedBy: "Atualizado por",
   reason: "Motivo",
   confirmSubmitQuestion: "Tem certeza de que deseja enviar?",
+  modalBusy: "A processar… aguarde, fecha quando terminar.",
+  modalBusyClose: "Não é possível fechar enquanto o pedido está em curso",
   noMatches: "Nenhum resultado",
   typeToSearch: "Digite para pesquisar...",
   confirmActionQuestion: "Tem certeza de que deseja {{action}} {{name}}?",

@@ -92,6 +92,7 @@ export function NarrationDialog({ title, hint, confirmLabel, variant = "primary"
     <Modal
       open
       onClose={onClose}
+      busy={busy}
       title={title}
       size={size}
       footer={

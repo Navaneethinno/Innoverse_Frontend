@@ -2918,6 +2918,8 @@ export const common = {
   updatedBy: "حدّثه",
   reason: "السبب",
   confirmSubmitQuestion: "هل أنت متأكد من الإرسال؟",
+  modalBusy: "جارٍ التنفيذ… يرجى الانتظار، ستُغلق عند الانتهاء.",
+  modalBusyClose: "لا يمكن الإغلاق أثناء تنفيذ الطلب",
   noMatches: "لا توجد تطابقات",
   typeToSearch: "اكتب للبحث...",
   confirmActionQuestion: "هل أنت متأكد من {{action}} {{name}}؟",
