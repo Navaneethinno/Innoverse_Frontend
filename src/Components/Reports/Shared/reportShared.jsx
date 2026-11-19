@@ -61,7 +61,7 @@ export function PeriodChips({ value, onChange, allTime = false }) {
       ))}
       {value.period === "CUSTOM" && (
         <span className="ml-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-          {t("from")} <DateInput value={value.from} onChange={(e) => onChange({ from: e.target.value })} className={dateInput} />
+          {t("from")} <DateInput value={value.from} max={value.to || undefined} onChange={(e) => onChange({ from: e.target.value })} className={dateInput} />
           {t("to")} <DateInput value={value.to} min={value.from || undefined} onChange={(e) => onChange({ to: e.target.value })} className={dateInput} />
         </span>
       )}

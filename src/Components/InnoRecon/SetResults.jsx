@@ -180,8 +180,8 @@ export function SetGroups({ set }) {
       <div className="flex flex-wrap items-end gap-2">
         <SearchBox className="min-w-56 flex-1" search={typed} onSearch={setTyped} placeholder={t("recordSearchHint")} />
         <FilterSelect className="w-44" value={status} onChange={setStatus} options={GROUP_STATUSES.map((s) => ({ value: s, label: s ? label(t, "status", s) : t("allStatuses") }))} />
-        <DateInput className={`${inputClass} w-40`} value={from} onChange={(e) => setFrom(e.target.value)} placeholder={t("from")} />
-        <DateInput className={`${inputClass} w-40`} value={to} onChange={(e) => setTo(e.target.value)} placeholder={t("to")} />
+        <DateInput className={`${inputClass} w-40`} value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} placeholder={t("from")} />
+        <DateInput className={`${inputClass} w-40`} value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} placeholder={t("to")} />
       </div>
       {list.loading && !list.items.length ? (
         <div className="flex justify-center py-6">

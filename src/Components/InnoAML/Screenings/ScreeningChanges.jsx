@@ -102,11 +102,11 @@ export function ScreeningChanges({ bands }) {
             />
             <label className="flex items-center gap-1 text-xs text-muted-foreground">
               {t("aml:from")}
-              <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
+              <DateInput value={filters.from} max={filters.to || undefined} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
             </label>
             <label className="flex items-center gap-1 text-xs text-muted-foreground">
               {t("aml:to")}
-              <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
+              <DateInput value={filters.to} min={filters.from || undefined} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
             </label>
           </>
         }

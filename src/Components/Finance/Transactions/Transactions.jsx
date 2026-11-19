@@ -366,11 +366,11 @@ export function PartyHistory({ party, onClose, onOpen }) {
       <div className="mb-3 flex flex-wrap items-end gap-2">
         <label className={labelClass}>
           {t("from")}
-          <DateInput className={cn(inputClass, "mt-1")} value={range.from} onChange={(e) => (setRange((r) => ({ ...r, from: e.target.value })), setPage(1))} />
+          <DateInput className={cn(inputClass, "mt-1")} value={range.from} max={range.to || undefined} onChange={(e) => (setRange((r) => ({ ...r, from: e.target.value })), setPage(1))} />
         </label>
         <label className={labelClass}>
           {t("to")}
-          <DateInput className={cn(inputClass, "mt-1")} value={range.to} onChange={(e) => (setRange((r) => ({ ...r, to: e.target.value })), setPage(1))} />
+          <DateInput className={cn(inputClass, "mt-1")} value={range.to} min={range.from || undefined} onChange={(e) => (setRange((r) => ({ ...r, to: e.target.value })), setPage(1))} />
         </label>
       </div>
       <DataTable

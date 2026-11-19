@@ -434,8 +434,8 @@ function CtrList() {
     <Section className="grid gap-3">
       <p className="text-xs text-muted-foreground">{t("ctrHint")}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <DateInput className={cn(inputClass, "w-40")} value={filters.from} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-40")} value={filters.to} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-40")} value={filters.from} max={filters.to || undefined} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-40")} value={filters.to} min={filters.from || undefined} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
         <div className="w-40">
           <Field field={{ type: "select", blank: t("anyStatus"), options: ["GENERATED", "FILED"].map((v) => ({ value: v, label: t(`ctr_${v}`) })) }} value={filters.status} onChange={set("status")} />
         </div>

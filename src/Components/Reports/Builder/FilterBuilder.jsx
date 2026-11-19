@@ -216,10 +216,12 @@ function ValueInput({ source, field, rule, periods, onChange }) {
       />
     );
   const dates = DATE_TYPES.includes(field.type);
-  const one = (v, set, placeholder) =>
+  const one = (v, set, placeholder, limits = {}) =>
     dates ? (
       <DateInput
         value={v ?? ""}
+        min={limits.min || undefined}
+        max={limits.max || undefined}
         onChange={(e) => set(e.target.value)}
         className={cn(inputClass, "w-auto min-w-[9rem]")}
       />
@@ -236,9 +238,9 @@ function ValueInput({ source, field, rule, periods, onChange }) {
     const [from, to] = rule.value ?? ["", ""];
     return (
       <span className="flex min-w-0 flex-1 items-center gap-1.5 text-xs text-muted-foreground">
-        {one(from, (v) => onChange([v, to]), t("from"))}
+        {one(from, (v) => onChange([v, to]), t("from"), { max: to })}
         {t("and")}
-        {one(to, (v) => onChange([from, v]), t("to"))}
+        {one(to, (v) => onChange([from, v]), t("to"), { min: from })}
       </span>
     );
   }

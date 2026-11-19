@@ -42,7 +42,12 @@ export function DateInput({ value, onChange, min, max, disabled, className, titl
   };
   const show = () => {
     if (disabled) return;
-    setCursor(selected ?? parse(todayIso()));
+    // An empty field opens on today, or on the nearest allowed month (a
+    // "to" date opens beside its "from" date).
+    const lo = min ? String(min).slice(0, 10) : "";
+    const hi = max ? String(max).slice(0, 10) : "";
+    const start = lo && todayIso() < lo ? lo : hi && todayIso() > hi ? hi : todayIso();
+    setCursor(selected ?? parse(start));
     setView("days");
     setOpen(true);
   };

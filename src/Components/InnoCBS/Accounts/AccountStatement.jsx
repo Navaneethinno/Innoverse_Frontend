@@ -107,11 +107,11 @@ export function AccountStatement({ account, onClose }) {
       >
         <label className="text-xs font-semibold text-slate-700">
           {t("from")}
-          <DateInput className={cn(inputClass, "mt-1")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.from} max={filters.to || undefined} onChange={(e) => set("from")(e.target.value)} />
         </label>
         <label className="text-xs font-semibold text-slate-700">
           {t("to")}
-          <DateInput className={cn(inputClass, "mt-1")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.to} min={filters.from || undefined} onChange={(e) => set("to")(e.target.value)} />
         </label>
         <label className="text-xs font-semibold text-slate-700">
           {t("txnType")}

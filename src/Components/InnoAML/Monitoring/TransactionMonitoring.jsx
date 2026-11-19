@@ -167,8 +167,8 @@ function Alerts() {
         ))}
         <input className={cn(inputClass, "w-32")} placeholder={t("ruleCode")} value={filters.rule_code} onChange={(e) => set("rule_code")(e.target.value.toUpperCase())} />
         <input type="search" className={cn(inputClass, "w-44")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-36")} value={filters.from} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-36")} value={filters.to} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.from} max={filters.to || undefined} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.to} min={filters.from || undefined} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
         <div className="ml-auto flex gap-2">
           {can("Edit") && picked.length > 0 && (
             <Button size="sm" variant="danger" icon={ShieldAlert} onClick={() => setEscalating(true)}>
