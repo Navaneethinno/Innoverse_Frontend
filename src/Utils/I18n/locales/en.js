@@ -5997,7 +5997,7 @@ export const cards = {
   bureauKeyNone: "Not set: files are readable CSV",
   embossAgainReason: "Why is the file needed again?",
   embossAgainOtherUser: "A different user than the one who made the last file must make it again.",
-  embossPlainWarning: "This emboss file is NOT encrypted: anyone who opens it can read the card numbers and CVVs. Add the bureau's PGP key to the issuance group.",
+  embossPlainWarning: "Test file: not encrypted (UAT only).",
   makeFile: "Make and save the file",
   missing: "Missing",
   nameOnCard: "Name on the card",

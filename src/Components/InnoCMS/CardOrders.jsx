@@ -147,7 +147,9 @@ function NewOrder({ groups, onClose, onDone }) {
   const [busy, setBusy] = useState(false);
   const group = groups.find((g) => String(g.id) === groupId);
   const personalised = group?.perso_mode === "PERSONALIZED";
-  const max = group?.max_quantity ?? 500;
+  // No max_quantity (null or missing) means no upper limit.
+  const max = group?.max_quantity == null || group.max_quantity === "" ? null : Number(group.max_quantity);
+  const fits = (n) => max == null || n <= max;
 
   useEffect(() => {
     setPicked([]);
@@ -165,7 +167,7 @@ function NewOrder({ groups, onClose, onDone }) {
   }, [personalised, group?.id, group?.card_product_id]);
 
   const count = holders.length + picked.length;
-  const ready = group && (personalised ? count > 0 && count <= max && (!group.emboss_name_required || holders.every((h) => h.name_on_card.trim())) : Number(quantity) >= 1 && Number(quantity) <= max);
+  const ready = group && (personalised ? count > 0 && fits(count) && (!group.emboss_name_required || holders.every((h) => h.name_on_card.trim())) : Number(quantity) >= 1 && fits(Number(quantity)));
   const send = async () => {
     setBusy(true);
     setError("");
@@ -232,8 +234,8 @@ function NewOrder({ groups, onClose, onDone }) {
         </Labelled>
         {group && personalised && group.customer_type && group.customer_type !== "ALL" && <p className="text-xs text-muted-foreground">{t("groupHolderType", { type: t(`holder_${group.customer_type}`, { defaultValue: group.customer_type }) })}</p>}
         {group && !personalised && (
-          <Labelled required label={t("numberOfCards")} hint={t("upToN", { count: max })}>
-            <input className={inputClass} inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+          <Labelled required label={t("numberOfCards")} hint={max == null ? undefined : t("upToN", { count: max })}>
+            <input className={inputClass} inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))} />
           </Labelled>
         )}
         {personalised && (
@@ -301,7 +303,7 @@ function NewOrder({ groups, onClose, onDone }) {
                 <p className="text-sm text-muted-foreground">{t("noOrderableRequests")}</p>
               )}
             </div>
-            {count > max && <p className="text-xs font-semibold text-amber-700">{t("upToN", { count: max })}</p>}
+            {max != null && count > max && <p className="text-xs font-semibold text-amber-700">{t("upToN", { count: max })}</p>}
           </>
         )}
         <Labelled label={t("narrationOptional")}>
@@ -544,7 +546,7 @@ function OrderView({ id, onBack }) {
             const file = rowsOf(response)[0];
             saveEmbossFile(file);
             cardsIntoEnvelope();
-            if (!file?.encrypted) notifications.error(t("embossPlainWarning"));
+            if (!file?.encrypted) notifications.info(t("embossPlainWarning"));
           })} />
       )}
       {dialog === "receive" && <ReceiveDialog cards={cards.filter((c) => c.issuance_status !== "CANCELLED")} busy={busy} onClose={() => setDialog(null)} onSave={(missing, narration) => act(() => cardOrdersApi.receive({ id, missing_card_ids: missing, ...(narration ? { narration } : {}) }))} />}

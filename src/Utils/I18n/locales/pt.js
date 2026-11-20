@@ -5910,7 +5910,7 @@ export const cards = {
   bureauKeyNone: "Não definida: ficheiros CSV legíveis",
   embossAgainReason: "Porque é preciso o ficheiro outra vez?",
   embossAgainOtherUser: "Tem de ser outro utilizador, diferente de quem gerou o último ficheiro.",
-  embossPlainWarning: "Este ficheiro NÃO está cifrado: quem o abrir lê os números e CVVs. Adicione a chave PGP do bureau ao grupo de emissão.",
+  embossPlainWarning: "Ficheiro de teste: não cifrado (apenas UAT).",
   makeFile: "Gerar e guardar o ficheiro",
   missing: "Em falta",
   nameOnCard: "Nome no cartão",

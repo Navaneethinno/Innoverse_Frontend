@@ -70,6 +70,7 @@ export function PreFiles() {
       const reply = rowsOf(await preFilesApi.generate({ issuance_group_id: Number(groupId), card_ids: [...ticked.keys()], ...(reason ? { reason } : {}) }))[0];
       if (reply?.content_base64) savePreFile(reply);
       notifications.success(t("preFileMade", { count: Number(reply?.card_count ?? 0), ref: reply?.job_ref }));
+      if (reply && reply.encrypted === false) notifications.info(t("embossPlainWarning"));
       setAsking(false);
       setTicked(new Map());
       load();

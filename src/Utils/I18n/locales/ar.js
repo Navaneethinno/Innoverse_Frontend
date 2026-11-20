@@ -8294,7 +8294,7 @@ export const cards = {
   "bureauKeyNone": "غير محدد: الملفات بصيغة CSV مقروءة",
   "embossAgainReason": "لماذا يلزم الملف مرة أخرى؟",
   "embossAgainOtherUser": "يجب أن يعيد إنشاءه مستخدم غير الذي أنشأ آخر ملف.",
-  "embossPlainWarning": "ملف الطباعة البارزة هذا غير مشفر: يستطيع أي شخص يفتحه قراءة أرقام البطاقات ورموز CVV. أضف مفتاح PGP الخاص بالمكتب إلى مجموعة الإصدار.",
+  "embossPlainWarning": "ملف اختبار: غير مشفر (UAT فقط).",
   "makeFile": "إنشاء الملف وحفظه",
   "missing": "مفقود",
   "nameOnCard": "الاسم على البطاقة",
