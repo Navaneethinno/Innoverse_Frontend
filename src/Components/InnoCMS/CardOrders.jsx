@@ -3,7 +3,7 @@ import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, X, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, FileDown, OctagonX, PackageCheck, Plus, X, XCircle } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -510,7 +510,14 @@ function OrderView({ id, onBack, onTrack }) {
         notifications.warning(t("fileTimedOut"), { duration: 12000 });
         setDialog(null);
         await reload();
-      } else notifications.error(error.message);
+      } else {
+        notifications.error(error.message);
+        // The order moved on meanwhile (e.g. finished before Stop): show it as it is now.
+        if (error.code === "order_not_pending") {
+          setDialog(null);
+          await reload();
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -531,6 +538,7 @@ function OrderView({ id, onBack, onTrack }) {
   const buttons = [
     a.cancel && can("Add") && { key: "cancel", label: t("withdrawOrder"), icon: Ban, run: ask("cancel") },
     a.deauth && can("Authorize") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: ask("deauth") },
+    a.stop && order.order_status === "GENERATING" && can("Authorize") && { key: "stop", label: t("stopOrder"), icon: OctagonX, variant: "danger", run: ask("stop") },
     a.auth && can("Authorize") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
     a.emboss && can("Authorize") && { key: "emboss", label: t("emboss"), icon: FileDown, variant: "primary", run: ask("emboss") },
     a.receive && can("Add") && { key: "receive", label: t("receive"), icon: PackageCheck, variant: "primary", run: ask("receive") },
@@ -543,6 +551,7 @@ function OrderView({ id, onBack, onTrack }) {
       if (rowsOf(r)[0]?.order_status === "GENERATING") onTrack?.(id);
       return r;
     })],
+    stop: [t("stopOrderTitle"), t("stopOrderHint"), t("stopOrder"), "danger", (n) => cardOrdersApi.stop({ id, ...(n.narration ? { reason: n.narration } : {}) })],
     deauth: [t("rejectOrder"), t("rejectOrderHint"), t("reject"), "danger", (n) => cardOrdersApi.deauth({ id, ...n })],
     cancel: [t("withdrawOrder"), t("withdrawOrderHint"), t("withdrawOrder"), "danger", (n) => cardOrdersApi.cancel({ id, ...(n.narration ? { reason: n.narration } : {}) })],
     receive_auth: [t("approveReceipt"), t("approveReceiptHint"), t("approve"), "primary", (n) => cardOrdersApi.receive_auth({ id, ...n })],

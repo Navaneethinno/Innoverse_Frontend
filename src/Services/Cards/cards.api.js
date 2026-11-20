@@ -23,7 +23,7 @@ export const cardRequestsApi = calls(API_ENDPOINTS.CARD.REQUEST, ["list", "get",
 // card numbers and is never stored), so those two calls wait up to 5 minutes.
 const FILE_WAIT = { timeoutMs: 5 * 60 * 1000 };
 export const cardOrdersApi = {
-  ...calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "receive", "receive_auth", "receive_deauth"]),
+  ...calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "stop", "receive", "receive_auth", "receive_deauth"]),
   emboss: (body = {}) => request(`${API_ENDPOINTS.CARD.ORDER}/emboss`, body, FILE_WAIT),
 };
 // Card Returns (252): a holder sends instant cards back; a checker decides each card.
