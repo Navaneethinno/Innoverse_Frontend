@@ -9,6 +9,8 @@ import { LoadingScreen } from "@/Pages/Loading/LoadingScreen";
 import { EnvironmentBanner } from "@/Components/Common/EnvironmentBanner";
 import { NewVersionBar } from "@/Components/Common/NewVersionBar";
 import { appRouter } from "@/Router/Router";
+import { MAINTENANCE } from "@/Utils/Config/maintenance";
+import { MaintenancePage } from "@/Pages/Loading/MaintenancePage";
 import store from "@/Redux/Store";
 import theme from "./theme";
 import { useEffect } from "react";
@@ -30,6 +32,16 @@ function AuthSessionInitializer() {
   return null;
 }
 function App() {
+  // The site switched off: only the maintenance screen (and the new-version
+  // bar, so open tabs pick up the build that switches it back on).
+  if (MAINTENANCE) {
+    return (
+      <>
+        <NewVersionBar />
+        <MaintenancePage />
+      </>
+    );
+  }
   return (
     <Provider store={store}>
       <AuthSessionInitializer />
