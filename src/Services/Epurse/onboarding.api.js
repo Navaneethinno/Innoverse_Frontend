@@ -66,13 +66,17 @@ export async function requestStream(path, body, onEvent, signal) {
   }
 }
 
-export async function request(path, body = {}) {
+export async function request(path, body = {}, { timeoutMs = 30000 } = {}) {
   const controller = new AbortController();
   // save_config carries a whole configuration tree — allow more than the 10s
   // the small master calls use.
-  const timeout = window.setTimeout(() => controller.abort(), 30000);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await post(path, body, controller.signal);
+    const response = await post(path, body, controller.signal).catch((error) => {
+      // timedOut: the server may still have done it; screens check before retrying.
+      if (error?.name === "AbortError") throw Object.assign(new Error("Request timed out"), { timedOut: true });
+      throw error;
+    });
     const payload = (response.headers.get("content-type") ?? "").includes("application/json")
       ? await response.json().catch(() => null)
       : null;

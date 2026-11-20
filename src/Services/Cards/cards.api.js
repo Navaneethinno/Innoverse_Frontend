@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { uuid } from "@/Utils/Lib/uuid";
-import { calls } from "@/Services/Epurse/onboarding.api";
+import { calls, request } from "@/Services/Epurse/onboarding.api";
 
 // The CARDS module (Web admin: cards, 3 Oct 2026). Every api carries
 // `listPath`, its live channel's list path.
@@ -19,7 +19,13 @@ export const cardNumberLayoutsApi = calls(API_ENDPOINTS.CARD.NUMBER_LAYOUT, [...
 // Operations: Cards (198), Card Requests (199), Card Orders (200), Card Stock (201).
 export const cardsApi = calls(API_ENDPOINTS.CARD.INSTANCE, ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue", "controls", "controls_set", "reveal_start", "reveal"]);
 export const cardRequestsApi = calls(API_ENDPOINTS.CARD.REQUEST, ["list", "get", "add", "accept", "reject", "deliver"]);
-export const cardOrdersApi = calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
+// Making an emboss / PRE file runs inside the request (the file holds full
+// card numbers and is never stored), so those two calls wait up to 5 minutes.
+const FILE_WAIT = { timeoutMs: 5 * 60 * 1000 };
+export const cardOrdersApi = {
+  ...calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "receive", "receive_auth", "receive_deauth"]),
+  emboss: (body = {}) => request(`${API_ENDPOINTS.CARD.ORDER}/emboss`, body, FILE_WAIT),
+};
 // Card Returns (252): a holder sends instant cards back; a checker decides each card.
 export const cardReturnsApi = calls(API_ENDPOINTS.CARD.RETURN, ["list", "get", "add", "auth"]);
 // Card Reports (253): stock by holder, cards by status group, cards expiring soon.
@@ -28,7 +34,10 @@ export const cardReportsApi = { ...calls(API_ENDPOINTS.CARD.REPORT, ["stock", "s
 const cardStockCalls = calls(API_ENDPOINTS.CARD.STOCK, ["options", "list", "assign", "issue"]);
 export const cardStockApi = { ...cardStockCalls, list: ({ filters, ...body } = {}) => cardStockCalls.list({ ...body, ...filters }) };
 // PRE Files (158): one emboss file from cards across an issuance group's orders.
-export const preFilesApi = calls(API_ENDPOINTS.CARD.PREFILE, ["list", "generate", "jobs"]);
+export const preFilesApi = {
+  ...calls(API_ENDPOINTS.CARD.PREFILE, ["list", "jobs"]),
+  generate: (body = {}) => request(`${API_ENDPOINTS.CARD.PREFILE}/generate`, body, FILE_WAIT),
+};
 
 // A fresh idempotency key per click (issue, request, reissue): sent again,
 // the server answers what it already did and charges nothing twice.

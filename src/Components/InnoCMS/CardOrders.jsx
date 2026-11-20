@@ -25,7 +25,8 @@ import { cardsIntoEnvelope } from "@/Utils/Lib/flourish";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from "../InnoCBS/Deposits/depositShared";
 import { MiniTable } from "../InnoCBS/Loans/loanShared";
-import { CardNumber, CardPill, Labelled, cardWord } from "./cardOpsShared";
+import { CardNumber, CardPill, Labelled, OrderProgress, cardWord, noteFileKind } from "./cardOpsShared";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { actorText } from "@/Utils/Lib/actor";
 import { PageTitle } from "@/Components/Common/PageTitle";
 
@@ -43,6 +44,8 @@ function saveEmbossFile(reply) {
 // orders take a quantity (blank stock), personalised ones take requests.
 // Authorise (card numbers made), emboss (the file for the bureau), receive
 // the plastics, and authorise the receipt.
+const BIG_ORDER = 10000;
+
 export function CardOrders({ receiving = false }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
@@ -93,7 +96,12 @@ export function CardOrders({ receiving = false }) {
     { key: "product_code", label: t("product"), render: (o) => <span className="text-xs">{o.product_code}</span> },
     { key: "perso_mode", label: t("persoMode"), render: (o) => <span className="text-xs">{cardWord(t, "opt", o.perso_mode)}</span> },
     { key: "quantity", label: t("quantity"), render: (o) => <span className="text-xs font-bold tabular-nums">{o.quantity}</span> },
-    { key: "order_status", label: t("status"), render: (o) => <span className="inline-flex flex-wrap gap-1"><CardPill prefix="ord" code={o.order_status} />{o.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}</span> },
+    { key: "order_status", label: t("status"), render: (o) => (
+        <div>
+          <span className="inline-flex flex-wrap gap-1"><CardPill prefix="ord" code={o.order_status} />{o.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}</span>
+          <OrderProgress order={o} compact />
+        </div>
+      ) },
     { key: "created_by", label: t("orderedBy"), render: (o) => <span className="text-xs">{actorText(o, "created_by", "")}</span> },
     { key: "created_time", label: t("orderedAt"), render: (o) => <span className="whitespace-nowrap text-xs">{accountDate(o.created_time)}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (o) => <RowActions buttons={{ view: true }} onView={() => setOpenId(o.id)} /> },
@@ -145,6 +153,8 @@ function NewOrder({ groups, onClose, onDone }) {
   const [picked, setPicked] = useState([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Over 10,000 cards the order is confirmed first (a typo guard; the API has no cap).
+  const [confirmBig, setConfirmBig] = useState(false);
   const group = groups.find((g) => String(g.id) === groupId);
   const personalised = group?.perso_mode === "PERSONALIZED";
   // No max_quantity (null or missing) means no upper limit.
@@ -168,7 +178,9 @@ function NewOrder({ groups, onClose, onDone }) {
 
   const count = holders.length + picked.length;
   const ready = group && (personalised ? count > 0 && fits(count) && (!group.emboss_name_required || holders.every((h) => h.name_on_card.trim())) : Number(quantity) >= 1 && fits(Number(quantity)));
+  const total = personalised ? count : Number(quantity);
   const send = async () => {
+    setConfirmBig(false);
     setBusy(true);
     setError("");
     try {
@@ -212,6 +224,7 @@ function NewOrder({ groups, onClose, onDone }) {
   const setHolder = (i, patch) => setHolders((list) => list.map((h, j) => (j === i ? { ...h, ...patch } : h)));
 
   return (
+    <>
     <Modal
       open
       onClose={onClose}
@@ -222,7 +235,7 @@ function NewOrder({ groups, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={personalised && !count ? t("orderNeedsCards") : undefined} onClick={send}>
+          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={personalised && !count ? t("orderNeedsCards") : undefined} onClick={() => (total > BIG_ORDER ? setConfirmBig(true) : send())}>
             {personalised && count > 0 ? t("fileOrderN", { count }) : t("fileOrder")}
           </Button>
         </>
@@ -312,6 +325,15 @@ function NewOrder({ groups, onClose, onDone }) {
         <Problems message={error} />
       </div>
     </Modal>
+    <ConfirmDialog
+      open={confirmBig}
+      title={t("bigOrderTitle")}
+      description={t("bigOrderConfirm", { count: total.toLocaleString() })}
+      confirmLabel={t("fileOrder")}
+      onClose={() => setConfirmBig(false)}
+      onConfirm={send}
+    />
+    </>
   );
 }
 
@@ -437,7 +459,12 @@ function OrderView({ id, onBack }) {
       setDialog(null);
       await reload();
     } catch (error) {
-      notifications.error(error.message);
+      // Timed out: it may still have happened, so no retry; show what's there.
+      if (error.timedOut) {
+        notifications.warning(t("fileTimedOut"), { duration: 12000 });
+        setDialog(null);
+        await reload();
+      } else notifications.error(error.message);
     } finally {
       setBusy(false);
     }
@@ -491,6 +518,7 @@ function OrderView({ id, onBack }) {
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
         {order.narration?.trim() && <p className="mt-2 text-xs italic">“{order.narration}”</p>}
+        <OrderProgress order={order} />
       </div>
 
       <div className="mb-4 grid gap-4 2xl:grid-cols-2">
@@ -546,7 +574,7 @@ function OrderView({ id, onBack }) {
             const file = rowsOf(response)[0];
             saveEmbossFile(file);
             cardsIntoEnvelope();
-            if (!file?.encrypted) notifications.info(t("embossPlainWarning"));
+            noteFileKind(t, file, notifications);
           })} />
       )}
       {dialog === "receive" && <ReceiveDialog cards={cards.filter((c) => c.issuance_status !== "CANCELLED")} busy={busy} onClose={() => setDialog(null)} onSave={(missing, narration) => act(() => cardOrdersApi.receive({ id, missing_card_ids: missing, ...(narration ? { narration } : {}) }))} />}
@@ -626,6 +654,7 @@ function EmbossDialog({ again, busy, onClose, onMake }) {
         </Labelled>
       )}
       <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("embossSensitive")}</p>
+      {busy && <p className="mt-3 text-xs font-semibold text-[var(--primary)]">{t("makingFile")}</p>}
     </Modal>
   );
 }

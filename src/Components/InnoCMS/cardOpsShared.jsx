@@ -34,6 +34,8 @@ const TONE = {
   IN_PRODUCTION: "bg-blue-50 text-blue-700",
   GENERATED: "bg-blue-50 text-blue-700",
   PREFILED: "bg-blue-50 text-blue-700",
+  GENERATING: "bg-amber-50 text-amber-900 animate-pulse",
+  FAILED: "bg-red-50 text-red-700",
   IN_INVENTORY: "bg-blue-50 text-blue-700",
   BATCH_RECEIVED: "bg-blue-50 text-blue-700",
   PAN_GENERATED: "bg-blue-50 text-blue-700",
@@ -44,6 +46,35 @@ const TONE = {
   REJECTED: "bg-red-50 text-red-700",
   CANCELLED: "bg-red-50 text-red-700",
 };
+
+// After an emboss / PRE file is made: a plain UAT test file gets a soft
+// note; a plain file that isn't a test file gets a real warning.
+export function noteFileKind(t, reply, notifications) {
+  if (!reply || reply.encrypted !== false) return;
+  if (reply.test_file === true) notifications.info(t("cards:embossTestFile"));
+  else notifications.warning(t("cards:embossPlainWarning"), { duration: 12000 });
+}
+
+// An order still making its cards: "Making cards: 400 of 1,000" and a bar.
+// A FAILED one: why it stopped.
+export function OrderProgress({ order, compact = false }) {
+  const { t } = useTranslation("cards");
+  if (order?.order_status === "FAILED" && order.generate_error) {
+    return <p className={cn("font-semibold text-red-700", compact ? "text-[10px]" : "mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs")}>{t("generateFailed", { error: order.generate_error })}</p>;
+  }
+  if (order?.order_status !== "GENERATING") return null;
+  const total = Number(order.quantity) || 0;
+  const made = Math.min(Number(order.cards_made) || 0, total);
+  const pct = total ? Math.round((made / total) * 100) : 0;
+  return (
+    <div className={compact ? "mt-1 w-32" : "mt-3"}>
+      <p className={cn("font-semibold text-amber-900", compact ? "text-[10px]" : "mb-1 text-xs")}>{t("makingCards", { made: made.toLocaleString(), total: total.toLocaleString() })}</p>
+      <div className="h-1.5 overflow-hidden rounded-full bg-amber-100" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div className="h-full rounded-full bg-amber-500 transition-[width] duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
 
 // One status as a pill; `prefix` picks its words (ops, iss, req, ord, inv).
 export function CardPill({ prefix, code }) {

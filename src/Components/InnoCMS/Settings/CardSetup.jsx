@@ -88,8 +88,12 @@ export function CardSetupPage({ kind }) {
 }
 // A list of records from options ({ id, code, name, status, status_name })
 // as select options; one that is not active says so.
-export function pickOptions(list, extra) {
-  return (list ?? []).map((o) => ({
+// A record that isn't Active (status 1) is listed only when it is the
+// form's current value (a BIN deactivated after a product took it); it
+// shows its status, e.g. "51990876 · Inactive". New choices are Active only.
+const offered = (list, current) => (list ?? []).filter((o) => o.status == null || Number(o.status) === 1 || (current != null && current !== "" && String(o.id) === String(current)));
+export function pickOptions(list, extra, current) {
+  return offered(list, current).map((o) => ({
     value: String(o.id),
     label: [[o.code, o.name].filter(Boolean).join(" · "), extra?.(o), Number(o.status) !== 1 && o.status_name].filter(Boolean).join(" · "),
   }));
@@ -97,8 +101,9 @@ export function pickOptions(list, extra) {
 // The same, for a list where another record may hold an option (`taken_by`):
 // that one is off and says who holds it; the form's own choice stays open.
 export function freeOptions(list, current, takenLabel) {
-  return pickOptions(list, (o) => o.taken_by && String(o.id) !== String(current) && takenLabel(o.taken_by)).map((option, i) => {
-    const o = list[i];
+  const shown = offered(list, current);
+  return pickOptions(shown, (o) => o.taken_by && String(o.id) !== String(current) && takenLabel(o.taken_by), current).map((option, i) => {
+    const o = shown[i];
     const taken = Boolean(o.taken_by) && String(o.id) !== String(current);
     return taken ? { ...option, disabled: true, disabledReason: takenLabel(o.taken_by) } : option;
   });

@@ -15,7 +15,7 @@ import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { NarrationDialog } from "../InnoCBS/Deposits/depositShared";
-import { CardPill, cardWord } from "./cardOpsShared";
+import { CardPill, cardWord, noteFileKind } from "./cardOpsShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
 
 // The PRE file holds full card numbers and CVVs: it goes from the reply
@@ -70,12 +70,21 @@ export function PreFiles() {
       const reply = rowsOf(await preFilesApi.generate({ issuance_group_id: Number(groupId), card_ids: [...ticked.keys()], ...(reason ? { reason } : {}) }))[0];
       if (reply?.content_base64) savePreFile(reply);
       notifications.success(t("preFileMade", { count: Number(reply?.card_count ?? 0), ref: reply?.job_ref }));
-      if (reply && reply.encrypted === false) notifications.info(t("embossPlainWarning"));
+      noteFileKind(t, reply, notifications);
       setAsking(false);
+      setConfirming(false);
       setTicked(new Map());
       load();
     } catch (error) {
-      notifications.error(error.message);
+      // Timed out: the job may have been recorded, so no retry; show the jobs.
+      if (error.timedOut) {
+        notifications.warning(t("fileTimedOut"), { duration: 12000 });
+        setAsking(false);
+        setConfirming(false);
+        setTicked(new Map());
+        setView("jobs");
+        made.reload();
+      } else notifications.error(error.message);
     } finally {
       setBusy(false);
     }
@@ -150,11 +159,10 @@ export function PreFiles() {
         confirmLabel={ticked.size ? t("makePreFileN", { count: ticked.size }) : t("makePreFileAll")}
         pending={busy}
         onClose={() => setConfirming(false)}
-        onConfirm={() => {
-          setConfirming(false);
-          void generate();
-        }}
-      />
+        onConfirm={() => void generate()}
+      >
+        {busy && <p className="mt-3 text-xs font-semibold text-[var(--primary)]">{t("makingFile")}</p>}
+      </ConfirmDialog>
       {asking && (
         <NarrationDialog
           title={t("makeAgainTitle")}
@@ -164,7 +172,9 @@ export function PreFiles() {
           busy={busy}
           onClose={() => setAsking(false)}
           onSave={(reason) => generate(reason)}
-        />
+        >
+          {busy && <p className="mb-3 text-xs font-semibold text-[var(--primary)]">{t("makingFile")}</p>}
+        </NarrationDialog>
       )}
     </div>
   );

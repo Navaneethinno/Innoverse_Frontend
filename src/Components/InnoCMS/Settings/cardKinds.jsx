@@ -157,10 +157,10 @@ function ProductForm({ values: v, set, options, locked }) {
             />
           </F>
           <F required label={t("bin")}>
-            <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x, card_number_layout_id: "" })} />
+            <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, undefined, v.bin_id) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x, card_number_layout_id: "" })} />
           </F>
           <F label={t("numberLayout")} hint={t("numberLayoutHint")}>
-            <Field field={{ type: "select", blank: t("noLayout"), options: pickOptions(layouts) }} disabled={!v.bin_id} value={id(v.card_number_layout_id)} onChange={(x) => set({ card_number_layout_id: x })} />
+            <Field field={{ type: "select", blank: t("noLayout"), options: pickOptions(layouts, undefined, v.card_number_layout_id) }} disabled={!v.bin_id} value={id(v.card_number_layout_id)} onChange={(x) => set({ card_number_layout_id: x })} />
           </F>
           {v.bin_product_no ? (
             <F label={t("binProductNo")} hint={t("binProductNoHint")}>
@@ -172,14 +172,14 @@ function ProductForm({ values: v, set, options, locked }) {
           </F>
           {prepaid && (
             <F label={t("purseProduct")} hint={t("purseProductHint")}>
-              <Field field={{ type: "select", blank: purses.length ? t("choose") : t("noPurseProduct"), options: pickOptions(purses) }} value={id(v.linked_acct_product_id)} onChange={(x) => set({ linked_acct_product_id: x })} />
+              <Field field={{ type: "select", blank: purses.length ? t("choose") : t("noPurseProduct"), options: pickOptions(purses, undefined, v.linked_acct_product_id) }} value={id(v.linked_acct_product_id)} onChange={(x) => set({ linked_acct_product_id: x })} />
             </F>
           )}
           <F required label={t("productName")}>
             <Field field={{}} value={v.product_name} onChange={(x) => set({ product_name: x.slice(0, 150) })} />
           </F>
           <F required label={t("digitalProduct")} hint={dp && t("dpAllowsN", { count: Number(dp.extra ?? 1) })}>
-            <Field field={{ type: "select", blank: t("choose"), options: pickOptions(options.digital_products) }} value={id(v.digital_product_id)} onChange={(x) => set({ digital_product_id: x })} />
+            <Field field={{ type: "select", blank: t("choose"), options: pickOptions(options.digital_products, undefined, v.digital_product_id) }} value={id(v.digital_product_id)} onChange={(x) => set({ digital_product_id: x })} />
           </F>
           <F label={t("effectiveFrom")} hint={t("effectiveFromHint")}>
             <Field field={{ type: "date" }} value={v.effective_from} onChange={(x) => set({ effective_from: x })} />
