@@ -8304,6 +8304,8 @@ export const cards = {
   "bigOrderConfirm": "أنت تطلب {{count}} بطاقة. هل تريد المتابعة؟",
   "ord_GENERATING": "جارٍ إنشاء البطاقات",
   "ord_FAILED": "فشل",
+  "cardNumbersLeft": "أرقام البطاقات: متبقٍ {{left}} من {{capacity}}",
+  "cardNumbersOver": "لم يتبق سوى {{left}} من أرقام البطاقات لهذه المجموعة.",
   "makeFile": "إنشاء الملف وحفظه",
   "missing": "مفقود",
   "nameOnCard": "الاسم على البطاقة",

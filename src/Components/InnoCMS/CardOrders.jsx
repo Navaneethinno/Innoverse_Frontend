@@ -159,7 +159,11 @@ function NewOrder({ groups, onClose, onDone }) {
   const personalised = group?.perso_mode === "PERSONALIZED";
   // No max_quantity (null or missing) means no upper limit.
   const max = group?.max_quantity == null || group.max_quantity === "" ? null : Number(group.max_quantity);
-  const fits = (n) => max == null || n <= max;
+  // card_numbers: how many card numbers this group can still give out (null
+  // when it can't be worked out; then nothing is shown or checked here).
+  const numbers = group?.card_numbers ?? null;
+  const left = numbers?.remaining == null ? null : Number(numbers.remaining);
+  const fits = (n) => (max == null || n <= max) && (left == null || n <= left);
 
   useEffect(() => {
     setPicked([]);
@@ -235,7 +239,7 @@ function NewOrder({ groups, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={personalised && !count ? t("orderNeedsCards") : undefined} onClick={() => (total > BIG_ORDER ? setConfirmBig(true) : send())}>
+          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={personalised && !count ? t("orderNeedsCards") : left != null && total > left ? t("cardNumbersOver", { left: numbers.remaining_text ?? left.toLocaleString() }) : undefined} onClick={() => (total > BIG_ORDER ? setConfirmBig(true) : send())}>
             {personalised && count > 0 ? t("fileOrderN", { count }) : t("fileOrder")}
           </Button>
         </>
@@ -245,6 +249,12 @@ function NewOrder({ groups, onClose, onDone }) {
         <Labelled required label={t("group")} hint={group && t(personalised ? "orderPersoHint" : "orderInstantHint")}>
           <FilterSelect value={groupId} onChange={setGroupId} options={groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name} · ${cardWord(t, "opt", g.perso_mode)}` }))} />
         </Labelled>
+        {numbers && (
+          <p className={cn("text-xs", left === 0 ? "font-semibold text-red-700" : "text-muted-foreground")}>
+            {t("cardNumbersLeft", { left: numbers.remaining_text ?? Number(numbers.remaining).toLocaleString(), capacity: numbers.capacity_text ?? Number(numbers.capacity).toLocaleString() })}
+          </p>
+        )}
+        {left != null && total > left && <p className="text-xs font-semibold text-amber-700">{t("cardNumbersOver", { left: numbers.remaining_text ?? left.toLocaleString() })}</p>}
         {group && personalised && group.customer_type && group.customer_type !== "ALL" && <p className="text-xs text-muted-foreground">{t("groupHolderType", { type: t(`holder_${group.customer_type}`, { defaultValue: group.customer_type }) })}</p>}
         {group && !personalised && (
           <Labelled required label={t("numberOfCards")} hint={max == null ? undefined : t("upToN", { count: max })}>

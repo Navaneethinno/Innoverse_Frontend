@@ -6007,6 +6007,8 @@ export const cards = {
   bigOrderConfirm: "You're ordering {{count}} cards. Continue?",
   ord_GENERATING: "Making cards",
   ord_FAILED: "Failed",
+  cardNumbersLeft: "Card numbers: {{left}} left of {{capacity}}",
+  cardNumbersOver: "Only {{left}} card numbers are left for this group.",
   makeFile: "Make and save the file",
   missing: "Missing",
   nameOnCard: "Name on the card",
