@@ -95,7 +95,7 @@ const offered = (list, current) => (list ?? []).filter((o) => o.status == null |
 export function pickOptions(list, extra, current) {
   return offered(list, current).map((o) => ({
     value: String(o.id),
-    label: [[o.code, o.name].filter(Boolean).join(" · "), extra?.(o), Number(o.status) !== 1 && o.status_name].filter(Boolean).join(" · "),
+    label: [[o.code, o.name].filter(Boolean).join(" · "), extra?.(o), o.status != null && Number(o.status) !== 1 && (o.status_name || `Status ${o.status}`)].filter(Boolean).join(" · "),
   }));
 }
 // The same, for a list where another record may hold an option (`taken_by`):
