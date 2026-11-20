@@ -1,7 +1,7 @@
 import { BackButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, X, XCircle } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -27,6 +27,7 @@ import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from ".
 import { MiniTable } from "../InnoCBS/Loans/loanShared";
 import { CardNumber, CardPill, Labelled, OrderProgress, cardWord, noteFileKind } from "./cardOpsShared";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { CardMakingTracker } from "./CardMakingTracker";
 import { actorText } from "@/Utils/Lib/actor";
 import { PageTitle } from "@/Components/Common/PageTitle";
 
@@ -64,17 +65,37 @@ export function CardOrders({ receiving = false }) {
       .catch((e) => notifications.error(e.message));
   }, []);
 
-  useLiveChannel(cardOrdersApi.listPath, () => load());
+  // (useServerList already reloads on the list's live channel.)
+  // Orders making their cards: the progress pop-up, or its small background tracker.
+  const [tracking, setTracking] = useState(null);
+  const track = useCallback((orderId) => setTracking({ id: orderId, minimized: false }), []);
+  const tracker = tracking && (
+    <CardMakingTracker
+      id={tracking.id}
+      minimized={tracking.minimized}
+      onMinimize={() => setTracking((x) => x && { ...x, minimized: true })}
+      onOpen={() => setTracking((x) => x && { ...x, minimized: false })}
+      onClose={() => setTracking(null)}
+      onView={(orderId) => {
+        setTracking((x) => x && { ...x, minimized: true });
+        setOpenId(orderId);
+      }}
+    />
+  );
 
   if (openId) {
     return (
-      <OrderView
-        id={openId}
-        onBack={() => {
-          setOpenId(null);
-          load();
-        }}
-      />
+      <>
+        <OrderView
+          id={openId}
+          onTrack={track}
+          onBack={() => {
+            setOpenId(null);
+            load();
+          }}
+        />
+        {tracker}
+      </>
     );
   }
 
@@ -95,11 +116,17 @@ export function CardOrders({ receiving = false }) {
     },
     { key: "product_code", label: t("product"), render: (o) => <span className="text-xs">{o.product_code}</span> },
     { key: "perso_mode", label: t("persoMode"), render: (o) => <span className="text-xs">{cardWord(t, "opt", o.perso_mode)}</span> },
-    { key: "quantity", label: t("quantity"), render: (o) => <span className="text-xs font-bold tabular-nums">{o.quantity}</span> },
+    { key: "quantity", label: t("quantity"), render: (o) => <span className="text-xs font-bold tabular-nums">{Number(o.quantity).toLocaleString()}</span> },
     { key: "order_status", label: t("status"), render: (o) => (
         <div>
           <span className="inline-flex flex-wrap gap-1"><CardPill prefix="ord" code={o.order_status} />{o.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}</span>
-          <OrderProgress order={o} compact />
+          {o.order_status === "GENERATING" ? (
+            <button type="button" onClick={() => track(o.id)} className="block text-left" title={t("showProgress")}>
+              <OrderProgress order={o} compact />
+            </button>
+          ) : (
+            <OrderProgress order={o} compact />
+          )}
         </div>
       ) },
     { key: "created_by", label: t("orderedBy"), render: (o) => <span className="text-xs">{actorText(o, "created_by", "")}</span> },
@@ -136,6 +163,7 @@ export function CardOrders({ receiving = false }) {
           }}
         />
       )}
+      {tracker}
     </div>
   );
 }
@@ -434,7 +462,7 @@ function HolderSearch({ customerType, onPick }) {
 
 // One order: its state, the actions the server allows, emboss files,
 // received batches and its cards.
-function OrderView({ id, onBack }) {
+function OrderView({ id, onBack, onTrack }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
   const [order, setOrder] = useState(null);
@@ -448,7 +476,8 @@ function OrderView({ id, onBack }) {
     try {
       const o = rowsOf(await cardOrdersApi.get({ id }))[0] ?? null;
       setOrder(o);
-      if (o?.card_count) await cardPages.reload();
+      // While its cards are being made the card list waits; it loads once done.
+      if (o?.card_count && o.order_status !== "GENERATING") await cardPages.reload();
     } catch (error) {
       notifications.error(error.message);
     }
@@ -458,6 +487,13 @@ function OrderView({ id, onBack }) {
   useEffect(() => {
     void reload();
   }, [reload]);
+  // The order just turned GENERATING (approved here or by someone else): show its progress.
+  const lastStatus = useRef(null);
+  useEffect(() => {
+    const now = order?.order_status ?? null;
+    if (lastStatus.current && lastStatus.current !== "GENERATING" && now === "GENERATING") onTrack?.(id);
+    lastStatus.current = now;
+  }, [order?.order_status, id, onTrack]);
   useLiveChannel(cardOrdersApi.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   const act = async (call, after) => {
@@ -502,7 +538,11 @@ function OrderView({ id, onBack }) {
     a.receive_auth && can("Authorize") && { key: "receive_auth", label: t("approveReceipt"), icon: CheckCircle2, variant: "primary", run: ask("receive_auth") },
   ];
   const narrated = {
-    auth: [t("approveOrder"), t("approveOrderHint"), t("approve"), "primary", (n) => cardOrdersApi.auth({ id, ...n })],
+    auth: [t("approveOrder"), t("approveOrderHint"), t("approve"), "primary", (n) => cardOrdersApi.auth({ id, ...n }).then((r) => {
+      // A big order is made in the background: show its progress.
+      if (rowsOf(r)[0]?.order_status === "GENERATING") onTrack?.(id);
+      return r;
+    })],
     deauth: [t("rejectOrder"), t("rejectOrderHint"), t("reject"), "danger", (n) => cardOrdersApi.deauth({ id, ...n })],
     cancel: [t("withdrawOrder"), t("withdrawOrderHint"), t("withdrawOrder"), "danger", (n) => cardOrdersApi.cancel({ id, ...(n.narration ? { reason: n.narration } : {}) })],
     receive_auth: [t("approveReceipt"), t("approveReceiptHint"), t("approve"), "primary", (n) => cardOrdersApi.receive_auth({ id, ...n })],
@@ -528,7 +568,13 @@ function OrderView({ id, onBack }) {
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
         {order.narration?.trim() && <p className="mt-2 text-xs italic">“{order.narration}”</p>}
-        <OrderProgress order={order} />
+        {order.order_status === "GENERATING" ? (
+          <button type="button" onClick={() => onTrack?.(id)} className="block w-full text-left" title={t("showProgress")}>
+            <OrderProgress order={order} />
+          </button>
+        ) : (
+          <OrderProgress order={order} />
+        )}
       </div>
 
       <div className="mb-4 grid gap-4 2xl:grid-cols-2">

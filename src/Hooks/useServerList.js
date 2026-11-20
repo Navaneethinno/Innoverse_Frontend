@@ -145,11 +145,17 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   const bodyKey = JSON.stringify(body);
   // The page rebuilds `call`, `select` and the body each render; bodyKey says when to load.
   const latest = useLatest({ call, select, body });
+  // A reload of the same list (a live push, after a save) refreshes the rows
+  // in place: no loading state, so a list updated every few seconds doesn't
+  // blank and redraw. A new page, search or filter still shows loading.
+  const shownKey = useRef(null);
   useEffect(() => {
     const { call, select, body } = latest.current;
     if (!body) return;
     const id = ++seq.current;
-    setState((s) => ({ ...s, loading: true }));
+    const silent = shownKey.current === bodyKey;
+    shownKey.current = bodyKey;
+    if (!silent) setState((s) => ({ ...s, loading: true }));
     Promise.resolve(call(body))
       .then((r) => {
         if (id !== seq.current) return;
@@ -158,7 +164,9 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
       .catch((e) => {
         if (id !== seq.current) return;
         notifications.error(e.message);
-        setState({ rows: [], pagination: null, summary: null, loading: false });
+        // A failed silent refresh keeps the rows already shown.
+        if (silent) setState((s) => ({ ...s, loading: false }));
+        else setState({ rows: [], pagination: null, summary: null, loading: false });
       });
   }, [bodyKey, version, latest]);
 
