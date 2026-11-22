@@ -7,6 +7,7 @@ import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { fuelSettingsApi } from "@/Services/Fms/fms.api";
 import { cn } from "@/Utils/Lib/utils";
 import { TranslationsInput, cleanTranslations, opts } from "./fmsShared";
+import { SettingsGuide } from "./FmsPictures";
 
 // InnoFMS › Settings › Fuel Settings (Admin_42, menu 397): how the pumps sell
 // and what a sale needs, per institution. One document under maker-checker.
@@ -75,7 +76,7 @@ function problemOf(t, f) {
 export function FuelSettings() {
   const L = useL();
   return (
-    <SectionScreen api={fuelSettingsApi} ns="record" valueKey="setup" title={L("Fuel Settings")} subtitle={L("How the pumps sell and what a sale needs. Changes need a checker.")} toForm={toForm} bodyOf={bodyOf} problemOf={(t, f) => L(problemOf(t, f))} framed={false}>
+    <SectionScreen api={fuelSettingsApi} ns="record" valueKey="setup" title={L("Fuel Settings")} subtitle={L("How the pumps sell and what a sale needs. Changes need a checker.")} toForm={toForm} bodyOf={bodyOf} problemOf={(t, f) => L(problemOf(t, f))} framed={false} before={() => <SettingsGuide current="settings" />}>
       {({ data, shown, editing, setForm }) => <SettingsForm choices={data?.choices ?? {}} value={toForm(shown)} editing={editing} onChange={setForm} />}
     </SectionScreen>
   );

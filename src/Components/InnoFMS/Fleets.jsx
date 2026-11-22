@@ -14,6 +14,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { FleetScreen, FleetStatus, ownerOf } from "./FleetScreen";
 import { num, opts } from "./fmsShared";
 import { FuelTank, levelColour } from "./FmsVisuals";
+import { VehicleTank } from "./FmsPictures";
 
 // InnoFMS › Fleets (Admin_42, menus 401–404 and 407): a customer's vehicles,
 // drivers, cost centres, card bindings and fuel limits.
@@ -160,7 +161,12 @@ export function Vehicles() {
         [L("Tag"), r.tag_set ? `✓ …${r.tag_last4 ?? ""}` : L("No tag")],
         [L("notes"), txt(r.details?.notes)],
       ]}
-      detailExtra={(r) => <OwnLimits filter={{ vehicle_id: r.id }} />}
+      detailExtra={(r) => (
+        <>
+          <VehicleTank vehicle={r} />
+          <OwnLimits filter={{ vehicle_id: r.id }} />
+        </>
+      )}
     />
   );
 }

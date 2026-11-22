@@ -39,6 +39,8 @@ import { cn } from "@/Utils/Lib/utils";
 // nameOf(record): the record's title.  bodyOf(form): the save body (default:
 //   the fields as typed).  factsOf(setup, choices): the record's facts
 //   (default: the fields).  effectiveDated: show the versions tab.
+// before({ open }): a section above the list (a picture of the records);
+//   open(id) opens a record.
 // A user given as a name or { id, name }.
 const nameOfUser = (u) => (u && typeof u === "object" ? (u.name ?? "") : (u ?? ""));
 const optionsOf = (field, choices) => (typeof field.options === "function" ? field.options(choices ?? {}) : (field.options ?? []));
@@ -64,7 +66,7 @@ function problemsOf(e) {
   return lines.length ? lines : [e?.message].filter(Boolean);
 }
 
-export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (r) => r.name ?? r.code ?? `#${r.id}`, bodyOf, factsOf, effectiveDated = false, addLabel, emptyTitle, emptyDescription, extraTabs, headerFacts, pageActions }) {
+export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (r) => r.name ?? r.code ?? `#${r.id}`, bodyOf, factsOf, effectiveDated = false, addLabel, emptyTitle, emptyDescription, extraTabs, headerFacts, pageActions, before }) {
   const { t } = useTranslation(["record", "common"]);
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
@@ -156,6 +158,7 @@ export function RecordScreen({ api, title, subtitle, columns, fields, nameOf = (
         </div>
         {pageActions}
       </div>
+      {before?.({ open: setOpenId })}
       <SegmentedSwitch
         className="mb-3"
         value={view}

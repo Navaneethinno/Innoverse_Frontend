@@ -12,6 +12,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { TranslationsInput, cleanTranslations, opts } from "./fmsShared";
 import { FuelDrop } from "./FmsVisuals";
+import { PriceBoard, ProductTree, SettingsGuide } from "./FmsPictures";
 
 // InnoFMS records (Admin_42): Fuel Products and Prices (398), Forecourt
 // (399), Zones (408) and Discounts (409). Standard maker-checker records:
@@ -46,6 +47,12 @@ export function FuelProducts() {
   return (
     <RecordScreen
       api={fuelProductApi}
+      before={({ open }) => (
+        <>
+          <SettingsGuide current="products" />
+          <ProductTree open={open} />
+        </>
+      )}
       title={L("Fuel Products")}
       subtitle={L("The fuels and grades sold at the stations. Two levels: a grade and its sub-products; only a product with no sub-products is priced and sold.")}
       nameOf={(r) => sv(r, "name") ?? sv(r, "code")}
@@ -115,6 +122,12 @@ export function FuelPrices() {
   return (
     <RecordScreen
       api={fuelPriceApi}
+      before={({ open }) => (
+        <>
+          <SettingsGuide current="products" />
+          <PriceBoard open={open} />
+        </>
+      )}
       title={L("Fuel Prices")}
       subtitle={L("The base price applies at every station without its own. A price change is an edit with a new effective date; dates may not overlap.")}
       effectiveDated
@@ -189,6 +202,7 @@ export function Forecourt() {
   return (
     <RecordScreen
       api={pumpApi}
+      before={() => <SettingsGuide current="forecourt" />}
       title={L("Forecourt")}
       subtitle={L("The pumps of each station: the terminals that sell from them and their nozzles or fuels. A station is a merchant's store in InnoMMS.")}
       columns={[
@@ -232,6 +246,7 @@ export function Zones() {
   return (
     <RecordScreen
       api={zoneApi}
+      before={() => <SettingsGuide current="zones" />}
       title={L("Zones")}
       subtitle={L("Groups of stations, used in reports, discounts and the fuel monitor.")}
       columns={[{ key: "store_ids", label: L("Stations"), render: (r) => cell(join(c.stores, sv(r, "store_ids"))) }]}
@@ -260,6 +275,7 @@ export function Discounts() {
   return (
     <RecordScreen
       api={discountApi}
+      before={() => <SettingsGuide current="discounts" />}
       title={L("Discounts")}
       subtitle={L("Money off the unit price at the pump. A sale gets the one largest discount that matches it, never two added together. An empty list matches everything.")}
       effectiveDated
