@@ -114,6 +114,8 @@ const MENU_PAGES = {
   "account products": { slug: "accountproduct", also: ACCOUNT_CONFIGS },
   "finance transaction": "manualjournal",
   "term deposits": "deposits",
+  // InnoFMS: Fuel Prices is a tab on Fuel Products.
+  "fuel products": { views: [{ key: "products", slug: "fuelproducts" }, { key: "prices", slug: "fuelprices" }] },
   // InnoCMS
   bins: "cardbins",
   // Global Settings

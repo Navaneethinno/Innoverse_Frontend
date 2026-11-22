@@ -214,6 +214,8 @@ export const common = {
   view_sections: "Sections",
   view_groups: "Groups",
   view_alerts: "Alerts",
+  view_products: "Fuel Products",
+  view_prices: "Fuel Prices",
   view_customer: "Customer",
   view_merchant: "Merchant",
   institution: "Institution",
@@ -6997,6 +6999,11 @@ export const builder = {
 
 // GLOBAL SETTINGS > External Providers.
 export const providers = {
+  adapterSettings: "Connection settings",
+  adapterSettingsHint: "Never type a password or key here: each *_env names a server environment variable (starting INNOVERSE_EXT_KEY_) that the platform operator sets.",
+  orangeNoPush: "Orange Money only collects: turn Send off.",
+  callbackTitle: "Callback address",
+  callbackHint: "Paste this into the operator's callback setting (Orange Money notify_url, MTN MoMo callback_url). Top-ups then settle within seconds; without it they are still checked on the usual schedule.",
   "countrySendsTo": "Country it sends to",
   "domestic": "Domestic",
   connectionOnly: "Connection only",

@@ -73,6 +73,7 @@ import {
   UserRound,
   UsersRound,
   Wallet,
+  Fuel,
   Wand2,
 } from "lucide-react";
 
@@ -83,6 +84,8 @@ const MODULE_ICON_RULES = [
   [/innocbs/i, Landmark],
   [/innoeft/i, Banknote],
   [/innocms/i, CreditCard],
+  [/innofms/i, Fuel],
+  [/fuel/i, Fuel],
   [/accounting/i, Calculator],
   [/case management/i, Briefcase],
   [/term deposit/i, PiggyBank],

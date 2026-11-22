@@ -18,6 +18,7 @@ import { reportRoutes } from "./Reports/reportRoutes";
 import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
 import { accountingRoutes as financeRoutes } from "./Finance/accountingRoutes";
 import { cbsRoutes } from "./InnoCBS/cbsRoutes";
+import { fmsRoutes } from "./InnoFMS/fmsRoutes";
 import { eftRoutes } from "./InnoEFT/eftRoutes";
 import { reconRoutes } from "./InnoRecon/reconRoutes";
 
@@ -55,4 +56,4 @@ export { globalSettingsRoutes };
 
 // Accounting: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
 // Finance, InnoCBS and InnoEFT (the last two split from Finance and InnoCMS).
-export const accountingRoutes = [...financeRoutes, ...cbsRoutes, ...eftRoutes];
+export const accountingRoutes = [...financeRoutes, ...cbsRoutes, ...eftRoutes, ...fmsRoutes];

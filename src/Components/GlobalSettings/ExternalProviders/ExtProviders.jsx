@@ -22,6 +22,8 @@ import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { CopyButton } from "@/Components/Common/CopyButton";
+import { API_BASE_URL } from "@/Utils/Constant";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
@@ -35,6 +37,32 @@ const canPull = (p) => p.kind === "MOBILE_WALLET";
 const usesPrefixes = (p) => ["MOBILE_WALLET", "AIRTIME"].includes(p.kind) || (p.kind === "BANK" && formatOf(p) !== "ACCOUNT");
 // Providers that can tell the holder's name (the meter's, the bill's).
 const canLookUp = (p) => ["ELECTRICITY", "BILLER"].includes(p.kind);
+
+// Mobile-money adapters (Admin_42): their settings, typed as text. Credentials
+// are never typed: each *_env names a server environment variable
+// (INNOVERSE_EXT_KEY_...) the platform operator sets.
+const ADAPTER_SETTINGS = {
+  ORANGE_MONEY: [
+    ["token_url", "https://api-s1.orange.cm/token"],
+    ["init_url", "https://…/omcoreapis/1.0.2/mp/init"],
+    ["pay_url", "https://…/omcoreapis/1.0.2/mp/pay"],
+    ["status_url", "https://…/omcoreapis/1.0.2/mp/paymentstatus"],
+    ["notify_url", "The callback address of this setup"],
+    ["channel_msisdn", "9 digits"],
+    ["country_code", "237"],
+    ["token_env", "INNOVERSE_EXT_KEY_ORANGE_TOKEN"],
+    ["auth_env", "INNOVERSE_EXT_KEY_ORANGE_AUTH"],
+    ["pin_env", "INNOVERSE_EXT_KEY_ORANGE_PIN"],
+  ],
+  MTN_MOMO: [
+    ["base_url", "https://proxy.momoapi.mtn.com"],
+    ["target_environment", "mtncameroon"],
+    ["callback_url", "The callback address of this setup (optional)"],
+    ["country_code", "237"],
+    ["collection_env", "INNOVERSE_EXT_KEY_MTN_COLLECTION"],
+    ["disbursement_env", "Only with Send on"],
+  ],
+};
 
 // The setup as the server takes it: whole lists, providers matched by code.
 const toBody = (c) => ({
@@ -315,6 +343,16 @@ function SetupView({ id, onBack, onEdit }) {
         )}
       </div>
 
+      {s.callback_path && (
+        <Section title={t("callbackTitle")} className="mb-4">
+          <p className="mb-2 text-xs text-muted-foreground">{t("callbackHint")}</p>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2">
+            <code className="min-w-0 flex-1 break-all text-xs">{`${API_BASE_URL}${s.callback_path}`}</code>
+            <CopyButton value={`${API_BASE_URL}${s.callback_path}`} />
+          </div>
+        </Section>
+      )}
+
       <VersionSections record={s} render={(config, other) => <SetupTables config={config} other={other} names={names} />} />
 
       <Section title={t("fees:history")} collapsible>
@@ -449,6 +487,26 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
               {provider.kind === "BILLER" && <BillerEditor biller={provider.biller} onChange={(biller) => patch({ biller })} />}
               {!tuningOk(provider) && <p className="mt-2 text-[11px] text-red-600">{t("campaigns:tuningInvalid")}</p>}
               {provider.connection_only && <p className="mt-2 text-[11px] text-muted-foreground">{t("connectionOnlyHint")}</p>}
+              {ADAPTER_SETTINGS[provider.adapter] && (
+                <div className="mt-3 border-t border-dashed border-border pt-3">
+                  <p className="mb-1 text-xs font-bold">{t("adapterSettings")}</p>
+                  <p className="mb-2 text-[11px] text-muted-foreground">{t("adapterSettingsHint")}</p>
+                  {provider.adapter === "ORANGE_MONEY" && provider.allow_push && <p className="mb-2 text-[11px] font-semibold text-red-600">{t("orangeNoPush")}</p>}
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {ADAPTER_SETTINGS[provider.adapter].map(([key, hint]) => (
+                      <label key={key} className={labelClass}>
+                        <span className="font-mono">{key}</span>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+                          placeholder={hint}
+                          value={provider.settings?.[key] ?? ""}
+                          onChange={(e) => patch({ settings: { ...(provider.settings ?? {}), [key]: e.target.value.trim() } })}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         />

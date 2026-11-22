@@ -1167,6 +1167,10 @@ export const API_ENDPOINTS = {
     REQUEST: "/config/transaction/request",
     REQUEST_LIST: "/config/transaction/request/list",
   },
+  // InnoFMS (Admin_42): fuel management.
+  FMS: {
+    ROOT: "/config/fms",
+  },
   TREASURY: {
     ROOT: "/config/treasury",
     CASH_MOVEMENT: "/config/treasury/cash_movement",
