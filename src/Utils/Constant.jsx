@@ -70,6 +70,7 @@ export const API_ENDPOINTS = {
   // Sub-menu order: Institution Profile, Institution Module, Institution
   // Legal, Institution Branding, Institution Channel, Institution Currency.
   INSTITUTION: {
+    SUPPORT_CONTACT: "/config/institution/support_contact",
     INSTITUTION_PROFILE: {
       LIST: "/config/institution/profile/list",
       GET: "/config/institution/profile/get",

@@ -25,7 +25,7 @@ import { useInstitutionScope } from "../Loans/loanShared";
 // in the reply, `bodyOf` how an edit sends it, `subtitle` and `before` what
 // shows above the document; `framed={false}` when the document draws its own
 // cards; `warningsOf` lines the propose dialog shows (they do not block it).
-export function SectionScreen({ api, title, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", warningsOf = () => [], subtitle, before, framed = true, children }) {
+export function SectionScreen({ api, title, textPrefix = "", fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", warningsOf = () => [], subtitle, before, framed = true, children }) {
   const { t } = useTranslation([ns, "loans"]);
   const can = usePagePermission();
   const menu = useMenuContext()?.menu;
@@ -105,10 +105,10 @@ export function SectionScreen({ api, title, fallbackTitle, ns = "corebank", valu
           {pending && !form && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
               <span>
-                {t("pendingBy", { name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })}
+                {t(`${textPrefix}pendingBy`, { name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })}
                 {pending.narration ? ` · ${pending.narration}` : ""}
               </span>
-              <Toggle showLabel label={t("showProposed")} checked={showPending} onChange={setShowPending} />
+              <Toggle showLabel label={t(`${textPrefix}showProposed`)} checked={showPending} onChange={setShowPending} />
             </div>
           )}
           {framed ? <Section>{children({ data, shown, editing: Boolean(form), setForm })}</Section> : children({ data, shown, editing: Boolean(form), setForm })}
@@ -135,8 +135,8 @@ export function SectionScreen({ api, title, fallbackTitle, ns = "corebank", valu
 
       {dialog && (
         <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
+          title={t(`${textPrefix}confirm_${dialog}`)}
+          hint={t(`${textPrefix}confirmHint_${dialog}`)}
           confirmLabel={t(dialog === "auth" ? "loans:approve" : dialog === "deauth" ? "loans:reject" : "loans:proposeChanges")}
           variant={dialog === "deauth" ? "danger" : "primary"}
           required={dialog === "deauth"}

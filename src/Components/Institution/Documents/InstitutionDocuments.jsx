@@ -28,6 +28,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { VerbDialog } from "@/Components/MakerChecker/SetupDocument";
+import { SupportContacts } from "./SupportContacts";
 
 // The status tabs, as the list call filters them (Pending is its own call).
 const CODE = /^[A-Z0-9_]{1,64}$/;
@@ -70,6 +71,8 @@ export function InstitutionDocuments() {
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
   const [screen, setScreen] = useState(null);
+  // Documents, or the institution's support contacts (same menu, same rights).
+  const [tab, setTab] = useState("documents");
   const list = useServerList({ api: api.listPath, call: api.list });
   const load = list.reload;
 
@@ -117,12 +120,27 @@ export function InstitutionDocuments() {
     },
   ]);
 
+  const tabs = <Tabs tabs={[{ key: "documents" }, { key: "contacts" }]} value={tab} onChange={setTab} labelOf={(k) => t(k === "contacts" ? "sc_tab" : "title")} />;
+  if (tab === "contacts") {
+    return (
+      <div className="space-y-4 pb-6">
+        <div>
+          <PageTitle>{t("title")}</PageTitle>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        {tabs}
+        <SupportContacts />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-6">
       <div>
         <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
+      {tabs}
       <ListTable
         list={list}
         actions={
