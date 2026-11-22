@@ -14,14 +14,14 @@ html.ui-locked input, html.ui-locked textarea, html.ui-locked [contenteditable="
 
 /* InnoFMS visuals (Components/InnoFMS/FmsVisuals.jsx). */
 @keyframes fms-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.fms-wave { animation: fms-wave 3.2s linear infinite; transform-box: fill-box; }
-.fms-wave-slow { animation: fms-wave 5.5s linear infinite reverse; transform-box: fill-box; }
+.fms-wave { animation: fms-wave 3.2s linear 4; transform-box: fill-box; }
+.fms-wave-slow { animation: fms-wave 5.5s linear 3 reverse; transform-box: fill-box; }
 @keyframes fms-bubble { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 0.7; } 100% { transform: translateY(-60px); opacity: 0; } }
-.fms-bubble { animation: fms-bubble 3.3s ease-in infinite; }
+.fms-bubble { animation: fms-bubble 3.3s ease-in 3; }
 @keyframes fms-drop { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px) scale(1); opacity: 0; } }
-.fms-drop { animation: fms-drop 1.05s ease-in infinite; }
+.fms-drop { animation: fms-drop 1.05s ease-in 6; }
 @keyframes fms-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.fms-float { animation: fms-float 4s ease-in-out infinite; }
+.fms-float { animation: fms-float 4s ease-in-out infinite; will-change: transform; }
 @keyframes fms-in { from { background: color-mix(in srgb, var(--primary) 18%, transparent); } to { background: transparent; } }
 .fms-new { animation: fms-in 2.4s ease-out; }
 @media (prefers-reduced-motion: reduce) {
@@ -31,19 +31,19 @@ html.ui-locked input, html.ui-locked textarea, html.ui-locked [contenteditable="
 
 /* Module dashboard pictures (Components/Common/ModuleHero). */
 @keyframes mh-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-.mh-float { animation: mh-float 4s ease-in-out infinite; }
+.mh-float { animation: mh-float 4s ease-in-out infinite; will-change: transform; }
 @keyframes mh-coin { 0% { transform: translateY(-14px); opacity: 0; } 20% { opacity: 1; } 70% { transform: translateY(26px); opacity: 1; } 100% { transform: translateY(30px); opacity: 0; } }
-.mh-coin { animation: mh-coin 2.1s ease-in infinite; }
+.mh-coin { animation: mh-coin 2.1s ease-in 3; }
 @keyframes mh-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-.mh-blink { animation: mh-blink 1.6s ease-in-out infinite; }
+.mh-blink { animation: mh-blink 1.6s ease-in-out 4; }
 @keyframes mh-scan { from { transform: translateY(-10px); } to { transform: translateY(84px); } }
-.mh-scan { animation: mh-scan 2.4s ease-in-out infinite; }
+.mh-scan { animation: mh-scan 2.4s ease-in-out 3; }
 @keyframes mh-spin { to { transform: rotate(360deg); } }
-.mh-spin { animation: mh-spin 9s linear infinite; }
-.mh-spin-rev { animation: mh-spin 6s linear infinite reverse; }
-.mh-spin-slow { animation: mh-spin 16s linear infinite; }
+.mh-spin { animation: mh-spin 9s linear 1; }
+.mh-spin-rev { animation: mh-spin 6s linear 1 reverse; }
+.mh-spin-slow { animation: mh-spin 16s linear 1; }
 @keyframes mh-paper { 0% { transform: translateY(-6px); opacity: 0; } 25% { opacity: 1; } 75% { transform: translateY(18px); opacity: 1; } 100% { transform: translateY(22px); opacity: 0; } }
-.mh-paper { animation: mh-paper 2.7s ease-in infinite; }
+.mh-paper { animation: mh-paper 2.7s ease-in 3; }
 @media (prefers-reduced-motion: reduce) {
   .mh-float, .mh-coin, .mh-blink, .mh-scan, .mh-spin, .mh-spin-rev, .mh-spin-slow, .mh-paper { animation: none; }
 }

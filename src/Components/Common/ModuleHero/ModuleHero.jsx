@@ -19,7 +19,7 @@ export function Ring({ value, max, label, colour = "var(--primary)", caption }) 
     <figure className="flex flex-col items-center">
       <svg width="78" height="78" viewBox="0 0 78 78" aria-hidden="true">
         <circle cx="39" cy="39" r={r} fill="none" stroke="var(--border)" strokeWidth="8" />
-        <motion.circle cx="39" cy="39" r={r} fill="none" stroke={colour} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - share) }} transition={{ duration: 1.1, ease: "easeOut" }} transform="rotate(-90 39 39)" />
+        <motion.circle cx="39" cy="39" r={r} fill="none" stroke={colour} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - share) }} transition={{ duration: 0.55, ease: "easeOut" }} transform="rotate(-90 39 39)" />
         <text x="39" y="44" textAnchor="middle" fontSize="15" fontWeight="900" fill="var(--foreground)">
           {Math.round(share * 100)}%
         </text>
@@ -42,7 +42,7 @@ function Meters({ rows }) {
             <span className="font-bold">{fmt(v)}</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <motion.div className="h-full rounded-full" style={{ background: colour ?? "var(--primary)" }} initial={{ width: 0 }} animate={{ width: `${((Number(v) || 0) / most) * 100}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
+            <motion.div className="h-full rounded-full" style={{ background: colour ?? "var(--primary)" }} initial={{ width: 0 }} animate={{ width: `${((Number(v) || 0) / most) * 100}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
           </div>
         </div>
       ))}
@@ -56,7 +56,7 @@ function Journey({ steps }) {
     <div className="flex items-center gap-1.5">
       {steps.map(([name, v], i) => (
         <div key={name} className="flex items-center gap-1.5">
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 * i }} className="rounded-2xl border border-border bg-card px-3 py-2 text-center shadow-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.06 * i, duration: 0.25 }} className="rounded-2xl border border-border bg-card px-3 py-2 text-center shadow-sm">
             <p className="text-lg font-black tabular-nums">{fmt(v)}</p>
             <p className="max-w-24 text-[10px] leading-tight text-muted-foreground">{name}</p>
           </motion.div>
@@ -148,7 +148,7 @@ export function ModuleHero({ moduleName, data }) {
   const facts = (m.facts ? m.facts.map(tile).filter(Boolean) : tiles.slice(0, 4)).map((x) => [x.label, fmt(x.value)]);
   const Art = m.art;
   return (
-    <div className="relative mb-5 overflow-hidden rounded-3xl border border-border p-5" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--primary) 13%, var(--card)), var(--card) 60%)" }}>
+    <div className="relative mb-5 min-h-[8.5rem] overflow-hidden rounded-3xl border border-border p-5" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--primary) 13%, var(--card)), var(--card) 60%)" }}>
       <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full opacity-[0.15]" style={{ background: "var(--primary)" }} />
       <div className="relative flex flex-wrap items-center gap-5">
         <div className="mh-float shrink-0">
@@ -156,6 +156,7 @@ export function ModuleHero({ moduleName, data }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="max-w-2xl text-sm text-muted-foreground">{L(m.text)}</p>
+          {!data && <div className="mt-3 h-6 w-64 animate-pulse rounded-full bg-muted" />}
           {facts.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {facts.map(([k, val]) => (
@@ -166,7 +167,7 @@ export function ModuleHero({ moduleName, data }) {
             </div>
           )}
         </div>
-        {m.visual && <div className="shrink-0">{m.visual(v, L)}</div>}
+        {m.visual && <div className="shrink-0">{data ? m.visual(v, L) : <div className="h-20 w-40 animate-pulse rounded-2xl bg-muted" />}</div>}
       </div>
     </div>
   );

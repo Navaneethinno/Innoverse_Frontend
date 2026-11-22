@@ -112,7 +112,7 @@ export function LedgerArt() {
     <svg width="96" height="84" viewBox="0 0 96 84" aria-hidden="true">
       <rect x="16" y="10" width="56" height="68" rx="6" fill="var(--card)" stroke="var(--border)" strokeWidth="2" />
       {[0, 1, 2, 3, 4].map((i) => (
-        <motion.rect key={i} x="24" y={22 + i * 11} height="5" rx="2.5" fill={P} opacity={0.7 - i * 0.1} initial={{ width: 0 }} animate={{ width: 40 - (i % 3) * 9 }} transition={{ delay: 0.2 + i * 0.12, duration: 0.6 }} />
+        <motion.rect key={i} x="24" y={22 + i * 11} height="5" rx="2.5" fill={P} opacity={0.7 - i * 0.1} initial={{ width: 0 }} animate={{ width: 40 - (i % 3) * 9 }} transition={{ delay: i * 0.05, duration: 0.35 }} />
       ))}
       <g className="mh-float">
         <circle cx="74" cy="62" r="14" fill={P} />
@@ -144,7 +144,7 @@ export function ChartArt() {
     <svg width="96" height="84" viewBox="0 0 96 84" aria-hidden="true">
       <rect x="12" y="10" width="72" height="66" rx="8" fill="var(--card)" stroke="var(--border)" strokeWidth="2" />
       {[18, 32, 24, 44, 36].map((h, i) => (
-        <motion.rect key={i} x={22 + i * 12} width="8" rx="2" fill={P} opacity={0.5 + i * 0.1} initial={{ height: 0, y: 66 }} animate={{ height: h, y: 66 - h }} transition={{ delay: 0.15 + i * 0.1, duration: 0.6 }} />
+        <motion.rect key={i} x={22 + i * 12} width="8" rx="2" fill={P} opacity={0.5 + i * 0.1} initial={{ height: 0, y: 66 }} animate={{ height: h, y: 66 - h }} transition={{ delay: i * 0.05, duration: 0.35 }} />
       ))}
     </svg>
   );

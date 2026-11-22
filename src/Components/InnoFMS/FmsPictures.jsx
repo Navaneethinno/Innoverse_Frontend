@@ -96,7 +96,7 @@ export function ProductTree({ open }) {
         {tops.map((top, i) => {
           const children = kids(top.code);
           return (
-            <motion.div key={top.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="rounded-2xl bg-muted/40 p-3">
+            <motion.div key={top.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.2 }} className="rounded-2xl bg-muted/40 p-3">
               <Chip r={top} sold={!children.length} />
               {children.length > 0 && (
                 <div className="ml-4 mt-2 border-l-2 border-dashed border-border pl-4">

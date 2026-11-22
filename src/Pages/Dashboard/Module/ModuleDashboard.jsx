@@ -1,6 +1,6 @@
 import { createElement, useCallback, useEffect, useState } from "react";
 import { FmsDashboardHero } from "@/Components/InnoFMS/FmsDashboardHero";
-import { ModuleHero } from "@/Components/Common/ModuleHero/ModuleHero";
+import { ModuleHero, hasModuleHero } from "@/Components/Common/ModuleHero/ModuleHero";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { Activity, ArrowDownRight, ArrowUpRight, PieChart as PieIcon, RefreshCw, TrendingUp } from "lucide-react";
@@ -107,11 +107,8 @@ export function ModuleDashboard({ moduleName }) {
         <p className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">{error.message}</p>
       ) : (
         <div data-tour="dashboard-cards">
-          {!data && <div className="mb-4 h-28 animate-pulse rounded-2xl bg-muted/60" />}
-          {/* InnoFMS: the day at the pumps as a picture. */}
-          {data && moduleName === "InnoFMS" && <FmsDashboardHero data={data} />}
-          {/* Every other module: its picture banner (the module's own key numbers). */}
-          {data && moduleName !== "InnoFMS" && <ModuleHero moduleName={moduleName} data={data} />}
+          {/* The module's picture banner, shown at once so nothing below jumps when the numbers arrive. */}
+          {moduleName === "InnoFMS" ? <FmsDashboardHero data={data} /> : hasModuleHero(moduleName) ? <ModuleHero moduleName={moduleName} data={data} /> : !data && <div className="mb-4 h-28 animate-pulse rounded-2xl bg-muted/60" />}
           <div className="mb-4 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
             {(data?.tiles ?? []).map((tile, i) => (
               <motion.div key={tile.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 * i }} className="min-w-0 rounded-2xl border p-5" style={glass}>
@@ -140,7 +137,7 @@ export function ModuleDashboard({ moduleName }) {
                       <YAxis tick={axisTick} axisLine={false} tickLine={false} allowDecimals={false} tickFormatter={(v) => compact.format(v)} />
                       <Tooltip contentStyle={tooltipStyle} />
                       {series.map((s, i) => (
-                        <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={COLORS[i % COLORS.length]} strokeWidth={2} fill={COLORS[i % COLORS.length]} fillOpacity={0.12} />
+                        <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={COLORS[i % COLORS.length]} strokeWidth={2} fill={COLORS[i % COLORS.length]} fillOpacity={0.12} isAnimationActive={false} />
                       ))}
                     </AreaChart>
                   </ResponsiveContainer>
@@ -161,7 +158,7 @@ export function ModuleDashboard({ moduleName }) {
                 <div className="relative h-44 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={items} dataKey="count" nameKey="name" innerRadius="62%" outerRadius="90%" paddingAngle={items.length > 1 ? 2 : 0} stroke="none">
+                      <Pie data={items} dataKey="count" nameKey="name" innerRadius="62%" outerRadius="90%" paddingAngle={items.length > 1 ? 2 : 0} stroke="none" isAnimationActive={false}>
                         {items.map((x, i) => (
                           <Cell key={x.key} fill={COLORS[i % COLORS.length]} />
                         ))}

@@ -41,7 +41,7 @@ export function FuelTank({ level = 0, colour = "var(--primary)", size = 96, labe
           {/* body */}
           <rect x="4" y="10" width={w - 8} height={h - 14} rx={w * 0.22} fill="var(--muted)" stroke="var(--border)" strokeWidth="2" />
           <g clipPath={`url(#tank${id})`}>
-            <motion.g initial={{ y: bottom }} animate={{ y: surface }} transition={{ duration: 1.2, ease: "easeOut" }}>
+            <motion.g initial={{ y: bottom }} animate={{ y: surface }} transition={{ duration: 0.55, ease: "easeOut" }}>
               <path className="fms-wave-slow" d={wave(0, 5)} fill={colour} opacity="0.35" />
               <path className="fms-wave" d={wave(3, 4)} fill={colour} opacity="0.9" />
             </motion.g>
@@ -96,7 +96,7 @@ export function FuelDrop({ colour, size = 16, title }) {
 // A page's picture band: a pump on a forecourt, a title, a line and facts.
 export function ForecourtBanner({ title, text, facts = [], flowing = true, children }) {
   return (
-    <div className="relative mb-5 overflow-hidden rounded-3xl border border-border p-5" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--primary) 14%, var(--card)), var(--card) 60%)" }}>
+    <div className="relative mb-5 min-h-[8.5rem] overflow-hidden rounded-3xl border border-border p-5" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--primary) 14%, var(--card)), var(--card) 60%)" }}>
       <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full opacity-20" style={{ background: "var(--primary)" }} />
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-3 opacity-30" style={{ background: "repeating-linear-gradient(90deg, var(--muted-foreground) 0 24px, transparent 24px 48px)" }} />
       <div className="relative flex flex-wrap items-center gap-5">
