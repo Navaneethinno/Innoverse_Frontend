@@ -13,6 +13,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { FleetScreen, FleetStatus, ownerOf } from "./FleetScreen";
 import { num, opts } from "./fmsShared";
+import { FuelTank, levelColour } from "./FmsVisuals";
 
 // InnoFMS › Fleets (Admin_42, menus 401–404 and 407): a customer's vehicles,
 // drivers, cost centres, card bindings and fuel limits.
@@ -276,10 +277,23 @@ function LimitUsage({ id: limitId }) {
   }, [limitId]);
   if (!u) return <div className="mb-3 h-16 animate-pulse rounded-xl bg-muted" />;
   if (!u.period) return null;
+  const tanks = [
+    ["Amount", u.max_amount, u.used_amount, ""],
+    ["Litres", u.max_litres, u.used_litres, " L"],
+    ["Fills", u.max_count, u.used_count, ""],
+  ].filter(([, max]) => max != null && Number(max) > 0);
   const line = (max, used, left, unit = "") => (max == null ? null : `${num(used)}${unit} / ${num(max)}${unit} · ${L("left")} ${num(left)}${unit}`);
   return (
     <>
       <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{L("This period")}</p>
+      {tanks.length > 0 && (
+        <div className="mb-3 inline-flex flex-wrap gap-6 rounded-2xl border border-border bg-muted/30 px-5 py-3">
+          {tanks.map(([name, max, used, unit]) => {
+            const level = (Number(used) || 0) / Number(max);
+            return <FuelTank key={name} level={level} size={70} colour={levelColour(level)} label={`${num(used)}${unit} / ${num(max)}${unit}`} caption={`${L(name)} · ${Math.round(level * 100)}%`} />;
+          })}
+        </div>
+      )}
       <Facts
         className="mb-3"
         rows={[

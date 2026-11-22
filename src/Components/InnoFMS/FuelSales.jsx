@@ -10,6 +10,7 @@ import { fuelMonitor } from "@/Services/Fms/fms.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
 import { num } from "./fmsShared";
+import { FuelPump, FuelTank } from "./FmsVisuals";
 
 // InnoFMS › Fuel Sales (Admin_42, menu 405): the forecourts live. Stations,
 // their terminals (online or not) and the latest sales, polled every 8 s
@@ -52,6 +53,9 @@ export function FuelSales() {
   useVisiblePoll(poll, POLL_MS, !paused);
 
   const stations = snap?.stations ?? [];
+  const most = Math.max(1, ...stations.map((s) => Number(s.litres_today) || 0));
+  // A sale in the last 3 minutes: the station's pump pours.
+  const pouring = (s) => s.last_sale_at && Date.now() - new Date(s.last_sale_at).getTime() < 3 * 60 * 1000;
   const terminals = snap?.terminals ?? [];
   return (
     <div className="pt-1 pb-6">
@@ -79,12 +83,16 @@ export function FuelSales() {
         <div className="h-40 animate-pulse rounded-2xl bg-muted" />
       ) : (
         <>
-          <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mb-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
             {!stations.length && <p className="rounded-2xl border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground sm:col-span-2 xl:col-span-4">{L("No stations yet. A station is a merchant's store in InnoMMS.")}</p>}
             {stations.map((s) => (
-              <div key={s.station_id} className="rounded-2xl border border-border bg-card p-3">
+              <div key={s.station_id} className="flex gap-3 rounded-2xl border border-border bg-card p-3">
+                <div className="flex shrink-0 flex-col items-center">
+                  <FuelTank level={(Number(s.litres_today) || 0) / most} size={64} title={L("Share of today's litres")} />
+                </div>
+                <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-bold">{s.name}</p>
+                  <p className="line-clamp-2 text-sm font-bold" title={s.name}>{s.name}</p>
                   <span className={cn("flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold", s.online ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground")}>
                     {s.online ? <Wifi size={11} /> : <WifiOff size={11} />}
                     {L(s.online ? "Online" : "Offline")}
@@ -97,6 +105,8 @@ export function FuelSales() {
                 <p className="text-[11px] text-muted-foreground">
                   {L("Terminals")}: {s.terminals ?? 0} · {L("Last sale")}: {s.last_sale_at ? accountDate(s.last_sale_at) : "—"}
                 </p>
+                </div>
+                <FuelPump size={44} flowing={Boolean(pouring(s))} className="shrink-0 self-end" />
               </div>
             ))}
           </div>
@@ -128,7 +138,7 @@ export function FuelSales() {
                   </thead>
                   <tbody>
                     {sales.map((s) => (
-                      <tr key={s.rrn ?? `${s.created_time}${s.tid}`} className={cn("border-t border-border", s.voided && "text-muted-foreground line-through")}>
+                      <tr key={s.rrn ?? `${s.created_time}${s.tid}`} className={cn("fms-new border-t border-border", s.voided && "text-muted-foreground line-through")}>
                         <td className="whitespace-nowrap px-3 py-1.5">{accountDate(s.created_time)}</td>
                         <td className="px-3 py-1.5">{s.station}</td>
                         <td className="px-3 py-1.5">{s.pump_code || "—"}</td>

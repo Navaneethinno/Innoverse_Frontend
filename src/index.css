@@ -10,3 +10,20 @@ html.ui-locked input, html.ui-locked textarea, html.ui-locked [contenteditable="
 @keyframes modal-busy-slide { from { left: -35%; } to { left: 100%; } }
 .modal-busy-bar { animation: modal-busy-slide 1.1s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .modal-busy-bar { animation-duration: 3s; } }
+
+
+/* InnoFMS visuals (Components/InnoFMS/FmsVisuals.jsx). */
+@keyframes fms-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.fms-wave { animation: fms-wave 3.2s linear infinite; transform-box: fill-box; }
+.fms-wave-slow { animation: fms-wave 5.5s linear infinite reverse; transform-box: fill-box; }
+@keyframes fms-bubble { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 0.7; } 100% { transform: translateY(-60px); opacity: 0; } }
+.fms-bubble { animation: fms-bubble 3.3s ease-in infinite; }
+@keyframes fms-drop { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px) scale(1); opacity: 0; } }
+.fms-drop { animation: fms-drop 1.05s ease-in infinite; }
+@keyframes fms-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.fms-float { animation: fms-float 4s ease-in-out infinite; }
+@keyframes fms-in { from { background: color-mix(in srgb, var(--primary) 18%, transparent); } to { background: transparent; } }
+.fms-new { animation: fms-in 2.4s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .fms-wave, .fms-wave-slow, .fms-bubble, .fms-drop, .fms-float, .fms-new { animation: none; }
+}

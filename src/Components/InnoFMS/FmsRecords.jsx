@@ -11,6 +11,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { TranslationsInput, cleanTranslations, opts } from "./fmsShared";
+import { FuelDrop } from "./FmsVisuals";
 
 // InnoFMS records (Admin_42): Fuel Products and Prices (398), Forecourt
 // (399), Zones (408) and Discounts (409). Standard maker-checker records:
@@ -60,7 +61,7 @@ export function FuelProducts() {
         {
           key: "colour",
           label: L("colour"),
-          render: (r) => (sv(r, "colour") ? <span className="inline-block h-4 w-4 rounded border border-border" style={{ background: sv(r, "colour") }} title={sv(r, "colour")} /> : cell("")),
+          render: (r) => (sv(r, "colour") ? <FuelDrop colour={sv(r, "colour")} title={sv(r, "colour")} /> : cell("")),
         },
       ]}
       fields={[
