@@ -25,7 +25,7 @@ import { useInstitutionScope } from "../Loans/loanShared";
 // in the reply, `bodyOf` how an edit sends it, `subtitle` and `before` what
 // shows above the document; `framed={false}` when the document draws its own
 // cards; `warningsOf` lines the propose dialog shows (they do not block it).
-export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", warningsOf = () => [], subtitle, before, framed = true, children }) {
+export function SectionScreen({ api, title, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", warningsOf = () => [], subtitle, before, framed = true, children }) {
   const { t } = useTranslation([ns, "loans"]);
   const can = usePagePermission();
   const menu = useMenuContext()?.menu;
@@ -63,7 +63,8 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
       await load();
     } catch (e) {
       setDialog(null);
-      if (verb === "edit") setError(e?.data?.problems?.length ? e.data.problems.join(" · ") : e.message);
+      // Every problem on its own line under the headline.
+      if (verb === "edit") setError(e?.data?.problems?.length ? [e.message, ...e.data.problems].join("\n") : e.message);
       else notifications.error(e.message);
     } finally {
       setBusy(false);
@@ -79,7 +80,7 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:flex-nowrap">
         <div className="min-w-0">
-          <PageTitle>{menu ? menuLabel(menu) : fallbackTitle}</PageTitle>
+          <PageTitle>{title ?? (menu ? menuLabel(menu) : fallbackTitle)}</PageTitle>
           {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         {data && !data.missing && !form && (

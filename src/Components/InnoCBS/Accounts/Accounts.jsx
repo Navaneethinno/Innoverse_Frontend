@@ -23,6 +23,7 @@ import { InstitutionWallets } from "./InstitutionWallets";
 import { OverdraftCard, Overdrafts } from "./Overdrafts";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { PhoneTransfers } from "./PhoneTransfers";
+import { SelfService } from "./SelfService";
 import { OpenAccount, OpeningRequests } from "./AccountOpening";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { ownerEntity } from "../Deposits/TermDeposits/OpenDeposit";
@@ -55,10 +56,11 @@ export function Accounts() {
           </Button>
         )}
       </div>
-      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "overdrafts" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", overdrafts: "overdrafts", phone: "ptTitle" }[k])} />
+      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "overdrafts" }, { key: "phone" }, { key: "self" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", overdrafts: "overdrafts", phone: "ptTitle", self: "ss_tab" }[k])} />
       {view === "accounts" && <AccountsList />}
       {view === "opening" && <OpeningRequests />}
       {view === "phone" && <PhoneTransfers />}
+      {view === "self" && <SelfService />}
       {view === "overdrafts" && <Overdrafts />}
       {view === "wallets" && <InstitutionWallets onOpenAccount={(w) => setWalletAccount({ ...w, id: w.acct_id })} />}
       {walletAccount && <AccountDetail account={walletAccount} onClose={() => setWalletAccount(null)} onStatement={() => setWalletAccount(null)} />}

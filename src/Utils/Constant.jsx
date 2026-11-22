@@ -927,6 +927,8 @@ export const API_ENDPOINTS = {
   RECON: "/config/recon",
   ACCOUNT: {
     ACTION_ADD: "/config/account/action/add",
+    SELF_SERVICE: "/config/account/self_service",
+    SELF_STATUS: "/config/account/self_status",
     ACTION_AUTH: "/config/account/action/auth",
     ACTION_CANCEL: "/config/account/action/cancel",
     ACTION_DEAUTH: "/config/account/action/deauth",

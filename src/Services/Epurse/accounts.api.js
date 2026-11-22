@@ -76,3 +76,22 @@ export const institutionWalletsApi = {
   products: () => request(API_ENDPOINTS.CONFIG_ACCT.ACCT_PRODUCT.GET_ACTIVE, { view: "dropdown" }),
 };
 export const activeAccountProducts = (body) => request(API_ENDPOINTS.CONFIG_ACCT.ACCT_PRODUCT.GET_ACTIVE, body);
+
+// Account self-service (Admin_40, under Accounts): the institution's one
+// settings document (maker-checker; edit sends it under `setup`) and the
+// suspensions / closure requests customers made.
+const { SELF_SERVICE, SELF_STATUS } = API_ENDPOINTS.ACCOUNT;
+export const selfServiceApi = {
+  get: (body = {}) => request(`${SELF_SERVICE}/get`, body),
+  edit: ({ narration, inst_profile_id, ...setup } = {}) => request(`${SELF_SERVICE}/edit`, { setup, ...(narration ? { narration } : {}), ...(inst_profile_id ? { inst_profile_id } : {}) }),
+  auth: (body = {}) => request(`${SELF_SERVICE}/auth`, body),
+  deauth: (body = {}) => request(`${SELF_SERVICE}/deauth`, body),
+};
+export const selfStatusApi = {
+  listPath: `${SELF_STATUS}/list`,
+  list: (body = {}) => request(`${SELF_STATUS}/list`, body),
+  get: (body) => request(`${SELF_STATUS}/get`, body),
+  reactivate: (body) => request(`${SELF_STATUS}/reactivate`, body),
+  approve_close: (body) => request(`${SELF_STATUS}/approve_close`, body),
+  reject_close: (body) => request(`${SELF_STATUS}/reject_close`, body),
+};
