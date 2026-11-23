@@ -68,8 +68,13 @@ export function ModuleDashboard({ moduleName }) {
     });
     return row;
   });
-  const items = data?.breakdown?.items ?? [];
-  const total = data?.breakdown?.total ?? items.reduce((n, x) => n + (x.count ?? 0), 0);
+  const allItems = data?.breakdown?.items ?? [];
+  const total = data?.breakdown?.total ?? allItems.reduce((n, x) => n + (x.count ?? 0), 0);
+  // Largest first; past seven slices the rest join as "Other", so a long
+  // list (e.g. 30 transaction types) keeps the card its normal height.
+  const sorted = [...allItems].sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  const rest = sorted.slice(7);
+  const items = rest.length > 1 ? [...sorted.slice(0, 7), { key: "__other", name: t("md.other", { defaultValue: `Other (${rest.length})`, count: rest.length }), count: rest.reduce((n, x) => n + (x.count ?? 0), 0) }] : sorted;
   const recent = data?.recent ?? [];
   const noDashboard = error?.code === "config.dashboard_module_unknown";
   const setupFlows = flows.filter((f) => !f.complete && Number(f.module_id) === Number(moduleId));
@@ -173,12 +178,12 @@ export function ModuleDashboard({ moduleName }) {
                 </div>
                 <ul className="mt-3 grid gap-1.5">
                   {items.map((x, i) => (
-                    <li key={x.key} className="flex items-center justify-between gap-2 text-xs">
-                      <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-700">
+                    <li key={x.key} className="flex min-w-0 items-center justify-between gap-2 text-xs" title={x.name}>
+                      <span className="flex min-w-0 flex-1 items-center gap-2 font-semibold text-slate-700">
                         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="truncate">{x.name}</span>
                       </span>
-                      <span className="tabular-nums text-muted-foreground">
+                      <span className="shrink-0 tabular-nums text-muted-foreground">
                         {plain.format(x.count ?? 0)}
                         {total > 0 && ` · ${Math.round(((x.count ?? 0) / total) * 100)}%`}
                       </span>

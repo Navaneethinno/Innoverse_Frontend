@@ -43,6 +43,19 @@ export function WidgetBody({ loading, failed, empty, emptyText, children }) {
   const { t } = useTranslation("dashboard");
   if (loading) return <div className="min-h-16 flex-1 animate-pulse rounded-xl bg-muted/60" />;
   if (failed) return <p className="flex min-h-16 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{t("couldNotLoad")}</p>;
-  if (empty) return <p className="flex min-h-16 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{emptyText ?? t("nothingYet")}</p>;
+  if (empty)
+    return (
+      <div className="flex min-h-16 flex-1 flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+        {/* An empty tray, so "nothing yet" reads as calm rather than broken. */}
+        <svg width="56" height="44" viewBox="0 0 56 44" aria-hidden="true">
+          <rect x="14" y="4" width="28" height="22" rx="3" fill="var(--card)" stroke="var(--border)" strokeWidth="1.5" />
+          <rect x="19" y="10" width="14" height="2.5" rx="1.25" fill="var(--border)" />
+          <rect x="19" y="16" width="10" height="2.5" rx="1.25" fill="var(--border)" />
+          <path d="M4 26 L12 18 H44 L52 26 V38 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4z" fill="color-mix(in srgb, var(--primary) 18%, var(--card))" />
+          <path d="M4 26 H18 a10 6 0 0 0 20 0 H52" fill="none" stroke="var(--primary)" strokeWidth="1.5" opacity="0.6" />
+        </svg>
+        <p>{emptyText ?? t("nothingYet")}</p>
+      </div>
+    );
   return children;
 }

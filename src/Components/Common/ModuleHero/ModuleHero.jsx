@@ -85,18 +85,45 @@ function Health({ rows }) {
   );
 }
 
-// Each module: picture, sentence, the facts (tile keys) and its visual.
+// The first trend line of the last 12 months, drawn small, with this
+// month's figure.
+function Spark({ trend, L }) {
+  const s = trend?.series?.[0];
+  const vals = (s?.values ?? []).map((x) => Number(x) || 0);
+  if (vals.length < 2) return null;
+  const w = 224, h = 56, top = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => [(i / (vals.length - 1)) * w, h - 4 - (v / top) * (h - 10)]);
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  // This month is not over, so no change against last month is shown.
+  const last = vals.at(-1);
+  return (
+    <figure className="w-56">
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="overflow-visible" aria-hidden="true">
+        <polygon points={`0,${h} ${line} ${w},${h}`} fill="var(--primary)" opacity="0.15" />
+        <motion.polyline points={line} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease: "easeOut" }} />
+        <circle cx={pts.at(-1)[0]} cy={pts.at(-1)[1]} r="4" fill="var(--primary)" stroke="var(--card)" strokeWidth="2" />
+      </svg>
+      <figcaption className="mt-1 flex items-baseline justify-between gap-2 text-[11px]">
+        <span className="truncate text-muted-foreground" title={s.label}>{s.label}</span>
+        <span className="shrink-0 font-bold">
+          {fmt(last)} <span className="font-normal text-muted-foreground">{L("this month")}</span>
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
+
+// Each module: picture, sentence and its visual. The key numbers are the
+// tiles just below the banner, so the banner does not repeat them.
 const MODULES = {
   epurse: {
     art: WalletArt,
     text: "Customers' wallets: who is joining, who has joined, and what waits for a checker.",
-    facts: ["pending_approvals"],
     visual: (v, L) => <Journey steps={[[L("Onboarding in progress"), v("onboarding_in_progress")], [L("Joined this month"), v("onboarded_this_month")], [L("Active customers"), v("active_customers")]]} />,
   },
   innomms: {
     art: StoreArt,
     text: "Merchants, their stores, terminals and agents.",
-    facts: ["active_merchants", "active_stores", "active_agents", "qr_sessions_today"],
     visual: (v, L) => {
       const all = v("active_terminals");
       const off = v("terminals_offline");
@@ -106,31 +133,31 @@ const MODULES = {
   innoaml: {
     art: ShieldArt,
     text: "Screening and monitoring: what is flagged, raised and waiting for a review.",
-    facts: ["aml_open_cases", "aml_str_in_progress", "aml_blacklist_entries"],
     visual: (v, L) => <Meters rows={[[L("Open alerts"), v("aml_open_alerts"), "#ef4444"], [L("Open flags"), v("aml_open_flags"), "#f59e0b"], [L("Waiting for review"), v("aml_pending_reviews"), "var(--primary)"]]} />,
   },
   "case management": {
     art: InboxArt,
     text: "Onboarding reviews, customer cases and disputes.",
-    facts: ["cm_open_customer_cases", "cm_customer_replied", "cm_open_disputes"],
     visual: (v, L) => <Ring value={v("cm_overdue_onboarding")} max={v("cm_open_onboarding")} colour="#ef4444" label={L("Onboarding overdue")} caption={`${fmt(v("cm_overdue_onboarding"))} / ${fmt(v("cm_open_onboarding"))}`} />,
   },
   "global settings": {
     art: GearsArt,
     text: "Providers, fees, limits and the jobs that keep things running.",
-    facts: ["gs_active_providers", "gs_active_fee_schedules", "gs_active_digital_products"],
     visual: (v, L) => <Health rows={[[L("Interfaces down"), v("gs_interfaces_down")], [L("Jobs failed"), v("gs_jobs_failed")], [L("Waiting for approval"), v("pending_approvals")]]} />,
   },
-  finance: { art: LedgerArt, text: "Transactions and their postings.", facts: ["transactions_this_month", "pending_approvals"] },
-  innocbs: { art: BankArt, text: "Core banking: accounts, deposits and loans.", facts: ["active_accounts", "pending_approvals"] },
-  institution: { art: BankArt, text: "The institution's profile, modules, channels and documents.", facts: ["active_modules", "active_channels", "changes_this_month", "pending_approvals"] },
+  finance: { art: LedgerArt, text: "Transactions and their postings.", visual: (v, L, data) => <Spark trend={data?.trend} L={L} /> },
+  innocbs: { art: BankArt, text: "Core banking: accounts, deposits and loans.", visual: (v, L, data) => <Spark trend={data?.trend} L={L} /> },
+  institution: { art: BankArt, text: "The institution's profile, modules, channels and documents.", visual: (v, L, data) => <Spark trend={data?.trend} L={L} /> },
   "user management": {
     art: PeopleArt,
     text: "Staff users, their profiles and sign-ins.",
-    facts: ["users", "locked_users"],
     visual: (v, L) => <Ring value={v("signed_in_today")} max={v("users")} label={L("Signed in today")} caption={`${fmt(v("signed_in_today"))} / ${fmt(v("users"))}`} />,
   },
-  innoreports: { art: ChartArt, text: "Saved reports and documents about to expire.", facts: ["rp_saved_reports", "rp_documents_expiring", "rp_documents_in_grace", "rp_documents_expired"] },
+  innoreports: {
+    art: ChartArt,
+    text: "Saved reports and documents about to expire.",
+    visual: (v, L) => <Health rows={[[L("Documents expiring soon"), v("rp_documents_expiring")], [L("In the grace period"), v("rp_documents_in_grace")], [L("Documents expired"), v("rp_documents_expired")]]} />,
+  },
   innocms: { art: CardsArt, text: "Cards: products, orders, stock and the cards in customers' hands." },
   innotreasury: { art: VaultArt, text: "Treasury: placements, borrowings, securities and exposure." },
 };
@@ -142,10 +169,7 @@ export function ModuleHero({ moduleName, data }) {
   const m = MODULES[String(moduleName ?? "").toLowerCase()];
   if (!m) return null;
   const tiles = data?.tiles ?? [];
-  const tile = (key) => tiles.find((x) => x.key === key);
-  const v = (key) => Number(tile(key)?.value) || 0;
-  // The named facts it sends; a module without named facts shows its first tiles.
-  const facts = (m.facts ? m.facts.map(tile).filter(Boolean) : tiles.slice(0, 4)).map((x) => [x.label, fmt(x.value)]);
+  const v = (key) => Number(tiles.find((x) => x.key === key)?.value) || 0;
   const Art = m.art;
   return (
     <div className="relative mb-5 min-h-[8.5rem] overflow-hidden rounded-3xl border border-border p-5" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--primary) 13%, var(--card)), var(--card) 60%)" }}>
@@ -155,19 +179,9 @@ export function ModuleHero({ moduleName, data }) {
           <Art />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="max-w-2xl text-sm text-muted-foreground">{L(m.text)}</p>
-          {!data && <div className="mt-3 h-6 w-64 animate-pulse rounded-full bg-muted" />}
-          {facts.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {facts.map(([k, val]) => (
-                <span key={k} className="rounded-full border border-border bg-card/80 px-3 py-1 text-xs">
-                  <span className="text-muted-foreground">{k}</span> <span className="font-bold text-foreground">{val}</span>
-                </span>
-              ))}
-            </div>
-          )}
+          <p className="max-w-2xl text-base font-semibold text-foreground/80">{L(m.text)}</p>
         </div>
-        {m.visual && <div className="shrink-0">{data ? m.visual(v, L) : <div className="h-20 w-40 animate-pulse rounded-2xl bg-muted" />}</div>}
+        {m.visual && <div className="shrink-0">{data ? m.visual(v, L, data) : <div className="h-20 w-40 animate-pulse rounded-2xl bg-muted" />}</div>}
       </div>
     </div>
   );
