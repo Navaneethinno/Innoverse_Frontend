@@ -10358,6 +10358,7 @@ export const paysePay = {
   "ds_coolingCap": "Limite no período de espera",
   "ds_coolingCapHint": "Máximo que um novo dispositivo pode enviar até o período acabar. Vazio: sem limite.",
   "ds_alerts": "Alertar o cliente",
+  "ds_oneDevice": "Um dispositivo de cada vez: um novo dispositivo substitui o anterior.",
   "ds_verifier": "Verificador",
   "ds_verifier_AUTO": "Auto (Play Integrity / App Attest)",
   "ds_verifier_TEST": "Teste (só testadores)",

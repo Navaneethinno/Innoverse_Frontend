@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+﻿import { useTranslation } from "react-i18next";
 import { Section } from "@/Components/InnoCBS/Deposits/depositShared";
 import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { deviceSecurityApi } from "@/Services/PaysePay/paysePay.api";
@@ -63,6 +63,7 @@ export function DeviceSecurity() {
         return GROUPS.map((g) => (
           <Section key={g} title={t(`ds_group_${g}`)}>
             <DocFields fields={fields[g]} value={shown?.[g]} editing={editing} onChange={(v) => setForm((f) => ({ ...f, [g]: v }))} />
+            {g === "binding" && shown?.binding?.mode && shown.binding.mode !== "OFF" && (Number(shown.binding.max_devices) <= 1 || String(shown.binding.secondary_allowed) !== "true") && <p className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">{t("ds_oneDevice")}</p>}
           </Section>
         ));
       }}

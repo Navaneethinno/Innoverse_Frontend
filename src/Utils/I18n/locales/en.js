@@ -10305,6 +10305,7 @@ export const paysePay = {
   "ds_coolingCap": "Cooling cap",
   "ds_coolingCapHint": "Most a new device may send in total until the period ends. Empty: no cap.",
   "ds_alerts": "Alert the customer",
+  "ds_oneDevice": "One device at a time: a new device replaces the old one.",
   "ds_verifier": "Verifier",
   "ds_verifier_AUTO": "Auto (Play Integrity / App Attest)",
   "ds_verifier_TEST": "Test (testers only)",

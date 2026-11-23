@@ -10339,6 +10339,7 @@ export const paysePay = {
   "ds_coolingCap": "حد فترة التهدئة",
   "ds_coolingCapHint": "أقصى ما يمكن للجهاز الجديد إرساله حتى انتهاء الفترة. فارغ: بلا حد.",
   "ds_alerts": "تنبيه العميل",
+  "ds_oneDevice": "جهاز واحد في كل مرة: الجهاز الجديد يحل محل القديم.",
   "ds_verifier": "أداة التحقق",
   "ds_verifier_AUTO": "تلقائي (Play Integrity / App Attest)",
   "ds_verifier_TEST": "اختبار (للمختبرين فقط)",
