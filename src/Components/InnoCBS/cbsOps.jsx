@@ -51,7 +51,8 @@ export const sv = (r, key) => r?.[key] ?? r?.setup?.[key] ?? r?.pending?.setup?.
 
 // Staff find a customer or merchant by name, phone number or id; the value is
 // "ENTITY_TYPE:id".
-export function PartyPick({ value, onChange, preset }) {
+// party: "CUSTOMER" or "MERCHANT" narrows the search (Admin_43).
+export function PartyPick({ value, onChange, preset, party }) {
   const L = useL();
   const [found, setFound] = useState(preset ? [preset] : []);
   const latest = useRef(0);
@@ -59,7 +60,7 @@ export function PartyPick({ value, onChange, preset }) {
     if (!text) return;
     const ticket = ++latest.current;
     partyBlockApi
-      .parties({ search: text, page_size: 20 })
+      .parties({ search: text, page_size: 20, ...(party ? { party } : {}) })
       .then((r) => {
         if (ticket === latest.current) setFound(rowsOf(r).map((p) => ({ value: `${p.entity_type}:${p.entity_id}`, label: [p.name, p.phone_number, p.entity_type].filter(Boolean).join(" · ") })));
       })

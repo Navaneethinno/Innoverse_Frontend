@@ -292,7 +292,7 @@ export function Discounts() {
         f("products", "multi", { options: (c) => opts(c.products), hint: L("A group covers its grades. Empty: every product.") }),
         f("store_ids", "multi", { label: L("Stations"), options: (c) => opts(c.stores), hint: L("Empty: every station.") }),
         f("zones", "multi", { options: (c) => opts(c.zones), hint: L("Empty: every zone.") }),
-        f("owner", "custom", { label: L("Customer"), from: (s) => (s.owner_type && s.owner_id ? `${s.owner_type}:${s.owner_id}` : ""), render: (v, set) => <PartyPick value={v} onChange={set} /> }),
+        f("owner", "custom", { label: L("Customer"), from: (s) => (s.owner_type && s.owner_id ? `${s.owner_type}:${s.owner_id}` : ""), render: (v, set) => <PartyPick party="CUSTOMER" value={v} onChange={set} /> }),
         f("card_product_id", "select", { blank: L("Any card product"), options: (c) => opts(c.card_products) }),
         f("min_litres", "amount", { hint: L("Empty: no minimum.") }),
         f("effective_from", "date", { required: true }),

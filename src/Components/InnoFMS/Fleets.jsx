@@ -373,7 +373,7 @@ function TryFill({ onClose }) {
       <label className={cn(labelClass, "mb-3 block")}>
         {L("Customer")}
         <RequiredMark />
-        <PartyPick value={owner} onChange={setOwner} />
+        <PartyPick party="CUSTOMER" value={owner} onChange={setOwner} />
       </label>
       {o && choices && (
         <div className="grid gap-3 sm:grid-cols-2">

@@ -138,7 +138,7 @@ export function FleetScreen({ api, title, subtitle, columns, fields, toBody, fro
           ))}
         </div>
         <div className="w-64">
-          <PartyPick
+          <PartyPick party="CUSTOMER"
             value={owner}
             onChange={(v) => {
               setOwner(v);
@@ -240,17 +240,17 @@ function FleetDetail({ api, first, title, factsOf, detailExtra, onClose, onEdit,
     }
   };
 
-  // The server refuses what the status does not allow (fuel.status_not_allowed,
-  // fuel.change_waiting, fuel.own_change); the buttons follow the same rules.
+  // Admin_43: each row says what the signed-in user may do (`actions`);
+  // menu rights apply on top.
+  const a = r.actions ?? {};
   const waiting = Boolean(r.pending_action);
-  const settled = !waiting && ["ACTIVE", "INACTIVE"].includes(r.status);
   const buttons = [
-    settled && can("Edit") && { key: "edit", label: L("Edit"), icon: Pencil, run: () => onEdit(r) },
-    settled && r.status === "ACTIVE" && can("Edit") && { key: "deactivate", label: L("Deactivate"), icon: PowerOff, run: () => setDialog("deactivate") },
-    settled && r.status === "INACTIVE" && can("Edit") && { key: "reactivate", label: L("Reactivate"), icon: Power, run: () => setDialog("reactivate") },
-    settled && can("Delete") && { key: "delete", label: L("Delete"), icon: Trash2, variant: "danger", run: () => setDialog("delete") },
-    waiting && can("Authorize") && { key: "deauth", label: L("Reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
-    waiting && can("Authorize") && { key: "auth", label: L("Approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
+    a.edit && can("Edit") && { key: "edit", label: L("Edit"), icon: Pencil, run: () => onEdit(r) },
+    a.deactivate && can("Edit") && { key: "deactivate", label: L("Deactivate"), icon: PowerOff, run: () => setDialog("deactivate") },
+    a.reactivate && can("Edit") && { key: "reactivate", label: L("Reactivate"), icon: Power, run: () => setDialog("reactivate") },
+    a.delete && can("Delete") && { key: "delete", label: L("Delete"), icon: Trash2, variant: "danger", run: () => setDialog("delete") },
+    a.deauth && can("Authorize") && { key: "deauth", label: L("Reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
+    a.auth && can("Authorize") && { key: "auth", label: L("Approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
   ];
   const proposal = r.pending && typeof r.pending === "object" ? Object.entries(r.pending) : [];
   const current = (k) => r[k] ?? r.details?.[k];
@@ -398,7 +398,7 @@ function FleetForm({ api, record, fields, toBody, fromRecord, onClose, onSaved }
         <label className={cn(labelClass, "mb-3 block")}>
           {L("Customer")}
           <RequiredMark />
-          <PartyPick value={owner} onChange={setOwner} />
+          <PartyPick party="CUSTOMER" value={owner} onChange={setOwner} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{L("An individual or corporate customer; their cost centres, vehicles, drivers and cards fill the lists.")}</span>
         </label>
       )}

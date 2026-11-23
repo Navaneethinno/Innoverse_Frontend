@@ -73,9 +73,13 @@ const listOf = (r) => {
   return { rows, total: Number(p.totalRecords ?? p.total_records ?? rows.length) || 0 };
 };
 // "CUSTOMER/APP:+258…" (the customer themselves) reads "Customer (APP)"; staff by name.
-const actorOf = (t, who) => {
+// Who ended a request: ended_by_type (Admin_43) says customer or staff;
+// ended_by holds the staff name or the customer's channel and phone.
+const actorOf = (t, r) => {
+  const who = r?.ended_by;
   const m = /^CUSTOMER\/([A-Z]+)/.exec(String(who ?? ""));
-  return m ? t("ss_byCustomer", { channel: m[1] }) : who || "—";
+  if (r?.ended_by_type === "CUSTOMER" || (!r?.ended_by_type && m)) return t("ss_byCustomer", { channel: m?.[1] ?? "app" });
+  return who || "—";
 };
 const one = (r) => (Array.isArray(r?.data) ? r.data[0] : r?.data) ?? null;
 
@@ -165,7 +169,7 @@ function SelfServiceRequests() {
       render: (r) =>
         r.ended_at ? (
           <div className="text-xs">
-            <p className="whitespace-nowrap" title={r.ended_by || undefined}>{actorOf(t, r.ended_by)}</p>
+            <p className="whitespace-nowrap" title={r.ended_by || undefined}>{actorOf(t, r)}</p>
             <p className="whitespace-nowrap text-[10px] text-muted-foreground">{accountDate(r.ended_at)}</p>
           </div>
         ) : (
@@ -295,7 +299,7 @@ function RequestDetail({ first, onClose, onChanged }) {
             <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("ss_outcome")}</p>
             <Facts
               rows={[
-                [t("ss_endedBy"), actorOf(t, r.ended_by)],
+                [t("ss_endedBy"), actorOf(t, r)],
                 [t("ss_endedAt"), r.ended_at ? accountDate(r.ended_at) : "—"],
                 [t("ss_decisionNote"), r.decision_note || "—"],
               ]}

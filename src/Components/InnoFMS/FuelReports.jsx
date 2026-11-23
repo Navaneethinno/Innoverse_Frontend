@@ -165,7 +165,7 @@ export function FuelReports() {
         {report !== "prices" && (
           <div className={labelClass}>
             {L("Customer's fleet")}
-            <PartyPick value={q.owner} onChange={set("owner")} />
+            <PartyPick party="CUSTOMER" value={q.owner} onChange={set("owner")} />
           </div>
         )}
         <label className={labelClass}>
