@@ -1,6 +1,4 @@
 import { Link, useRouteError } from "react-router-dom";
-import { LottiePlayer } from "@/Components/Common/LottiePlayer";
-import notFoundAnimation from "@/assets/animations/Lonely 404.lottie";
 import { useTranslation } from "react-i18next";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -22,13 +20,16 @@ export function RouteError() {
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-teal-200/30 blur-3xl dark:bg-teal-900/20" />
       <div className="relative flex w-full max-w-xl flex-col items-center gap-3 rounded-[2rem] border border-white/70 bg-card/60 px-8 py-10 shadow-xl backdrop-blur-xl dark:border-white/10">
-      <LottiePlayer
-        className="h-64 w-64 mix-blend-multiply dark:mix-blend-screen"
-        src={notFoundAnimation}
-        loop
-        autoplay
-        aria-label={tr("Page not found")}
-      />
+      {/* A lost compass over "404": plain SVG and CSS (no animation player). */}
+      <svg viewBox="0 0 200 150" className="mh-float h-48 w-64" role="img" aria-label={tr("Page not found")}>
+        <text x="100" y="112" textAnchor="middle" fontSize="92" fontWeight="900" fill="var(--primary)" opacity="0.16">404</text>
+        <circle cx="100" cy="66" r="34" fill="var(--card)" stroke="var(--primary)" strokeWidth="4" />
+        <g className="la-needle" style={{ transformOrigin: "100px 66px" }}>
+          <path d="M100 40 L108 66 L100 92 L92 66 Z" fill="var(--primary)" />
+          <path d="M100 66 L108 66 L100 92 L92 66 Z" fill="var(--border)" />
+        </g>
+        <circle cx="100" cy="66" r="4" fill="var(--card)" stroke="var(--primary)" strokeWidth="2" />
+      </svg>
       <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("lostTitle")}</h1>
       <p className="mb-2 text-sm font-medium text-muted-foreground">
         {t("pageNotFound")}

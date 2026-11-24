@@ -13,7 +13,8 @@ function contentSecurityPolicy(api) {
   const socket = api.replace(/^http/, "ws");
   const policy = [
     "default-src 'self'",
-    "script-src 'self' 'wasm-unsafe-eval'",
+    // No WebAssembly on the admin portal (PCI: its policy stays the strictest).
+    "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: ${api}`,
     "font-src 'self' data:",
@@ -49,7 +50,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(rootDir, "./src"),
     },
   },
-  assetsInclude: ["**/*.svg", "**/*.csv", "**/*.lottie"],
+  assetsInclude: ["**/*.svg", "**/*.csv"],
   build: {
     rollupOptions: {
       output: {
@@ -62,9 +63,5 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // .lottie files are small zips: inlined as a data: URL, the dotLottie
-    // player can't tell them from JSON and fails ("Failed to load animation
-    // data"). Keep them as files.
-    assetsInlineLimit: (file) => (file.endsWith(".lottie") ? false : undefined),
   },
 }));

@@ -6,6 +6,7 @@ The release number is the `version` in `package.json`. It is shown on the sign-i
 
 The release number stays 1.1.0 until the GitLab pipeline is set up.
 
+- Loading, empty and page-not-found animations are drawn with SVG and CSS instead of an animation player, so the admin portal runs no WebAssembly; its page policy no longer allows it (script-src 'self').
 - InnoRecon: a source file chosen in the browser is limited to the smaller of 20 MB (the API's request limit) and the source's own limit; larger files come through the source's SFTP collection.
 
 - react-grid-layout 1.5.4 (1.5.2 shipped a stray binary and C source file in its npm package).

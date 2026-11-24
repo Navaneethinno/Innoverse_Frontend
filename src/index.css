@@ -47,3 +47,12 @@ html.ui-locked input, html.ui-locked textarea, html.ui-locked [contenteditable="
 @media (prefers-reduced-motion: reduce) {
   .mh-float, .mh-coin, .mh-blink, .mh-scan, .mh-spin, .mh-spin-rev, .mh-spin-slow, .mh-paper { animation: none; }
 }
+
+/* Admin animations without an animation player (CSP has no WebAssembly). */
+@keyframes la-dot { 0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; } 40% { transform: scale(1); opacity: 1; } }
+.la-dot { animation: la-dot 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes la-needle { 0%, 100% { transform: rotate(-28deg); } 50% { transform: rotate(32deg); } }
+.la-needle { animation: la-needle 3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .la-dot, .la-needle { animation: none; opacity: 1; transform: none; }
+}
