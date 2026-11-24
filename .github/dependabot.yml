@@ -1,0 +1,14 @@
+# Dependabot (PCI SSS web, Q61): weekly check of npm packages, and of the
+# GitHub Actions used by the release checks. Security updates are raised as
+# pull requests as soon as an advisory is published.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

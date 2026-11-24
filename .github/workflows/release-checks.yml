@@ -1,0 +1,58 @@
+# Release checks (PCI SSS web, Q60 and Q61). Every push to main, every pull
+# request and every release tag: clean install from the lockfile (integrity
+# hashes checked), lint, unit tests, build, a production dependency audit that
+# fails on any high or critical finding, and the CycloneDX SBOM of this
+# build. A release tag (vX.Y.Z) also attaches that SBOM to the GitHub release,
+# so no release is published without its SBOM.
+name: release-checks
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # The build only needs an address to write into the page's
+      # Content-Security-Policy; the real one comes from the deploy's .env.
+      VITE_API_BASE_URL: https://api.example.invalid
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:run
+      - run: npm run build
+      - name: Dependency audit (production packages; fails on high or critical)
+        run: npm audit --omit=dev --audit-level=high
+      - name: SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx --sbom-type application > sbom-admin.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-admin-${{ github.ref_name }}
+          path: sbom-admin.cdx.json
+          retention-days: 90
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sbom-admin-${{ github.ref_name }}
+      - name: Attach the SBOM to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" sbom-admin.cdx.json --repo "${{ github.repository }}" --title "${{ github.ref_name }}" --notes "SBOM (CycloneDX) attached." || gh release upload "${{ github.ref_name }}" sbom-admin.cdx.json --repo "${{ github.repository }}" --clobber
