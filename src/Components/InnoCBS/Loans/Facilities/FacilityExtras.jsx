@@ -1,4 +1,5 @@
 import { todayDate } from "@/Utils/Lib/dateFormat";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, CheckCircle2, Circle, Download, HandCoins, Paperclip, Plus, Trash2 } from "lucide-react";
@@ -318,7 +319,7 @@ export function Tranches({ loan, onChanged }) {
                   ) : a.tranche_proof ? (
                     <label className="flex cursor-pointer items-center gap-1 font-bold text-primary">
                       <Paperclip size={13} /> {t("attachProof")}
-                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={(e) => e.target.files?.[0] && void attach(x, e.target.files[0])} />
+                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={(e) => { const picked = e.target.files?.[0]; const tooBig = uploadProblem(picked); if (tooBig) { e.target.value = ""; notifications.error(tooBig); } else if (picked) void attach(x, picked); }} />
                     </label>
                   ) : (
                     <span className="text-amber-800">{t("proofNeeded")}</span>
@@ -436,7 +437,7 @@ export function DeceasedDialog({ facility, onClose, onDone }) {
         </label>
         <label className={labelClass}>
           {t("deathCertificate")}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="mt-1 block text-xs" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="mt-1 block text-xs" onChange={(e) => { const picked = e.target.files?.[0] ?? null; const tooBig = uploadProblem(picked); if (tooBig) { e.target.value = ""; notifications.error(tooBig); } setFile(tooBig ? null : picked); }} />
         </label>
         <label className={labelClass}>
           {t("noteOptional")}

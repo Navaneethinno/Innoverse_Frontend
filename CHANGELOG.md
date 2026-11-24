@@ -2,6 +2,10 @@
 
 The release number is the `version` in `package.json`. It is shown on the sign-in page and at the bottom of the side menu, and each release is tagged in git as `vMAJOR.MINOR.PATCH` on the commit that is deployed. Raise the patch for fixes, the minor for new features, the major for breaking changes.
 
+## 1.0.1
+
+- Every upload stops a file over 10 MB before it is sent (bulk registration, bulk payouts, GL uploads, bank statement CSV, form translations CSV, gold documents, loan application and facility documents), the API's own limit.
+
 ## 1.0.0
 
 First release.

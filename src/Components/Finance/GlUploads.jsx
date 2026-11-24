@@ -1,4 +1,5 @@
 import { listPage } from "@/Hooks/useServerList";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FileSpreadsheet, Send, ShieldCheck, Upload } from "lucide-react";
@@ -141,7 +142,13 @@ export function UploadDialog({ options, onClose, onSubmitted }) {
             accept=".xlsx,.csv"
             className={cn(inputClass, "mt-1.5 file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--primary-light)] file:px-3 file:py-1 file:text-xs file:font-bold file:text-primary")}
             onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null);
+              const picked = e.target.files?.[0] ?? null;
+              const tooBig = uploadProblem(picked);
+              if (tooBig) {
+                e.target.value = "";
+                notifications.error(tooBig);
+              }
+              setFile(tooBig ? null : picked);
               setResult(null);
             }}
           />

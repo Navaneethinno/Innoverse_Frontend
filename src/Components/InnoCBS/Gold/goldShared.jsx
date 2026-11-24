@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Calculator, CheckCircle2, ClipboardCheck, FileSignature, HandCoins, Package, Plus, RefreshCcw, Undo2, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
@@ -93,6 +94,12 @@ export function GoldUpload({ kind, value, onChange }) {
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (!file) return;
+          const tooBig = uploadProblem(file);
+          if (tooBig) {
+            e.target.value = "";
+            notifications.error(tooBig);
+            return;
+          }
           setBusy(true);
           uploadFile(`${G}/upload`, { file, kind })
             .then((d) => onChange(d.path))

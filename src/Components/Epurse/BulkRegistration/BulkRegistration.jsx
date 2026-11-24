@@ -1,4 +1,5 @@
 import { BackButton } from "@/Components/Common/TextButtons";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -303,6 +304,12 @@ function NewBatch({ onClose, onSaved }) {
     setChecked(null);
     setError("");
     if (!picked) return setFile(null);
+    const tooBig = uploadProblem(picked);
+    if (tooBig) {
+      setFile(null);
+      setError(tooBig);
+      return;
+    }
     try {
       const read = await readPeopleFile(picked);
       if (read.rows.length > max) {

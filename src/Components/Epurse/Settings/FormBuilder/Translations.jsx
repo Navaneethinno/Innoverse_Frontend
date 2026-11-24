@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { Download, Languages, Upload } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Modal } from "@/Components/Common/Modal";
@@ -285,7 +286,9 @@ function CustomerTypesTab({ languages, scope, canEdit }) {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       e.target.value = "";
-                      if (file) void importCsv(file);
+                      const tooBig = uploadProblem(file);
+                      if (tooBig) notifications.error(tooBig);
+                      else if (file) void importCsv(file);
                     }}
                   />
                 </>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileCheck2, FileDown, RotateCcw, Send, Upload, Undo2, XCircle } from "lucide-react";
@@ -330,7 +331,13 @@ function UploadDialog({ scope, onClose, onFiled }) {
               type="file"
               accept=".csv,.xlsx"
               onChange={(e) => {
-                setFile(e.target.files?.[0] ?? null);
+                const picked = e.target.files?.[0] ?? null;
+                const tooBig = uploadProblem(picked);
+                if (tooBig) {
+                  e.target.value = "";
+                  notifications.error(tooBig);
+                }
+                setFile(tooBig ? null : picked);
                 setChecked(null);
               }}
               className={cn(inputClass, "mt-1.5 py-2 file:me-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-semibold file:text-foreground")}

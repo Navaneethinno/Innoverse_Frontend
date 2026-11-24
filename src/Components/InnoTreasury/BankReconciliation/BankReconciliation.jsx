@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { notifications } from "@/Utils/Lib/notifications";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { FileUp, Link2, RefreshCcw, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
@@ -79,6 +81,12 @@ export function BankReconciliation() {
                 className="mt-1 block text-xs"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
+                  const tooBig = uploadProblem(file);
+                  if (tooBig) {
+                    e.target.value = "";
+                    notifications.error(tooBig);
+                    return;
+                  }
                   if (file) file.text().then((text) => setForm((x) => ({ ...x, csv: text, file_name: x.file_name || file.name })));
                 }}
               />

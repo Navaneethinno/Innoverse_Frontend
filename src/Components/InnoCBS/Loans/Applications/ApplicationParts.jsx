@@ -1,4 +1,5 @@
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { uploadProblem } from "@/Utils/Lib/uploadLimit";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Circle, Download, Forward, Trash2, Upload, UserPlus } from "lucide-react";
@@ -262,7 +263,7 @@ function UploadDocument({ app, preset, required, onClose, onDone }) {
         )}
         <label className={labelClass}>
           {t("file")}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="mt-1 block text-xs" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="mt-1 block text-xs" onChange={(e) => { const picked = e.target.files?.[0] ?? null; const tooBig = uploadProblem(picked); if (tooBig) { e.target.value = ""; notifications.error(tooBig); } setFile(tooBig ? null : picked); }} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("fileHint")}</span>
         </label>
         <label className={labelClass}>
