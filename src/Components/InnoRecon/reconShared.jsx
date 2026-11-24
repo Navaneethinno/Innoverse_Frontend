@@ -546,7 +546,11 @@ export function useChoices(call, body = {}) {
 
 // A file chosen in the browser through the shared FileUploadField (its look,
 // Replace and Remove), kept as the File itself to send as multipart.
-// `maxMb`: the largest file allowed.
+// `maxMb`: the largest file allowed. A browser upload is one API request, and
+// the API refuses a request over 20 MB, so the field never allows more than
+// that; bigger files reach a source only through its SFTP collection.
+export const MAX_BROWSER_UPLOAD_MB = 20;
+export const browserUploadMb = (maxMb) => Math.min(MAX_BROWSER_UPLOAD_MB, Number(maxMb) || MAX_BROWSER_UPLOAD_MB);
 export function LocalFileField({ file, onChange, maxMb, hint, label }) {
   const { t } = useTranslation("recon");
   return (
@@ -561,7 +565,7 @@ export function LocalFileField({ file, onChange, maxMb, hint, label }) {
           return { path: chosen.name };
         }}
         accept="*/*"
-        maxBytes={(maxMb || 20) * 1024 * 1024}
+        maxBytes={browserUploadMb(maxMb) * 1024 * 1024}
         uploadLabel="Choose a file"
         hint={file ? `${file.name} · ${(file.size / 1024).toFixed(1)} KB` : hint}
       />

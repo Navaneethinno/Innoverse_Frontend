@@ -19,7 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass } from "../InnoCBS/Deposits/depositShared";
 import { Tabs } from "../InnoCBS/Loans/loanShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, humanize, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField } from "./reconShared";
+import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, humanize, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField, MAX_BROWSER_UPLOAD_MB, browserUploadMb } from "./reconShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Recon Files (menu 189): files received from each source (uploaded, picked
@@ -161,7 +161,7 @@ function UploadDialog({ onClose, onDone }) {
           file={file}
           onChange={setFile}
           maxMb={source?.max_file_mb}
-          hint={source ? [source.file_name_pattern && t("expectedName", { pattern: source.file_name_pattern }), t("maxSize", { mb: source.max_file_mb })].filter(Boolean).join(" · ") : t("chooseSourceFirst")}
+          hint={source ? [source.file_name_pattern && t("expectedName", { pattern: source.file_name_pattern }), t("maxSize", { mb: browserUploadMb(source.max_file_mb) }), Number(source.max_file_mb) > MAX_BROWSER_UPLOAD_MB && t("largerBySftp", { defaultValue: "Larger files (up to {{mb}} MB) arrive through the source's SFTP collection.", mb: source.max_file_mb })].filter(Boolean).join(" · ") : t("chooseSourceFirst")}
         />
         <Field label={source && !source.name_gives_date ? t("businessDate") : t("businessDateOptional")} required={Boolean(source && !source.name_gives_date)} hint={source?.name_gives_date ? t("dateFromNameHint") : t("dateNeededHint")}>
           <DateInput className={inputClass} value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />

@@ -2,6 +2,14 @@
 
 The release number is the `version` in `package.json`. It is shown on the sign-in page and at the bottom of the side menu, and each release is tagged in git as `vMAJOR.MINOR.PATCH` on the commit that is deployed. Raise the patch for fixes, the minor for new features, the major for breaking changes.
 
+## 1.1.0
+
+The release number stays 1.1.0 until the GitLab pipeline is set up.
+
+- InnoRecon: a source file chosen in the browser is limited to the smaller of 20 MB (the API's request limit) and the source's own limit; larger files come through the source's SFTP collection.
+
+- react-grid-layout 1.5.4 (1.5.2 shipped a stray binary and C source file in its npm package).
+
 ## 1.0.1
 
 - Every upload stops a file over 10 MB before it is sent (bulk registration, bulk payouts, GL uploads, bank statement CSV, form translations CSV, gold documents, loan application and facility documents), the API's own limit.
