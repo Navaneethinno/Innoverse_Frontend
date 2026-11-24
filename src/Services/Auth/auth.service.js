@@ -124,6 +124,9 @@ async function request(endpoint, init, send = fetch) {
 // but { mfa_required, mfa_token, sent_to, expires_in, code_length }: that is
 // returned as `{ mfa }`, and the same call is made again with
 // `code` = { mfa_token, mfa_code }.
+// The sign-in code (mfa_code) is sealed like the password: from the backend
+// release that lists it among the sealed fields, a plain one is refused.
+const sealedCode = async (code) => (code?.mfa_code ? { ...code, mfa_code: await seal(String(code.mfa_code)) } : (code ?? {}));
 export async function loginRequest(institutionCode, username, password, code) {
   const payload = await withSealedRetry(async () =>
     request(API_ENDPOINTS.AUTH.LOGIN, {
@@ -134,7 +137,7 @@ export async function loginRequest(institutionCode, username, password, code) {
         Authorization: getBasicAuthorization(),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password: await seal(password), ...code }),
+      body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password: await seal(password), ...(await sealedCode(code)) }),
     }),
   );
   const first = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
@@ -210,13 +213,14 @@ export async function forgotPasswordRequest(institutionCode, username) {
   return { ...(Array.isArray(payload?.data) ? payload.data[0] : payload?.data), message: payload?.message };
 }
 
-// Sets the new password (sealed) with the emailed code and the reset token.
+// Sets the new password with the emailed code and the reset token; the code
+// and the password are both sealed (the gateway refuses either in plain text).
 export async function resetPasswordRequest(institutionCode, username, resetToken, code, newPassword) {
   return withSealedRetry(async () =>
     request(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
       method: "POST",
       headers: basicHeaders(),
-      body: JSON.stringify({ ...userOf(institutionCode, username), reset_token: resetToken, code, new_password: await seal(newPassword) }),
+      body: JSON.stringify({ ...userOf(institutionCode, username), reset_token: resetToken, code: await seal(String(code)), new_password: await seal(newPassword) }),
     }),
   );
 }
