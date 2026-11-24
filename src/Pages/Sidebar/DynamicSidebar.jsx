@@ -1,4 +1,5 @@
 import { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { APP_VERSION } from "@/Utils/Constant";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -436,6 +437,12 @@ export function DynamicSidebar() {
               )}
             </AnimatePresence>
           </motion.button>
+        )}
+        {/* The release number (package.json), so anyone can say which build they are on. */}
+        {APP_VERSION && (
+          <p className="pt-1 text-center text-[10px] text-muted-foreground/70" title="Version">
+            v{APP_VERSION}
+          </p>
         )}
       </div>
       </motion.aside>

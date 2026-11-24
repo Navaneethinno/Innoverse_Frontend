@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -37,8 +38,12 @@ function apiOrigin(mode) {
   return new URL(base).origin;
 }
 
+// The release number is package.json's, so one place says which build is live.
+const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+
 export default defineConfig(({ mode }) => ({
   plugins: [react(), contentSecurityPolicy(apiOrigin(mode))],
+  define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(version) },
   resolve: {
     alias: {
       "@": path.resolve(rootDir, "./src"),

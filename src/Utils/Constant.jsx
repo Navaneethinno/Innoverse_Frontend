@@ -1176,3 +1176,6 @@ export const API_ENDPOINTS = {
     CASH_MOVEMENT: "/config/treasury/cash_movement",
   },
 };
+
+// The release number, from package.json (set at build time by vite.config.js); shown in the footer.
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION || "";

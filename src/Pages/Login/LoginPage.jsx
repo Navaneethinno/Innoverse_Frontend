@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { APP_VERSION } from "@/Utils/Constant";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
@@ -463,6 +464,7 @@ export function LoginPage() {
           </motion.div>
           <p className="mt-6 text-center text-xs text-muted-foreground">
             © {new Date().getFullYear()} Innovitegra Solutions Private Limited
+            {APP_VERSION && <span className="ml-2" title="Version">v{APP_VERSION}</span>}
           </p>
         </motion.div>
       </div>
