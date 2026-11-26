@@ -34,3 +34,6 @@ Thumbs.db
 .claude/
 test-results/
 playwright-report/
+build/
+.env.*
+!.env.example

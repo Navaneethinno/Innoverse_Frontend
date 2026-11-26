@@ -12,6 +12,7 @@ import { rewardsCampaignApi } from "@/Services/Campaigns/campaigns.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { idsOf } from "./usePagedList";
 import { RecordDialogFrame, RewardRecords, amount, byCode, byId, byTxnType, editedSetup, inputClass, labelClass, labelsOf, shownSetup, useRewardOptions, useRewardRecord, whole } from "./rewardsShared";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 
 const REWARD_KINDS = ["CASHBACK", "POINTS"];
 const PARTIES = ["ANY", "CUSTOMER", "MERCHANT"];
@@ -185,11 +186,11 @@ function RewardForm({ record, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("start_date")} <span className="text-red-500">*</span>
-          <DateInput className={inputClass} value={form.start_date} max={form.end_date || undefined} onChange={(e) => set({ start_date: e.target.value })} />
+          <DateInput className={inputClass} value={form.start_date} min={todayDate()} max={form.end_date || undefined} onChange={(e) => set({ start_date: e.target.value })} />
         </label>
         <label className={labelClass}>
           {t("end_date")}
-          <DateInput className={inputClass} value={form.end_date} min={form.start_date || undefined} onChange={(e) => set({ end_date: e.target.value })} />
+          <DateInput className={inputClass} value={form.end_date} min={form.start_date || todayDate()} onChange={(e) => set({ end_date: e.target.value })} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("endDateHint")}</span>
         </label>
         <div className="flex items-end">

@@ -1,4 +1,4 @@
-import { istInputValue } from "@/Utils/Lib/dateFormat";
+import { istInputValue, todayDate } from "@/Utils/Lib/dateFormat";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, Ban, CalendarClock, CheckCircle2, Clock3, FilePen, ListChecks, Plus, Send, Trash2, Users, XCircle } from "lucide-react";
@@ -273,7 +273,7 @@ function CampaignForm({ campaign, onClose, onSaved }) {
           <div className={labelClass}>
             {t("sendAt")}
             <div className="mt-1.5 flex gap-2">
-              <DateInput className="w-full min-w-0 flex-1" value={form.send_at.slice(0, 10)} onChange={(e) => set({ send_at: e.target.value ? `${e.target.value}T${form.send_at.slice(11, 16) || "00:00"}` : "" })} />
+              <DateInput className="w-full min-w-0 flex-1" min={todayDate()} value={form.send_at.slice(0, 10)} onChange={(e) => set({ send_at: e.target.value ? `${e.target.value}T${form.send_at.slice(11, 16) || "00:00"}` : "" })} />
               <input type="time" aria-label={t("sendAt")} className={`${inputClass} !mt-0 !w-28 shrink-0`} disabled={!form.send_at} value={form.send_at.slice(11, 16)} onChange={(e) => set({ send_at: `${form.send_at.slice(0, 10)}T${e.target.value || "00:00"}` })} />
             </div>
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("sendAtHint")}</span>

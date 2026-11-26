@@ -10,6 +10,7 @@ import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { rewardsVoucherApi } from "@/Services/Campaigns/campaigns.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { RecordDialogFrame, RewardRecords, amount, byId, editedSetup, inputClass, labelClass, shownSetup, useRewardOptions, useRewardRecord, whole } from "./rewardsShared";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 
 const text = (v) => (v == null ? "" : String(v));
 const toForm = (s) => ({ code: text(s.code), name: text(s.name), points_cost: text(s.points_cost), value: text(s.value), currency_id: text(s.currency_id), stock: text(s.stock), start_date: text(s.start_date), end_date: text(s.end_date) });
@@ -94,11 +95,11 @@ function VoucherForm({ record, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("start_date")} <span className="text-red-500">*</span>
-          <DateInput className={inputClass} value={form.start_date} max={form.end_date || undefined} onChange={(e) => set({ start_date: e.target.value })} />
+          <DateInput className={inputClass} value={form.start_date} min={todayDate()} max={form.end_date || undefined} onChange={(e) => set({ start_date: e.target.value })} />
         </label>
         <label className={labelClass}>
           {t("end_date")}
-          <DateInput className={inputClass} value={form.end_date} min={form.start_date || undefined} onChange={(e) => set({ end_date: e.target.value })} />
+          <DateInput className={inputClass} value={form.end_date} min={form.start_date || todayDate()} onChange={(e) => set({ end_date: e.target.value })} />
         </label>
         <label className={`${labelClass} md:col-span-2`}>
           {t("narration")}

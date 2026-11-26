@@ -27,6 +27,7 @@ import { UntranslatedConfirm, untranslatedOf } from "./Translations";
 import { Button } from "@/Components/Common/Button";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 // The form on a definition (Admin portal handoff: onboarding form builder,
 // §5), shared by individual and corporate: Basics (the definition's own
 // columns), the ordered sections, the rules, the uses (which fields serve
@@ -603,7 +604,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
               )}
               <label className="text-sm font-semibold text-slate-700">
                 {t("onboarding:effectiveFrom")}
-                <DateInput disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className={inputClass} />
+                <DateInput disabled={readOnly} value={basics.effective_from} min={todayDate()} onChange={(e) => setBasic("effective_from", e.target.value)} className={inputClass} />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">

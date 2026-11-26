@@ -21,6 +21,16 @@ export const accountsApi = {
   phoneTransfers: (body) => request(API_ENDPOINTS.ACCOUNT.PHONE_TRANSFER_LIST, body),
 };
 
+// Customers' savings plans (Admin_43, read only).
+//   list: { list_version: 2, status, entity_type + entity_id, plan_ref, inst_profile_id, search, page, limit, sort_by }
+//         -> rows in data, with the standard pagination
+//   get:  { id } -> data[0] = { plan, transactions (oldest first) }
+export const savingsPlansApi = {
+  listPath: API_ENDPOINTS.ACCOUNT.SAVINGS_LIST,
+  list: (body) => request(API_ENDPOINTS.ACCOUNT.SAVINGS_LIST, { ...body, list_version: 2 }),
+  get: (body) => request(API_ENDPOINTS.ACCOUNT.SAVINGS_GET, body),
+};
+
 // Opening a further account (maker-checker; Self opens at once).
 //   options: { entity_type, entity_id } -> { owner, products (each with
 //            `held`), accounts } · add: { entity_type, entity_id,

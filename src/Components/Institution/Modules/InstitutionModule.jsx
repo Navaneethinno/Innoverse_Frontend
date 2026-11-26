@@ -28,6 +28,7 @@ import { LinkButton } from "@/Components/Common/TextButtons";
 import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
 import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { InstitutionMenus } from "@/Components/Institution/Modules/InstitutionMenus";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 
 const displayValue = (value) => value ?? "—";
 
@@ -314,6 +315,7 @@ function ModuleForm({
               <DateInput
                 required
                 value={form.effective_from}
+                min={todayDate()}
                 max={form.effective_to || undefined}
                 onChange={set("effective_from")}
                 className="mt-1.5 w-full rounded-xl border border-border p-3"
@@ -323,7 +325,7 @@ function ModuleForm({
               {tr("Effective to")}
               <DateInput
                 value={form.effective_to}
-                min={form.effective_from || undefined}
+                min={form.effective_from || todayDate()}
                 onChange={set("effective_to")}
                 className="mt-1.5 w-full rounded-xl border border-border p-3"
               />
@@ -373,6 +375,7 @@ function ModuleForm({
                   <DateInput
                     required
                     value={row.effective_from}
+                    min={todayDate()}
                     max={row.effective_to || undefined}
                     onChange={setModuleRow(index, "effective_from")}
                     className="mt-1.5 w-full rounded-xl border border-border p-3"
@@ -382,7 +385,7 @@ function ModuleForm({
                   {tr("Effective to")}
                   <DateInput
                     value={row.effective_to}
-                    min={row.effective_from || undefined}
+                    min={row.effective_from || todayDate()}
                     onChange={setModuleRow(index, "effective_to")}
                     className="mt-1.5 w-full rounded-xl border border-border p-3"
                   />

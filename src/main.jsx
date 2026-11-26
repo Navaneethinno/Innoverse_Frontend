@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./etaku.css";
 import App from "./App";
 import { i18n, loadLanguage } from "./Utils/I18n/i18n";
 import { watchApprovals } from "./Utils/Lib/flourish";

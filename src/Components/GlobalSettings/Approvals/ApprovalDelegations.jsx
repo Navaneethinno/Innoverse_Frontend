@@ -1,4 +1,4 @@
-import { formatDay, istToUtc } from "@/Utils/Lib/dateFormat";
+import { formatDay, istToUtc, todayDate } from "@/Utils/Lib/dateFormat";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, PowerOff, Trash2, UserCog } from "lucide-react";
@@ -98,11 +98,11 @@ function DelegationForm({ users, canDelegateOthers, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("firstDay")} <span className="text-red-500">*</span>
-          <DateInput className={inputClass} value={form.from} max={form.to || undefined} onChange={(e) => set({ from: e.target.value })} />
+          <DateInput className={inputClass} value={form.from} min={todayDate()} max={form.to || undefined} onChange={(e) => set({ from: e.target.value })} />
         </label>
         <label className={labelClass}>
           {t("lastDay")} <span className="text-red-500">*</span>
-          <DateInput className={inputClass} value={form.to} min={form.from || undefined} onChange={(e) => set({ to: e.target.value })} />
+          <DateInput className={inputClass} value={form.to} min={form.from || todayDate()} onChange={(e) => set({ to: e.target.value })} />
         </label>
         <label className={`${labelClass} md:col-span-2`}>
           {t("reason")}

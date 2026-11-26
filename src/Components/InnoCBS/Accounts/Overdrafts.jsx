@@ -15,6 +15,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { amountInput, inputClass, labelClass } from "../Deposits/depositShared";
 import { accountDate, money } from "./accountShared";
 import { SearchBox } from "@/Components/Common/SearchBox";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 
 // Accounts › Overdrafts: an overdraft lets one account go below zero up to a
 // limit; interest accrues daily on the negative balance and is charged on the
@@ -295,7 +296,7 @@ function RequestOverdraft({ acctNum, onClose, onDone }) {
           </label>
           <label className={labelClass}>
             {t("odExpiryOptional")}
-            <DateInput className={cn(inputClass, "mt-1.5")} value={form.expiry_date} onChange={(e) => set("expiry_date")(e.target.value)} />
+            <DateInput className={cn(inputClass, "mt-1.5")} value={form.expiry_date} min={todayDate()} onChange={(e) => set("expiry_date")(e.target.value)} />
           </label>
         </div>
         <label className={labelClass}>

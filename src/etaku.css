@@ -1,0 +1,67 @@
+/* E-TAKU theme: applies only while a user of institution code ET is signed
+   in (BrandThemeProvider puts the `etaku` class on <html>, and takes it off
+   on sign-out or another institution's sign-in). Every other institution and
+   the login page keep theme.css unchanged. Neutrals and font from the
+   E-TAKU APP DESIGN 2026 Figma file; the brand colours still come from the
+   institution's branding. Styling only: no layout changes. */
+@import "@fontsource-variable/manrope/wght.css";
+
+html.etaku {
+  --font-sans: "Manrope Variable", system-ui, -apple-system, sans-serif;
+  /* Light tokens. */
+  --background: #f7f8fa;
+  --foreground: #28292e;
+  --card: #ffffff;
+  --card-foreground: #28292e;
+  --card-hover: #fafafa;
+  --popover: #ffffff;
+  --popover-foreground: #28292e;
+  --muted: #eff1f6;
+  --muted-foreground: #797979;
+  --muted-foreground-soft: rgba(121, 121, 121, 0.7);
+  --border: #efefef;
+  --input-background: #fafafa;
+  --switch-background: #dfdfe0;
+  --success: #089d3f;
+  --destructive: #f1615f;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #70727d;
+  --sidebar-border: #efefef;
+  --header: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-border: #efefef;
+  --glass-shadow: 0 8px 28px rgba(9, 9, 11, 0.06), 0 1.5px 4px rgba(9, 9, 11, 0.04);
+  --mesh-1: #fff6d1;
+  --mesh-2: #f7f8fa;
+  --mesh-3: #fff0b3;
+  --mesh-4: #eff1f6;
+}
+html.etaku.dark {
+  --background: #161719;
+  --foreground: #ffffff;
+  --card: #1e1e20;
+  --card-foreground: #ffffff;
+  --card-hover: #28292e;
+  --popover: #1f1f23;
+  --popover-foreground: #ffffff;
+  --muted: #28292e;
+  --muted-foreground: #a4a4a4;
+  --muted-foreground-soft: rgba(164, 164, 164, 0.7);
+  --border: #2a2a2a;
+  --input: #323238;
+  --input-background: #1f1f23;
+  --switch-background: #3b3b3b;
+  --success: #22c55e;
+  --destructive: #ef4444;
+  --sidebar: #1f1f23;
+  --sidebar-foreground: #f3f5fb;
+  --sidebar-border: #2a2a2a;
+  --header: #1e1e20;
+  --glass-bg: rgba(30, 30, 32, 0.88);
+  --glass-border: #2a2a2a;
+  --glass-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 1.5px 4px rgba(0, 0, 0, 0.25);
+  --mesh-1: #1f1f23;
+  --mesh-2: #161719;
+  --mesh-3: #2a2410;
+  --mesh-4: #28292e;
+}

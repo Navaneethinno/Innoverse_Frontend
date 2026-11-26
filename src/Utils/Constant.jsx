@@ -953,6 +953,8 @@ export const API_ENDPOINTS = {
     OVERDRAFT: "/config/account/overdraft",
     PARTY_LIST: "/config/account/party/list",
     PHONE_TRANSFER_LIST: "/config/account/phone_transfer/list",
+    SAVINGS_LIST: "/config/account/savings/list",
+    SAVINGS_GET: "/config/account/savings/get",
     STATEMENT_GET: "/config/account/statement/get",
     STATEMENT_LIST: "/config/account/statement/list",
     TXN: "/config/account/txn",

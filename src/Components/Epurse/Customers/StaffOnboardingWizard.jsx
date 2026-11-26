@@ -21,6 +21,7 @@ import { Button } from "@/Components/Common/Button";
 import { CustomerAccounts, useAccountsOwner } from "@/Components/InnoCBS/Accounts/accountShared";
 import { OwnerLimitUsage } from "@/Components/GlobalSettings/Limits/LimitUsage";
 import { OwnerHistoryButton } from "@/Components/Finance/Transactions/OwnerHistory";
+import { OwnerSavingsButton } from "@/Components/InnoCBS/Accounts/SavingsPlans";
 import { OwnerDeposits } from "@/Components/InnoCBS/Deposits/TermDeposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
@@ -538,6 +539,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         {!corporate && <KycLevelPanel kyc={wizard.kyc} onJump={jumpToField} />}
         <CustomerAccounts accounts={wizard.accounts} />
         <OwnerHistoryButton owner={owner} />
+        <OwnerSavingsButton owner={owner} />
         <OwnerDeposits owner={owner} />
         <OwnerLimitUsage owner={owner} />
         <CustomerRiskPanel kind={kind} instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />

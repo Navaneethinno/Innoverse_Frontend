@@ -14,6 +14,7 @@ import { currencyCode, useLimitLists, useProviderSources } from "./useLimitLists
 
 import { Button } from "@/Components/Common/Button";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 // The rules of one limit group (Global Settings > Limit handoff, "The rules
 // (config)"). The whole list is sent every time: save_config replaces it.
 // A draft / rejected group saves with save_config; an approved one opens a
@@ -147,11 +148,11 @@ function RuleCard({ rule, index, onChange, onRemove, lists, disabled, t }) {
             <div className="grid grid-cols-2 gap-2">
               <label className="text-xs font-semibold text-slate-700">
                 {t("from")}
-                <DateInput className={input} disabled={disabled} value={String(rule.effective_from ?? "").slice(0, 10)} max={String(rule.effective_to ?? "").slice(0, 10) || undefined} onChange={(e) => set({ effective_from: e.target.value })} />
+                <DateInput className={input} disabled={disabled} value={String(rule.effective_from ?? "").slice(0, 10)} min={todayDate()} max={String(rule.effective_to ?? "").slice(0, 10) || undefined} onChange={(e) => set({ effective_from: e.target.value })} />
               </label>
               <label className="text-xs font-semibold text-slate-700">
                 {t("to")}
-                <DateInput className={input} disabled={disabled} value={String(rule.effective_to ?? "").slice(0, 10)} min={String(rule.effective_from ?? "").slice(0, 10) || undefined} onChange={(e) => set({ effective_to: e.target.value })} />
+                <DateInput className={input} disabled={disabled} value={String(rule.effective_to ?? "").slice(0, 10)} min={String(rule.effective_from ?? "").slice(0, 10) || todayDate()} onChange={(e) => set({ effective_to: e.target.value })} />
               </label>
             </div>
             <label className="text-xs font-semibold text-slate-700 md:col-span-4">

@@ -23,6 +23,7 @@ import { InstitutionWallets } from "./InstitutionWallets";
 import { OverdraftCard, Overdrafts } from "./Overdrafts";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { PhoneTransfers } from "./PhoneTransfers";
+import { SavingsPlans } from "./SavingsPlans";
 import { SelfService } from "./SelfService";
 import { OpenAccount, OpeningRequests } from "./AccountOpening";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -56,10 +57,11 @@ export function Accounts() {
           </Button>
         )}
       </div>
-      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "overdrafts" }, { key: "phone" }, { key: "self" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", overdrafts: "overdrafts", phone: "ptTitle", self: "ss_tab" }[k])} />
+      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "overdrafts" }, { key: "phone" }, { key: "savings" }, { key: "self" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", overdrafts: "overdrafts", phone: "ptTitle", savings: "svTitle", self: "ss_tab" }[k])} />
       {view === "accounts" && <AccountsList />}
       {view === "opening" && <OpeningRequests />}
       {view === "phone" && <PhoneTransfers />}
+      {view === "savings" && <SavingsPlans />}
       {view === "self" && <SelfService />}
       {view === "overdrafts" && <Overdrafts />}
       {view === "wallets" && <InstitutionWallets onOpenAccount={(w) => setWalletAccount({ ...w, id: w.acct_id })} />}
@@ -155,7 +157,7 @@ function AccountsList() {
 
 // One account, fetched fresh (/config/account/get) for its latest balances.
 // Tabs: the account itself, its action requests, its parties, its statements.
-function AccountDetail({ account, onClose, onStatement }) {
+export function AccountDetail({ account, onClose, onStatement }) {
   const { t } = useTranslation("accounts");
   const can = usePagePermission();
   const [openingFor, setOpeningFor] = useState(null);

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { deriveBrandThemeVars } from "@/Utils/Lib/colorTheme";
 import { asBrand, brandColors } from "@/Utils/Lib/branding";
@@ -116,8 +116,29 @@ async function loadAssets(brand, cached) {
 // properties beat theme.css's :root/.dark rules, so every component that
 // reads var(--primary) etc. follows the brand with no changes, and with no
 // branding the fixed palette in theme.css applies.
+// E-TAKU (institution code ET) has its own look (etaku.css) and its own
+// light/dark choice, dark until the user picks one. Everyone else's mode is
+// put back when an E-TAKU session ends.
+const ETAKU_MODE_KEY = "innoverse-etaku-color-mode";
+const ETAKU_PREV_MODE_KEY = "innoverse-etaku-prev-color-mode";
+const readKey = (key) => {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const writeKey = (key, value) => {
+  try {
+    if (value) window.localStorage.setItem(key, value);
+    else window.localStorage.removeItem(key);
+  } catch {
+    /* Not remembered. */
+  }
+};
+
 export function BrandThemeProvider({ children }) {
-  const { mode } = useColorMode();
+  const { mode, setMode } = useColorMode();
   // The session lives in sessionStorage and the brand in localStorage: a
   // closed tab or expired session leaves the brand behind, so it applies
   // only while signed in.
@@ -127,6 +148,30 @@ export function BrandThemeProvider({ children }) {
   useEffect(() => {
     applyBrandVars(brandColors(brand, mode), mode);
   }, [brand, mode]);
+
+  const etaku = String(brand?.institutionCode ?? "").trim().toUpperCase() === "ET";
+  const etakuActive = useRef(false);
+  useEffect(() => {
+    document.documentElement.classList.toggle("etaku", etaku);
+    if (etaku && !etakuActive.current) {
+      etakuActive.current = true;
+      if (!readKey(ETAKU_PREV_MODE_KEY)) writeKey(ETAKU_PREV_MODE_KEY, mode);
+      setMode(readKey(ETAKU_MODE_KEY) === "light" ? "light" : "dark");
+    } else if (!etaku) {
+      etakuActive.current = false;
+      const previous = readKey(ETAKU_PREV_MODE_KEY);
+      if (previous) {
+        writeKey(ETAKU_PREV_MODE_KEY, null);
+        setMode(previous === "dark" ? "dark" : "light");
+      }
+    }
+    // Runs when the institution changes; `mode` is read, not followed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [etaku, setMode]);
+  // An E-TAKU user's own light/dark choice.
+  useEffect(() => {
+    if (etaku) writeKey(ETAKU_MODE_KEY, mode);
+  }, [etaku, mode]);
 
   // Images: fetched while signed in, whenever the brand's paths change.
   useEffect(() => {

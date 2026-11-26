@@ -33,6 +33,7 @@ import { Button } from "@/Components/Common/Button";
 import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../../partyType";
 import { UntranslatedConfirm, untranslatedOf } from "@/Components/Epurse/Settings/FormBuilder/Translations";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
+import { todayDate } from "@/Utils/Lib/dateFormat";
 // Individual and corporate customer types are one screen. Corporate has no
 // sub type, minor age or KYC scheme; it is set by its company type instead.
 const KINDS = {
@@ -416,7 +417,7 @@ export function OnboardingConfigurationPage({ kind = "individual" }) {
           )}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:effectiveFrom")}
-            <DateInput value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
+            <DateInput value={form.effective_from} min={todayDate()} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
         </div>
       </Modal>
